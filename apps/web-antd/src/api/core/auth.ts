@@ -1,4 +1,9 @@
-import { baseRequestClient, requestClient } from '#/api/request';
+import {
+  getAccessCodesApi as getAdminAccessCodesApi,
+  loginApi as loginAdminApi,
+  logoutApi as logoutAdminApi,
+  refreshTokenApi as refreshAdminTokenApi,
+} from '../admin/auth';
 
 export namespace AuthApi {
   /** 登录接口参数 */
@@ -22,30 +27,26 @@ export namespace AuthApi {
  * 登录
  */
 export async function loginApi(data: AuthApi.LoginParams) {
-  return requestClient.post<AuthApi.LoginResult>('/auth/login', data);
+  return loginAdminApi(data);
 }
 
 /**
  * 刷新accessToken
  */
 export async function refreshTokenApi() {
-  return baseRequestClient.post<AuthApi.RefreshTokenResult>('/auth/refresh', {
-    withCredentials: true,
-  });
+  return refreshAdminTokenApi();
 }
 
 /**
  * 退出登录
  */
 export async function logoutApi() {
-  return baseRequestClient.post('/auth/logout', {
-    withCredentials: true,
-  });
+  return logoutAdminApi();
 }
 
 /**
  * 获取用户权限码
  */
 export async function getAccessCodesApi() {
-  return requestClient.get<string[]>('/auth/codes');
+  return getAdminAccessCodesApi();
 }

@@ -1,0 +1,42 @@
+import {
+  createAdminPortalServiceClient,
+  createAuthenticationServiceClient,
+  createMenuServiceClient,
+  createOrgUnitServiceClient,
+  createPermissionGroupServiceClient,
+  createPermissionServiceClient,
+  createPositionServiceClient,
+  createRoleServiceClient,
+  createTenantServiceClient,
+  createUserProfileServiceClient,
+  createUserServiceClient,
+} from '#/api/generated/admin/service/v1';
+
+import { adminRequestHandler } from './request-handler';
+
+export const adminPortalClient =
+  createAdminPortalServiceClient(adminRequestHandler);
+
+export const authenticationClient =
+  createAuthenticationServiceClient(adminRequestHandler);
+
+export const menuClient = createMenuServiceClient(adminRequestHandler);
+
+export const orgUnitClient = createOrgUnitServiceClient(adminRequestHandler);
+
+export const permissionClient =
+  createPermissionServiceClient(adminRequestHandler);
+
+export const permissionGroupClient =
+  createPermissionGroupServiceClient(adminRequestHandler);
+
+export const positionClient = createPositionServiceClient(adminRequestHandler);
+
+export const roleClient = createRoleServiceClient(adminRequestHandler);
+
+export const tenantClient = createTenantServiceClient(adminRequestHandler);
+
+export const userClient = createUserServiceClient(adminRequestHandler);
+
+export const userProfileClient =
+  createUserProfileServiceClient(adminRequestHandler);

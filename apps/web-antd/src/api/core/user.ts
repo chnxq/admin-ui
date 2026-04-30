@@ -1,10 +1,10 @@
 import type { UserInfo } from '@vben/types';
 
-import { requestClient } from '#/api/request';
+import { getUserInfoApi as getAdminUserInfoApi } from '../admin/user';
 
 /**
  * 获取用户信息
  */
 export async function getUserInfoApi() {
-  return requestClient.get<UserInfo>('/user/info');
+  return getAdminUserInfoApi() as Promise<UserInfo>;
 }
