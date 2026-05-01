@@ -4,7 +4,7 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { orgUnitClient } from './clients';
-import { getAdminList, toPagingRequest } from './paging';
+import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
 
 export type AdminOrgUnit = identityservicev1_OrgUnit;
 export type AdminOrgUnitStatus = NonNullable<AdminOrgUnit['status']>;
@@ -114,7 +114,7 @@ export async function listAdminOrgUnitsApi(
 
   return {
     items,
-    total: response.total ?? 0,
+    total: toAdminTotal(response.total),
     tree: buildOrgUnitTree(items),
   };
 }

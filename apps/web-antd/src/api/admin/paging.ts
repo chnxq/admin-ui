@@ -138,6 +138,17 @@ export function unwrapAdminEnvelope<T>(response: unknown): T {
   );
 }
 
+export function toAdminTotal(total: number | string | undefined): number {
+  if (typeof total === 'number') {
+    return total;
+  }
+  if (typeof total === 'string') {
+    const normalized = Number(total);
+    return Number.isFinite(normalized) ? normalized : 0;
+  }
+  return 0;
+}
+
 export async function getAdminList<T>(
   path: string,
   params: pagination_PagingRequest,

@@ -4,7 +4,7 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { positionClient } from './clients';
-import { getAdminList, toPagingRequest } from './paging';
+import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
 
 export type AdminPosition = identityservicev1_Position;
 export type AdminPositionStatus = NonNullable<AdminPosition['status']>;
@@ -80,7 +80,7 @@ export async function listAdminPositionsApi(
 
   return {
     items: response.items ?? [],
-    total: response.total ?? 0,
+    total: toAdminTotal(response.total),
   };
 }
 

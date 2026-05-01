@@ -1,5 +1,6 @@
 import {
   createAdminPortalServiceClient,
+  createApiServiceClient,
   createAuthenticationServiceClient,
   createMenuServiceClient,
   createOrgUnitServiceClient,
@@ -16,6 +17,8 @@ import { adminRequestHandler } from './request-handler';
 
 export const adminPortalClient =
   createAdminPortalServiceClient(adminRequestHandler);
+
+export const apiClient = createApiServiceClient(adminRequestHandler);
 
 export const authenticationClient =
   createAuthenticationServiceClient(adminRequestHandler);

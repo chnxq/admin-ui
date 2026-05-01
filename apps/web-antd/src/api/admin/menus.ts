@@ -3,8 +3,15 @@ import type {
   resourceservicev1_Menu,
 } from '#/api/generated/admin/service/v1';
 
+import { requestClient } from '#/api/request';
+
 import { menuClient } from './clients';
-import { getAdminList, toPagingRequest } from './paging';
+import {
+  getAdminList,
+  toAdminTotal,
+  toPagingRequest,
+  unwrapAdminEnvelope,
+} from './paging';
 
 export type AdminMenu = resourceservicev1_Menu;
 export type AdminMenuStatus = NonNullable<resourceservicev1_Menu['status']>;
@@ -116,7 +123,7 @@ export async function listAdminMenusApi(
 
   return {
     items,
-    total: response.total ?? 0,
+    total: toAdminTotal(response.total),
     tree: buildMenuTree(items),
   };
 }
@@ -153,4 +160,15 @@ export async function updateAdminMenuApi(
 
 export async function deleteAdminMenuApi(id: number) {
   return await menuClient.Delete({ id });
+}
+
+export async function syncAdminMenusApi() {
+  const response = await requestClient.request<unknown>(
+    '/admin/v1/menus:sync',
+    {
+      method: 'POST',
+      responseReturn: 'body',
+    },
+  );
+  return unwrapAdminEnvelope(response);
 }

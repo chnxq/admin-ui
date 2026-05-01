@@ -33,6 +33,7 @@ import {
   createAdminMenuApi,
   deleteAdminMenuApi,
   listAdminMenusApi,
+  syncAdminMenusApi,
   updateAdminMenuApi,
 } from '#/api/admin/menus';
 
@@ -120,6 +121,7 @@ const columns: TableColumnsType<AdminMenu> = [
 const loading = ref(false);
 const modalOpen = ref(false);
 const submitting = ref(false);
+const syncing = ref(false);
 const editingId = ref<number>();
 const formRef = ref<FormInstance>();
 const menuItems = ref<AdminMenu[]>([]);
@@ -296,6 +298,17 @@ async function handleDelete(record: AdminMenuTableRecord) {
   await loadMenus();
 }
 
+async function handleSync() {
+  syncing.value = true;
+  try {
+    await syncAdminMenusApi();
+    message.success('菜单同步完成');
+    await loadMenus();
+  } finally {
+    syncing.value = false;
+  }
+}
+
 onMounted(() => {
   loadMenus();
 });
@@ -338,12 +351,25 @@ onMounted(() => {
           </Form.Item>
         </Form>
 
-        <Button type="primary" @click="openCreate()">
-          <template #icon>
-            <IconifyIcon icon="lucide:plus" />
-          </template>
-          新增菜单
-        </Button>
+        <Space>
+          <Popconfirm
+            title="确认从默认导航定义同步菜单？"
+            @confirm="handleSync"
+          >
+            <Button :loading="syncing">
+              <template #icon>
+                <IconifyIcon icon="lucide:refresh-cw" />
+              </template>
+              同步菜单
+            </Button>
+          </Popconfirm>
+          <Button type="primary" @click="openCreate()">
+            <template #icon>
+              <IconifyIcon icon="lucide:plus" />
+            </template>
+            新增菜单
+          </Button>
+        </Space>
       </div>
 
       <Table

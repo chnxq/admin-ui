@@ -6,7 +6,7 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { permissionClient, permissionGroupClient } from './clients';
-import { getAdminList, toPagingRequest } from './paging';
+import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
 
 export type AdminPermission = permissionservicev1_Permission;
 export type AdminPermissionGroup = permissionservicev1_PermissionGroup;
@@ -150,7 +150,7 @@ export async function listAdminPermissionsApi(
 
   return {
     items: response.items ?? [],
-    total: response.total ?? 0,
+    total: toAdminTotal(response.total),
   };
 }
 
@@ -172,7 +172,7 @@ export async function listAdminPermissionGroupsApi(
 
   return {
     items,
-    total: response.total ?? 0,
+    total: toAdminTotal(response.total),
     tree: buildPermissionGroupTree(items),
   };
 }

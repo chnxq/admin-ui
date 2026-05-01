@@ -4,7 +4,7 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { roleClient } from './clients';
-import { getAdminList, toPagingRequest } from './paging';
+import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
 
 export type AdminRole = permissionservicev1_Role;
 export type AdminRoleStatus = NonNullable<permissionservicev1_Role['status']>;
@@ -74,7 +74,7 @@ export async function listAdminRolesApi(
 
   return {
     items: response.items ?? [],
-    total: response.total ?? 0,
+    total: toAdminTotal(response.total),
   };
 }
 
