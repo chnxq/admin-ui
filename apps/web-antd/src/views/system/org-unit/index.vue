@@ -8,6 +8,7 @@ import type {
   AdminOrgUnitStatus,
   AdminOrgUnitType,
 } from '#/api/admin/org-units';
+import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -35,6 +36,11 @@ import {
   listAdminOrgUnitsApi,
   updateAdminOrgUnitApi,
 } from '#/api/admin/org-units';
+import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
+import {
+  filterVisibleAdminTableColumns,
+  getDefaultVisibleColumnKeys,
+} from '#/components/admin-table-toolbar/shared';
 
 interface AdminOrgUnitFormModel extends AdminOrgUnitSaveInput {
   code: string;
@@ -82,7 +88,7 @@ const typeTextMap: Record<AdminOrgUnitType, string> = {
   TEAM: '团队',
 };
 
-const columns: TableColumnsType<AdminOrgUnit> = [
+const columns: AdminTableColumn<AdminOrgUnit>[] = [
   { key: 'orgUnit', title: '组织', width: 260 },
   { dataIndex: 'code', title: '编码', width: 160 },
   { dataIndex: 'type', key: 'type', title: '类型', width: 120 },
@@ -98,8 +104,10 @@ const modalOpen = ref(false);
 const submitting = ref(false);
 const editingId = ref<number>();
 const formRef = ref<FormInstance>();
+const tableSurfaceRef = ref<HTMLElement>();
 const orgUnits = ref<AdminOrgUnit[]>([]);
 const orgUnitTree = ref<AdminOrgUnit[]>([]);
+const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
   code: '',
@@ -122,6 +130,9 @@ const formModel = reactive<AdminOrgUnitFormModel>({
 
 const modalTitle = computed(() =>
   editingId.value ? '编辑组织单元' : '新增组织单元',
+);
+const displayColumns = computed<TableColumnsType<AdminOrgUnit>>(() =>
+  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
 );
 const formRules: Record<string, Rule[]> = {
   code: [{ message: '请输入组织编码', required: true }],
@@ -257,7 +268,7 @@ onMounted(() => {
 
 <template>
   <Page auto-content-height>
-    <div class="admin-org-unit-surface">
+    <div ref="tableSurfaceRef" class="admin-org-unit-surface">
       <div class="admin-org-unit-toolbar">
         <Space wrap>
           <Input
@@ -287,17 +298,28 @@ onMounted(() => {
             重置
           </Button>
         </Space>
-        <Button type="primary" @click="openCreateModal">
-          <template #icon>
-            <IconifyIcon icon="lucide:plus" />
-          </template>
+        <Space>
+          <AdminTableToolbar
+            v-model:column-keys="visibleColumnKeys"
+            :columns="columns"
+            :data-source="orgUnitTree"
+            file-name="system-org-units"
+            :fullscreen-target="tableSurfaceRef"
+            :refresh="loadOrgUnits"
+            storage-key="system-org-unit-list"
+          />
+          <Button type="primary" @click="openCreateModal">
+            <template #icon>
+              <IconifyIcon icon="lucide:plus" />
+            </template>
           新增组织
-        </Button>
+          </Button>
+        </Space>
       </div>
 
       <Table
         class="admin-org-unit-table"
-        :columns="columns"
+        :columns="displayColumns"
         :data-source="orgUnitTree"
         :loading="loading"
         :pagination="false"

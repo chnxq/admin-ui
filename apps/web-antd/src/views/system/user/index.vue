@@ -11,6 +11,7 @@ import type {
   AdminUserSaveInput,
   AdminUserStatus,
 } from '#/api/admin/users';
+import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -37,6 +38,11 @@ import {
   listAdminUsersApi,
   updateAdminUserApi,
 } from '#/api/admin/users';
+import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
+import {
+  filterVisibleAdminTableColumns,
+  getDefaultVisibleColumnKeys,
+} from '#/components/admin-table-toolbar/shared';
 
 interface AdminUserFormModel extends AdminUserSaveInput {
   password: string;
@@ -64,7 +70,7 @@ const statusTextMap: Record<AdminUserStatus, string> = {
   PENDING: '待激活',
 };
 
-const columns: TableColumnsType<AdminUser> = [
+const columns: AdminTableColumn<AdminUser>[] = [
   {
     dataIndex: 'id',
     title: 'ID',
@@ -116,7 +122,9 @@ const modalOpen = ref(false);
 const submitting = ref(false);
 const editingId = ref<number>();
 const formRef = ref<FormInstance>();
+const tableSurfaceRef = ref<HTMLElement>();
 const users = ref<AdminUser[]>([]);
+const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
   username: '',
@@ -143,6 +151,9 @@ const formModel = reactive<AdminUserFormModel>({
 });
 
 const modalTitle = computed(() => (editingId.value ? '编辑用户' : '新增用户'));
+const displayColumns = computed<TableColumnsType<AdminUser>>(() =>
+  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+);
 const formRules = computed<Record<string, Rule[]>>(() => ({
   email: [{ message: '请输入有效邮箱', type: 'email' }],
   password: editingId.value
@@ -315,7 +326,7 @@ onMounted(() => {
 
 <template>
   <Page auto-content-height title="用户管理">
-    <div class="admin-user-surface">
+    <div ref="tableSurfaceRef" class="admin-user-surface">
       <div class="admin-user-toolbar">
         <Form :model="searchForm" layout="inline" @finish="handleSearch">
           <Form.Item label="用户名" name="username">
@@ -343,17 +354,28 @@ onMounted(() => {
           </Form.Item>
         </Form>
 
-        <Button type="primary" @click="openCreate">
-          <template #icon>
-            <IconifyIcon icon="lucide:plus" />
-          </template>
+        <Space>
+          <AdminTableToolbar
+            v-model:column-keys="visibleColumnKeys"
+            :columns="columns"
+            :data-source="users"
+            file-name="system-users"
+            :fullscreen-target="tableSurfaceRef"
+            :refresh="loadUsers"
+            storage-key="system-user-list"
+          />
+          <Button type="primary" @click="openCreate">
+            <template #icon>
+              <IconifyIcon icon="lucide:plus" />
+            </template>
           新增用户
-        </Button>
+          </Button>
+        </Space>
       </div>
 
       <Table
         class="admin-user-table"
-        :columns="columns"
+        :columns="displayColumns"
         :data-source="users"
         :loading="loading"
         :pagination="tablePagination"

@@ -68,7 +68,7 @@ function toMenuData(input: AdminMenuSaveInput): AdminMenu {
 function cloneMenu(menu: AdminMenu): AdminMenu {
   return {
     ...menu,
-    children: [],
+    children: undefined,
     meta: menu.meta ? { ...menu.meta } : undefined,
   };
 }

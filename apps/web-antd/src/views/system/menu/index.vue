@@ -8,6 +8,7 @@ import type {
   AdminMenuStatus,
   AdminMenuType,
 } from '#/api/admin/menus';
+import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -36,6 +37,11 @@ import {
   syncAdminMenusApi,
   updateAdminMenuApi,
 } from '#/api/admin/menus';
+import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
+import {
+  filterVisibleAdminTableColumns,
+  getDefaultVisibleColumnKeys,
+} from '#/components/admin-table-toolbar/shared';
 
 interface AdminMenuFormModel extends AdminMenuSaveInput {
   component: string;
@@ -76,7 +82,7 @@ const typeTextMap: Record<AdminMenuType, string> = {
   MENU: '菜单',
 };
 
-const columns: TableColumnsType<AdminMenu> = [
+const columns: AdminTableColumn<AdminMenu>[] = [
   {
     key: 'menu',
     title: '菜单',
@@ -124,8 +130,10 @@ const submitting = ref(false);
 const syncing = ref(false);
 const editingId = ref<number>();
 const formRef = ref<FormInstance>();
+const tableSurfaceRef = ref<HTMLElement>();
 const menuItems = ref<AdminMenu[]>([]);
 const menuTree = ref<AdminMenu[]>([]);
+const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
   name: '',
@@ -145,8 +153,11 @@ const formModel = reactive<AdminMenuFormModel>({
 });
 
 const modalTitle = computed(() => (editingId.value ? '编辑菜单' : '新增菜单'));
+const displayColumns = computed<TableColumnsType<AdminMenu>>(() =>
+  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+);
 const formRules = computed<Record<string, Rule[]>>(() => ({
-  name: [{ message: '请输入路由名称', required: true }],
+  name: [{ message: '请输入菜单名称', required: true }],
   path: [{ message: '请输入路径', required: true }],
   status: [{ message: '请选择状态', required: true }],
   title: [{ message: '请输入菜单标题', required: true }],
@@ -316,14 +327,14 @@ onMounted(() => {
 
 <template>
   <Page auto-content-height title="菜单管理">
-    <div class="admin-menu-surface">
+    <div ref="tableSurfaceRef" class="admin-menu-surface">
       <div class="admin-menu-toolbar">
         <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item label="路由名称" name="name">
+          <Form.Item label="菜单名称" name="name">
             <Input
               v-model:value="searchForm.name"
               allow-clear
-              placeholder="输入路由名称"
+              placeholder="输入菜单名称"
             />
           </Form.Item>
           <Form.Item label="路径" name="path">
@@ -352,6 +363,15 @@ onMounted(() => {
         </Form>
 
         <Space>
+          <AdminTableToolbar
+            v-model:column-keys="visibleColumnKeys"
+            :columns="columns"
+            :data-source="menuTree"
+            file-name="system-menus"
+            :fullscreen-target="tableSurfaceRef"
+            :refresh="loadMenus"
+            storage-key="system-menu-list"
+          />
           <Popconfirm
             title="确认从默认导航定义同步菜单？"
             @confirm="handleSync"
@@ -374,7 +394,7 @@ onMounted(() => {
 
       <Table
         class="admin-menu-table"
-        :columns="columns"
+        :columns="displayColumns"
         :data-source="menuTree"
         :loading="loading"
         :pagination="false"
@@ -462,8 +482,8 @@ onMounted(() => {
         <Form.Item label="菜单标题" name="title">
           <Input v-model:value="formModel.title" placeholder="请输入菜单标题" />
         </Form.Item>
-        <Form.Item label="路由名称" name="name">
-          <Input v-model:value="formModel.name" placeholder="请输入路由名称" />
+        <Form.Item label="菜单名称" name="name">
+          <Input v-model:value="formModel.name" placeholder="请输入菜单名称" />
         </Form.Item>
         <Form.Item label="路径" name="path">
           <Input v-model:value="formModel.path" placeholder="请输入路径" />

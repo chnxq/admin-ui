@@ -15,6 +15,7 @@ import type {
   AdminPermissionSaveInput,
   AdminPermissionStatus,
 } from '#/api/admin/permissions';
+import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -48,6 +49,11 @@ import {
   updateAdminPermissionApi,
   updateAdminPermissionGroupApi,
 } from '#/api/admin/permissions';
+import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
+import {
+  filterVisibleAdminTableColumns,
+  getDefaultVisibleColumnKeys,
+} from '#/components/admin-table-toolbar/shared';
 
 interface AdminPermissionFormModel extends AdminPermissionSaveInput {
   code: string;
@@ -74,7 +80,7 @@ const statusTextMap: Record<AdminPermissionStatus, string> = {
   ON: '启用',
 };
 
-const columns: TableColumnsType<AdminPermission> = [
+const columns: AdminTableColumn<AdminPermission>[] = [
   {
     key: 'permission',
     title: '权限点',
@@ -123,9 +129,11 @@ const editingGroupId = ref<number>();
 const selectedGroupId = ref<number>();
 const formRef = ref<FormInstance>();
 const groupFormRef = ref<FormInstance>();
+const tableSurfaceRef = ref<HTMLElement>();
 const permissions = ref<AdminPermission[]>([]);
 const groups = ref<AdminPermissionGroup[]>([]);
 const groupTree = ref<AdminPermissionGroup[]>([]);
+const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
   code: '',
@@ -174,6 +182,9 @@ const groupModalTitle = computed(() =>
   editingGroupId.value ? '编辑权限组' : '新增权限组',
 );
 
+const displayColumns = computed<TableColumnsType<AdminPermission>>(() =>
+  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+);
 const formRules = computed<Record<string, Rule[]>>(() => ({
   code: [{ message: '请输入权限编码', required: true }],
   name: [{ message: '请输入权限名称', required: true }],
@@ -521,7 +532,7 @@ onMounted(() => {
         />
       </aside>
 
-      <section class="admin-permission-surface">
+      <section ref="tableSurfaceRef" class="admin-permission-surface">
         <div class="admin-permission-toolbar">
           <Form :model="searchForm" layout="inline" @finish="handleSearch">
             <Form.Item label="权限名称" name="name">
@@ -557,6 +568,15 @@ onMounted(() => {
           </Form>
 
           <Space>
+            <AdminTableToolbar
+              v-model:column-keys="visibleColumnKeys"
+              :columns="columns"
+              :data-source="permissions"
+              file-name="permission-list"
+              :fullscreen-target="tableSurfaceRef"
+              :refresh="refreshAll"
+              storage-key="permission-list"
+            />
             <Button :loading="syncing" @click="handleSync">
               <template #icon>
                 <IconifyIcon icon="lucide:refresh-cw" />
@@ -578,7 +598,7 @@ onMounted(() => {
 
         <Table
           class="admin-permission-table"
-          :columns="columns"
+          :columns="displayColumns"
           :data-source="permissions"
           :loading="loading"
           :pagination="tablePagination"

@@ -12,6 +12,7 @@ import type {
   AdminApiScope,
   AdminApiStatus,
 } from '#/api/admin/apis';
+import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -39,6 +40,11 @@ import {
   syncAdminApisApi,
   updateAdminApiApi,
 } from '#/api/admin/apis';
+import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
+import {
+  filterVisibleAdminTableColumns,
+  getDefaultVisibleColumnKeys,
+} from '#/components/admin-table-toolbar/shared';
 
 interface AdminApiFormModel extends AdminApiSaveInput {
   method: string;
@@ -77,7 +83,7 @@ const scopeTextMap: Record<AdminApiScope, string> = {
   API_SCOPE_INVALID: '未设置',
 };
 
-const columns: TableColumnsType<AdminApi> = [
+const columns: AdminTableColumn<AdminApi>[] = [
   {
     dataIndex: 'description',
     title: '描述',
@@ -141,7 +147,9 @@ const submitting = ref(false);
 const syncing = ref(false);
 const editingId = ref<number>();
 const formRef = ref<FormInstance>();
+const tableSurfaceRef = ref<HTMLElement>();
 const apis = ref<AdminApi[]>([]);
+const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
   method: undefined as string | undefined,
@@ -167,6 +175,9 @@ const formModel = reactive<AdminApiFormModel>({
 });
 
 const modalTitle = computed(() => (editingId.value ? '编辑API' : '新增API'));
+const displayColumns = computed<TableColumnsType<AdminApi>>(() =>
+  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+);
 const formRules = computed<Record<string, Rule[]>>(() => ({
   method: [{ message: '请选择请求方法', required: true }],
   path: [{ message: '请输入接口路径', required: true }],
@@ -355,7 +366,7 @@ onMounted(() => {
 
 <template>
   <Page auto-content-height title="API管理">
-    <div class="admin-api-surface">
+    <div ref="tableSurfaceRef" class="admin-api-surface">
       <div class="admin-api-toolbar">
         <Form :model="searchForm" layout="inline" @finish="handleSearch">
           <Form.Item label="方法" name="method">
@@ -400,6 +411,15 @@ onMounted(() => {
         </Form>
 
         <Space>
+          <AdminTableToolbar
+            v-model:column-keys="visibleColumnKeys"
+            :columns="columns"
+            :data-source="apis"
+            file-name="system-apis"
+            :fullscreen-target="tableSurfaceRef"
+            :refresh="loadApis"
+            storage-key="system-api-list"
+          />
           <Popconfirm
             title="确认从OpenAPI文档同步API资源？"
             @confirm="handleSync"
@@ -422,7 +442,7 @@ onMounted(() => {
 
       <Table
         class="admin-api-table"
-        :columns="columns"
+        :columns="displayColumns"
         :data-source="apis"
         :loading="loading"
         :pagination="tablePagination"

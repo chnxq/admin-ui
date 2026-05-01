@@ -12,6 +12,7 @@ import type {
   AdminRoleStatus,
   AdminRoleType,
 } from '#/api/admin/roles';
+import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -39,6 +40,11 @@ import {
   listAdminRolesApi,
   updateAdminRoleApi,
 } from '#/api/admin/roles';
+import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
+import {
+  filterVisibleAdminTableColumns,
+  getDefaultVisibleColumnKeys,
+} from '#/components/admin-table-toolbar/shared';
 
 interface AdminRoleFormModel extends AdminRoleSaveInput {
   code: string;
@@ -72,7 +78,7 @@ const typeTextMap: Record<AdminRoleType, string> = {
   TENANT: '租户角色',
 };
 
-const columns: TableColumnsType<AdminRole> = [
+const columns: AdminTableColumn<AdminRole>[] = [
   {
     dataIndex: 'id',
     title: 'ID',
@@ -119,7 +125,9 @@ const modalOpen = ref(false);
 const submitting = ref(false);
 const editingId = ref<number>();
 const formRef = ref<FormInstance>();
+const tableSurfaceRef = ref<HTMLElement>();
 const roles = ref<AdminRole[]>([]);
+const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
   code: '',
@@ -143,6 +151,9 @@ const formModel = reactive<AdminRoleFormModel>({
 });
 
 const modalTitle = computed(() => (editingId.value ? '编辑角色' : '新增角色'));
+const displayColumns = computed<TableColumnsType<AdminRole>>(() =>
+  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+);
 const formRules = computed<Record<string, Rule[]>>(() => ({
   code: [{ message: '请输入角色编码', required: true }],
   name: [{ message: '请输入角色名称', required: true }],
@@ -294,7 +305,7 @@ onMounted(() => {
 
 <template>
   <Page auto-content-height title="角色管理">
-    <div class="admin-role-surface">
+    <div ref="tableSurfaceRef" class="admin-role-surface">
       <div class="admin-role-toolbar">
         <Form :model="searchForm" layout="inline" @finish="handleSearch">
           <Form.Item label="角色名称" name="name">
@@ -329,17 +340,28 @@ onMounted(() => {
           </Form.Item>
         </Form>
 
-        <Button type="primary" @click="openCreate">
-          <template #icon>
-            <IconifyIcon icon="lucide:plus" />
-          </template>
+        <Space>
+          <AdminTableToolbar
+            v-model:column-keys="visibleColumnKeys"
+            :columns="columns"
+            :data-source="roles"
+            file-name="system-roles"
+            :fullscreen-target="tableSurfaceRef"
+            :refresh="loadRoles"
+            storage-key="system-role-list"
+          />
+          <Button type="primary" @click="openCreate">
+            <template #icon>
+              <IconifyIcon icon="lucide:plus" />
+            </template>
           新增角色
-        </Button>
+          </Button>
+        </Space>
       </div>
 
       <Table
         class="admin-role-table"
-        :columns="columns"
+        :columns="displayColumns"
         :data-source="roles"
         :loading="loading"
         :pagination="tablePagination"

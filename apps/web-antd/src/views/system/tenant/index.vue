@@ -13,6 +13,7 @@ import type {
   AdminTenantStatus,
   AdminTenantType,
 } from '#/api/admin/tenants';
+import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -39,6 +40,11 @@ import {
   listAdminTenantsApi,
   updateAdminTenantApi,
 } from '#/api/admin/tenants';
+import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
+import {
+  filterVisibleAdminTableColumns,
+  getDefaultVisibleColumnKeys,
+} from '#/components/admin-table-toolbar/shared';
 
 interface AdminTenantFormModel extends AdminTenantSaveInput {
   auditStatus: AdminTenantAuditStatus;
@@ -94,7 +100,7 @@ const typeTextMap: Record<AdminTenantType, string> = {
   TRIAL: '试用',
 };
 
-const columns: TableColumnsType<AdminTenant> = [
+const columns: AdminTableColumn<AdminTenant>[] = [
   { dataIndex: 'id', title: 'ID', width: 80 },
   { key: 'tenant', title: '租户', width: 260 },
   { dataIndex: 'domain', title: '域名', width: 180 },
@@ -111,7 +117,9 @@ const modalOpen = ref(false);
 const submitting = ref(false);
 const editingId = ref<number>();
 const formRef = ref<FormInstance>();
+const tableSurfaceRef = ref<HTMLElement>();
 const tenants = ref<AdminTenant[]>([]);
+const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
   code: '',
@@ -138,6 +146,9 @@ const formModel = reactive<AdminTenantFormModel>({
 });
 
 const modalTitle = computed(() => (editingId.value ? '编辑租户' : '新增租户'));
+const displayColumns = computed<TableColumnsType<AdminTenant>>(() =>
+  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+);
 const formRules: Record<string, Rule[]> = {
   code: [{ message: '请输入租户编码', required: true }],
   name: [{ message: '请输入租户名称', required: true }],
@@ -283,7 +294,7 @@ onMounted(() => {
 
 <template>
   <Page auto-content-height>
-    <div class="admin-tenant-surface">
+    <div ref="tableSurfaceRef" class="admin-tenant-surface">
       <div class="admin-tenant-toolbar">
         <Space wrap>
           <Input
@@ -313,17 +324,28 @@ onMounted(() => {
             重置
           </Button>
         </Space>
-        <Button type="primary" @click="openCreateModal">
-          <template #icon>
-            <IconifyIcon icon="lucide:plus" />
-          </template>
+        <Space>
+          <AdminTableToolbar
+            v-model:column-keys="visibleColumnKeys"
+            :columns="columns"
+            :data-source="tenants"
+            file-name="system-tenants"
+            :fullscreen-target="tableSurfaceRef"
+            :refresh="loadTenants"
+            storage-key="system-tenant-list"
+          />
+          <Button type="primary" @click="openCreateModal">
+            <template #icon>
+              <IconifyIcon icon="lucide:plus" />
+            </template>
           新增租户
-        </Button>
+          </Button>
+        </Space>
       </div>
 
       <Table
         class="admin-tenant-table"
-        :columns="columns"
+        :columns="displayColumns"
         :data-source="tenants"
         :loading="loading"
         :pagination="tablePagination"

@@ -67,7 +67,7 @@ function cloneOrgUnit(item: AdminOrgUnit): AdminOrgUnit {
     ...item,
     attributes: item.attributes ? { ...item.attributes } : {},
     businessScopes: [...(item.businessScopes ?? [])],
-    children: [],
+    children: undefined,
     permissionTags: [...(item.permissionTags ?? [])],
   };
 }

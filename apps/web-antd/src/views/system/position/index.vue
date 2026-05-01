@@ -12,6 +12,7 @@ import type {
   AdminPositionStatus,
   AdminPositionType,
 } from '#/api/admin/positions';
+import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -40,6 +41,11 @@ import {
   listAdminPositionsApi,
   updateAdminPositionApi,
 } from '#/api/admin/positions';
+import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
+import {
+  filterVisibleAdminTableColumns,
+  getDefaultVisibleColumnKeys,
+} from '#/components/admin-table-toolbar/shared';
 
 interface AdminPositionFormModel extends AdminPositionSaveInput {
   code: string;
@@ -82,7 +88,7 @@ const typeTextMap: Record<AdminPositionType, string> = {
   REGULAR: '普通岗位',
 };
 
-const columns: TableColumnsType<AdminPosition> = [
+const columns: AdminTableColumn<AdminPosition>[] = [
   { dataIndex: 'id', title: 'ID', width: 80 },
   { key: 'position', title: '职位', width: 260 },
   { dataIndex: 'orgUnitName', title: '组织', width: 180 },
@@ -99,7 +105,9 @@ const modalOpen = ref(false);
 const submitting = ref(false);
 const editingId = ref<number>();
 const formRef = ref<FormInstance>();
+const tableSurfaceRef = ref<HTMLElement>();
 const positions = ref<AdminPosition[]>([]);
+const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
   code: '',
@@ -130,6 +138,9 @@ const formModel = reactive<AdminPositionFormModel>({
 });
 
 const modalTitle = computed(() => (editingId.value ? '编辑职位' : '新增职位'));
+const displayColumns = computed<TableColumnsType<AdminPosition>>(() =>
+  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+);
 const formRules: Record<string, Rule[]> = {
   code: [{ message: '请输入职位编码', required: true }],
   name: [{ message: '请输入职位名称', required: true }],
@@ -277,7 +288,7 @@ onMounted(() => {
 
 <template>
   <Page auto-content-height>
-    <div class="admin-position-surface">
+    <div ref="tableSurfaceRef" class="admin-position-surface">
       <div class="admin-position-toolbar">
         <Space wrap>
           <Input
@@ -307,17 +318,28 @@ onMounted(() => {
             重置
           </Button>
         </Space>
-        <Button type="primary" @click="openCreateModal">
-          <template #icon>
-            <IconifyIcon icon="lucide:plus" />
-          </template>
+        <Space>
+          <AdminTableToolbar
+            v-model:column-keys="visibleColumnKeys"
+            :columns="columns"
+            :data-source="positions"
+            file-name="system-positions"
+            :fullscreen-target="tableSurfaceRef"
+            :refresh="loadPositions"
+            storage-key="system-position-list"
+          />
+          <Button type="primary" @click="openCreateModal">
+            <template #icon>
+              <IconifyIcon icon="lucide:plus" />
+            </template>
           新增职位
-        </Button>
+          </Button>
+        </Space>
       </div>
 
       <Table
         class="admin-position-table"
-        :columns="columns"
+        :columns="displayColumns"
         :data-source="positions"
         :loading="loading"
         :pagination="tablePagination"

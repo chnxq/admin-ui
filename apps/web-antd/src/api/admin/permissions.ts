@@ -91,7 +91,7 @@ function clonePermissionGroup(
 ): AdminPermissionGroup {
   return {
     ...group,
-    children: [],
+    children: undefined,
   };
 }
 
