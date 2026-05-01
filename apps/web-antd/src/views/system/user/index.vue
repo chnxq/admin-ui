@@ -365,10 +365,10 @@ onMounted(() => {
           <template v-if="column.key === 'identity'">
             <div class="identity-cell">
               <span class="identity-main">
-                {{ record.realname || record.nickname || '-' }}
+                {{ record.username || '-' }}
               </span>
               <span class="identity-sub">
-                {{ record.username || '-' }}
+                {{ record.realname || record.nickname || '-' }}
               </span>
             </div>
           </template>

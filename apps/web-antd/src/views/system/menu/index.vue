@@ -13,6 +13,7 @@ import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
+import { $t, $te } from '@vben/locales';
 
 import {
   Button,
@@ -154,7 +155,7 @@ const parentOptions = computed(() =>
   menuItems.value
     .filter((item) => item.id !== editingId.value)
     .map((item) => ({
-      label: `${item.name ?? item.path ?? item.id}`,
+      label: `${getDisplayTitle(item.meta?.title)} (${item.name ?? item.path ?? item.id})`,
       value: item.id,
     })),
 );
@@ -191,6 +192,14 @@ function getStatusColor(status?: AdminMenuStatus) {
 
 function getTypeText(type?: AdminMenuType) {
   return type ? typeTextMap[type] : '-';
+}
+
+function getDisplayTitle(title?: string) {
+  const normalizedTitle = title?.trim();
+  if (!normalizedTitle) {
+    return '-';
+  }
+  return $te(normalizedTitle) ? $t(normalizedTitle) : normalizedTitle;
 }
 
 async function loadMenus() {
@@ -349,8 +358,12 @@ onMounted(() => {
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'menu'">
             <div class="menu-cell">
-              <span class="menu-main">{{ record.name || '-' }}</span>
-              <span class="menu-sub">{{ record.meta?.title || '-' }}</span>
+              <span class="menu-main">
+                {{ getDisplayTitle(record.meta?.title) }}
+              </span>
+              <span class="menu-sub">{{
+                record.name || record.path || '-'
+              }}</span>
             </div>
           </template>
 
