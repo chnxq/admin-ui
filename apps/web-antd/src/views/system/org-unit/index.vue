@@ -60,8 +60,9 @@ interface AdminOrgUnitFormModel extends AdminOrgUnitSaveInput {
 }
 
 type AdminOrgUnitTableRecord = AdminOrgUnit | Record<string, any>;
-type AdminTableChangeSorter =
-  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
+type AdminTableChangeSorter = Parameters<
+  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
+>[2];
 
 const statusOptions = [
   { label: '启用', value: 'ON' },
@@ -100,13 +101,55 @@ const typeTextMap: Record<AdminOrgUnitType, string> = {
 };
 
 const columns: AdminTableColumn<AdminOrgUnit>[] = [
-  { key: 'orgUnit', sortField: 'name', sortable: true, sorter: true, title: '组织', width: 260 },
-  { dataIndex: 'code', sortable: true, sorter: true, title: '编码', width: 160 },
-  { dataIndex: 'type', key: 'type', sortable: true, sorter: true, title: '类型', width: 120 },
-  { dataIndex: 'sortOrder', sortField: 'sort_order', sortable: true, sorter: true, title: '排序', width: 90 },
-  { dataIndex: 'status', key: 'status', sortable: true, sorter: true, title: '状态', width: 100 },
+  {
+    key: 'orgUnit',
+    sortField: 'name',
+    sortable: true,
+    sorter: true,
+    title: '组织',
+    width: 260,
+  },
+  {
+    dataIndex: 'code',
+    sortable: true,
+    sorter: true,
+    title: '编码',
+    width: 160,
+  },
+  {
+    dataIndex: 'type',
+    key: 'type',
+    sortable: true,
+    sorter: true,
+    title: '类型',
+    width: 120,
+  },
+  {
+    dataIndex: 'sortOrder',
+    sortField: 'sort_order',
+    sortable: true,
+    sorter: true,
+    title: '排序',
+    width: 90,
+  },
+  {
+    dataIndex: 'status',
+    key: 'status',
+    sortable: true,
+    sorter: true,
+    title: '状态',
+    width: 100,
+  },
   { dataIndex: 'leaderName', title: '负责人', width: 140 },
-  { dataIndex: 'createdAt', key: 'createdAt', sortField: 'created_at', sortable: true, sorter: true, title: '创建时间', width: 170 },
+  {
+    dataIndex: 'createdAt',
+    key: 'createdAt',
+    sortField: 'created_at',
+    sortable: true,
+    sorter: true,
+    title: '创建时间',
+    width: 170,
+  },
   { fixed: 'right', key: 'action', title: '操作', width: 150 },
 ];
 
@@ -401,12 +444,23 @@ onMounted(() => {
         :label-col="{ span: 5 }"
         :model="formModel"
         :rules="formRules"
+        autocomplete="off"
       >
         <Form.Item label="组织名称" name="name">
-          <Input v-model:value="formModel.name" placeholder="请输入组织名称" />
+          <Input
+            v-model:value="formModel.name"
+            autocomplete="off"
+            name="admin-org-unit-name"
+            placeholder="请输入组织名称"
+          />
         </Form.Item>
         <Form.Item label="组织编码" name="code">
-          <Input v-model:value="formModel.code" placeholder="请输入组织编码" />
+          <Input
+            v-model:value="formModel.code"
+            autocomplete="off"
+            name="admin-org-unit-code"
+            placeholder="请输入组织编码"
+          />
         </Form.Item>
         <Form.Item label="上级组织" name="parentId">
           <Select
@@ -426,13 +480,28 @@ onMounted(() => {
           <InputNumber v-model:value="formModel.sortOrder" class="full-input" />
         </Form.Item>
         <Form.Item label="电话" name="phone">
-          <Input v-model:value="formModel.phone" placeholder="请输入电话" />
+          <Input
+            v-model:value="formModel.phone"
+            autocomplete="off"
+            name="admin-org-unit-phone"
+            placeholder="请输入电话"
+          />
         </Form.Item>
         <Form.Item label="邮箱" name="email">
-          <Input v-model:value="formModel.email" placeholder="请输入邮箱" />
+          <Input
+            v-model:value="formModel.email"
+            autocomplete="off"
+            name="admin-org-unit-email"
+            placeholder="请输入邮箱"
+          />
         </Form.Item>
         <Form.Item label="地址" name="address">
-          <Input v-model:value="formModel.address" placeholder="请输入地址" />
+          <Input
+            v-model:value="formModel.address"
+            autocomplete="off"
+            name="admin-org-unit-address"
+            placeholder="请输入地址"
+          />
         </Form.Item>
         <Form.Item label="描述" name="description">
           <Input.TextArea

@@ -59,8 +59,16 @@ interface AdminApiFormModel extends AdminApiSaveInput {
 }
 
 type AdminApiTableRecord = AdminApi | Record<string, any>;
-type AdminTableChangeSorter =
-  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
+type AdminTableChangeSorter = Parameters<
+  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
+>[2];
+
+const API_ACCESS = {
+  create: ['apis:create'],
+  delete: ['apis:delete'],
+  edit: ['apis:edit'],
+  sync: ['apis:sync:create'],
+} as const;
 
 const methodOptions = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(
   (value) => ({
@@ -459,14 +467,18 @@ onMounted(() => {
             title="确认从OpenAPI文档同步API资源？"
             @confirm="handleSync"
           >
-            <Button :loading="syncing">
+            <Button v-access:code="API_ACCESS.sync" :loading="syncing">
               <template #icon>
                 <IconifyIcon icon="lucide:refresh-cw" />
               </template>
               同步API
             </Button>
           </Popconfirm>
-          <Button type="primary" @click="openCreate">
+          <Button
+            v-access:code="API_ACCESS.create"
+            type="primary"
+            @click="openCreate"
+          >
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
@@ -508,7 +520,12 @@ onMounted(() => {
 
           <template v-else-if="column.key === 'action'">
             <Space>
-              <Button size="small" type="link" @click="openEdit(record)">
+              <Button
+                v-access:code="API_ACCESS.edit"
+                size="small"
+                type="link"
+                @click="openEdit(record)"
+              >
                 <template #icon>
                   <IconifyIcon icon="lucide:pencil" />
                 </template>
@@ -518,7 +535,12 @@ onMounted(() => {
                 title="确认删除该API？"
                 @confirm="handleDelete(record)"
               >
-                <Button danger size="small" type="link">
+                <Button
+                  v-access:code="API_ACCESS.delete"
+                  danger
+                  size="small"
+                  type="link"
+                >
                   <template #icon>
                     <IconifyIcon icon="lucide:trash-2" />
                   </template>

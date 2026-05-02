@@ -103,6 +103,12 @@ export const useAuthStore = defineStore('auth', () => {
     return userInfo;
   }
 
+  async function fetchAccessCodes() {
+    const accessCodes = await getAccessCodesApi();
+    accessStore.setAccessCodes(accessCodes);
+    return accessCodes;
+  }
+
   function $reset() {
     loginLoading.value = false;
   }
@@ -110,6 +116,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     $reset,
     authLogin,
+    fetchAccessCodes,
     fetchUserInfo,
     loginLoading,
     logout,

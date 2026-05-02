@@ -52,9 +52,15 @@ import {
   toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
 
-interface AdminMenuFormModel extends AdminMenuSaveInput {
+interface AdminMenuFormModel extends Omit<
+  AdminMenuSaveInput,
+  'authority' | 'ignoreAccess' | 'menuVisibleWithForbidden'
+> {
+  authority: string;
   component: string;
   icon: string;
+  ignoreAccess: 'false' | 'true';
+  menuVisibleWithForbidden: 'false' | 'true';
   name: string;
   path: string;
   redirect: string;
@@ -64,8 +70,16 @@ interface AdminMenuFormModel extends AdminMenuSaveInput {
 }
 
 type AdminMenuTableRecord = AdminMenu | Record<string, any>;
-type AdminTableChangeSorter =
-  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
+type AdminTableChangeSorter = Parameters<
+  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
+>[2];
+
+const MENU_ACCESS = {
+  create: ['menus:create'],
+  delete: ['menus:delete'],
+  edit: ['menus:edit'],
+  sync: ['menus:sync:create', 'menus:create'],
+} as const;
 
 const statusOptions = [
   { label: '启用', value: 'ON' },
@@ -165,8 +179,11 @@ const searchForm = reactive({
 });
 
 const formModel = reactive<AdminMenuFormModel>({
+  authority: '',
   component: '',
   icon: '',
+  ignoreAccess: 'false',
+  menuVisibleWithForbidden: 'false',
   name: '',
   parentId: undefined,
   path: '',
@@ -202,8 +219,11 @@ const parentOptions = computed(() =>
 
 function resetFormModel() {
   Object.assign(formModel, {
+    authority: '',
     component: '',
     icon: '',
+    ignoreAccess: 'false',
+    menuVisibleWithForbidden: 'false',
     name: '',
     parentId: undefined,
     path: '',
@@ -301,8 +321,13 @@ async function openEdit(record: AdminMenuTableRecord) {
 
   editingId.value = menu.id;
   Object.assign(formModel, {
+    authority: (menu.meta?.authority ?? []).join(','),
     component: menu.component ?? '',
     icon: menu.meta?.icon ?? '',
+    ignoreAccess: menu.meta?.ignoreAccess ? 'true' : 'false',
+    menuVisibleWithForbidden: menu.meta?.menuVisibleWithForbidden
+      ? 'true'
+      : 'false',
     name: menu.name ?? '',
     parentId: menu.parentId,
     path: menu.path ?? '',
@@ -321,11 +346,20 @@ async function submitMenu() {
 
   submitting.value = true;
   try {
+    const payload: AdminMenuSaveInput = {
+      ...formModel,
+      authority: formModel.authority
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
+      ignoreAccess: formModel.ignoreAccess === 'true',
+      menuVisibleWithForbidden: formModel.menuVisibleWithForbidden === 'true',
+    };
     if (editingId.value) {
-      await updateAdminMenuApi(editingId.value, formModel);
+      await updateAdminMenuApi(editingId.value, payload);
       message.success('菜单已更新');
     } else {
-      await createAdminMenuApi(formModel);
+      await createAdminMenuApi(payload);
       message.success('菜单已创建');
     }
     modalOpen.value = false;
@@ -414,14 +448,18 @@ onMounted(() => {
             title="确认从默认导航定义同步菜单？"
             @confirm="handleSync"
           >
-            <Button :loading="syncing">
+            <Button v-access:code="MENU_ACCESS.sync" :loading="syncing">
               <template #icon>
                 <IconifyIcon icon="lucide:refresh-cw" />
               </template>
               同步菜单
             </Button>
           </Popconfirm>
-          <Button type="primary" @click="openCreate()">
+          <Button
+            v-access:code="MENU_ACCESS.create"
+            type="primary"
+            @click="openCreate()"
+          >
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
@@ -468,13 +506,23 @@ onMounted(() => {
 
           <template v-else-if="column.key === 'action'">
             <Space>
-              <Button size="small" type="link" @click="openCreate(record)">
+              <Button
+                v-access:code="MENU_ACCESS.create"
+                size="small"
+                type="link"
+                @click="openCreate(record)"
+              >
                 <template #icon>
                   <IconifyIcon icon="lucide:plus" />
                 </template>
                 子菜单
               </Button>
-              <Button size="small" type="link" @click="openEdit(record)">
+              <Button
+                v-access:code="MENU_ACCESS.edit"
+                size="small"
+                type="link"
+                @click="openEdit(record)"
+              >
                 <template #icon>
                   <IconifyIcon icon="lucide:pencil" />
                 </template>
@@ -484,7 +532,12 @@ onMounted(() => {
                 title="确认删除该菜单？"
                 @confirm="handleDelete(record)"
               >
-                <Button danger size="small" type="link">
+                <Button
+                  v-access:code="MENU_ACCESS.delete"
+                  danger
+                  size="small"
+                  type="link"
+                >
                   <template #icon>
                     <IconifyIcon icon="lucide:trash-2" />
                   </template>
@@ -545,8 +598,32 @@ onMounted(() => {
             placeholder="例如 lucide:settings"
           />
         </Form.Item>
+        <Form.Item label="权限标识" name="authority">
+          <Input
+            v-model:value="formModel.authority"
+            placeholder="多个值用逗号分隔"
+          />
+        </Form.Item>
         <Form.Item label="类型" name="type">
           <Select v-model:value="formModel.type" :options="typeOptions" />
+        </Form.Item>
+        <Form.Item label="忽略访问控制" name="ignoreAccess">
+          <Select
+            v-model:value="formModel.ignoreAccess"
+            :options="[
+              { label: '否', value: 'false' },
+              { label: '是', value: 'true' },
+            ]"
+          />
+        </Form.Item>
+        <Form.Item label="无权限时仍显示菜单" name="menuVisibleWithForbidden">
+          <Select
+            v-model:value="formModel.menuVisibleWithForbidden"
+            :options="[
+              { label: '否', value: 'false' },
+              { label: '是', value: 'true' },
+            ]"
+          />
         </Form.Item>
         <Form.Item label="状态" name="status">
           <Select v-model:value="formModel.status" :options="statusOptions" />

@@ -1,3 +1,5 @@
+import type { AdminSorting } from './paging';
+
 import type {
   resourceservicev1_ListMenuResponse,
   resourceservicev1_Menu,
@@ -10,7 +12,6 @@ import {
   getAdminList,
   toAdminTotal,
   toPagingRequest,
-  type AdminSorting,
   unwrapAdminEnvelope,
 } from './paging';
 
@@ -33,8 +34,11 @@ export interface AdminMenuListResult {
 }
 
 export interface AdminMenuSaveInput {
+  authority?: string[];
   component?: string;
   icon?: string;
+  ignoreAccess?: boolean;
+  menuVisibleWithForbidden?: boolean;
   name?: string;
   parentId?: number;
   path?: string;
@@ -54,8 +58,10 @@ function toMenuData(input: AdminMenuSaveInput): AdminMenu {
     children: [],
     component: cleanText(input.component),
     meta: {
-      authority: [],
+      authority: input.authority?.filter(Boolean) ?? [],
       icon: cleanText(input.icon),
+      ignoreAccess: input.ignoreAccess,
+      menuVisibleWithForbidden: input.menuVisibleWithForbidden,
       title: cleanText(input.title) ?? cleanText(input.name) ?? '',
     },
     name: cleanText(input.name),

@@ -7,6 +7,8 @@ import type {
 } from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
 
+import type { AdminApi } from '#/api/admin/apis';
+import type { AdminMenu } from '#/api/admin/menus';
 import type {
   AdminPermission,
   AdminPermissionGroup,
@@ -38,9 +40,12 @@ import {
   Table,
   Tag,
   Tree,
+  TreeSelect,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
+import { listAdminApisApi } from '#/api/admin/apis';
+import { listAdminMenusApi } from '#/api/admin/menus';
 import {
   createAdminPermissionApi,
   createAdminPermissionGroupApi,
@@ -74,8 +79,19 @@ interface AdminPermissionGroupFormModel extends AdminPermissionGroupSaveInput {
 }
 
 type PermissionRecord = AdminPermission | Record<string, any>;
-type AdminTableChangeSorter =
-  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
+type AdminTableChangeSorter = Parameters<
+  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
+>[2];
+
+const PERMISSION_ACCESS = {
+  create: ['permissions:create'],
+  delete: ['permissions:delete'],
+  edit: ['permissions:edit'],
+  groupCreate: ['permission:group:create'],
+  groupDelete: ['permission:group:delete'],
+  groupEdit: ['permission:group:edit'],
+  sync: ['permissions:sync:perm:create'],
+} as const;
 
 const statusOptions = [
   { label: '启用', value: 'ON' },
@@ -151,6 +167,9 @@ const tableSurfaceRef = ref<HTMLElement>();
 const permissions = ref<AdminPermission[]>([]);
 const groups = ref<AdminPermissionGroup[]>([]);
 const groupTree = ref<AdminPermissionGroup[]>([]);
+const menuOptions = ref<AdminMenu[]>([]);
+const apiOptions = ref<AdminApi[]>([]);
+const resourceOptionLoading = ref(false);
 const sorting = ref<AdminTableSorting[]>([]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
@@ -255,6 +274,14 @@ const selectedTreeKeys = computed(() => [
   selectedGroupId.value ? String(selectedGroupId.value) : 'all',
 ]);
 
+const menuTreeSelectData = computed(() =>
+  buildMenuTreeSelectData(menuOptions.value),
+);
+
+const apiTreeSelectData = computed(() =>
+  buildApiTreeSelectData(apiOptions.value),
+);
+
 function toTreeNode(
   group: AdminPermissionGroup,
 ): NonNullable<TreeProps['treeData']>[number] {
@@ -263,6 +290,77 @@ function toTreeNode(
     title: group.name ?? `#${group.id}`,
     children: group.children?.map((child) => toTreeNode(child)) ?? [],
   };
+}
+
+function buildMenuTreeSelectData(items: AdminMenu[]) {
+  const nodeMap = new Map<number, any>();
+  const roots: any[] = [];
+
+  for (const item of items) {
+    if (item.id === undefined) {
+      continue;
+    }
+    nodeMap.set(item.id, {
+      title: item.meta?.title ?? item.name ?? item.path ?? `#${item.id}`,
+      value: item.id,
+      children: [],
+    });
+  }
+
+  for (const item of items) {
+    if (item.id === undefined) {
+      continue;
+    }
+    const node = nodeMap.get(item.id);
+    if (!node) {
+      continue;
+    }
+    if (item.parentId !== undefined && nodeMap.has(item.parentId)) {
+      nodeMap.get(item.parentId).children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+
+  return roots;
+}
+
+function buildApiTreeSelectData(items: AdminApi[]) {
+  const groupMap = new Map<string, any>();
+
+  for (const item of items) {
+    const moduleName = item.module?.trim() || 'default';
+    if (!groupMap.has(moduleName)) {
+      groupMap.set(moduleName, {
+        title: item.moduleDescription?.trim() || moduleName,
+        value: `module-${moduleName}`,
+        selectable: false,
+        children: [],
+      });
+    }
+    groupMap.get(moduleName).children.push({
+      title: `${item.method ?? 'API'} ${item.path ?? ''}`,
+      value: item.id,
+    });
+  }
+
+  return [...groupMap.values()];
+}
+
+async function loadResourceOptions() {
+  resourceOptionLoading.value = true;
+  try {
+    const [menuResponse, apiResponse] = await Promise.all([
+      listAdminMenusApi({ pageSize: 500 }),
+      listAdminApisApi({ pageSize: 1000 }),
+    ]);
+    menuOptions.value = menuResponse.items;
+    apiOptions.value = apiResponse.items;
+  } catch (error) {
+    message.error((error as Error).message || '鍔犺浇璧勬簮閰嶇疆澶辫触');
+  } finally {
+    resourceOptionLoading.value = false;
+  }
 }
 
 function resetFormModel() {
@@ -338,7 +436,7 @@ async function loadPermissions() {
 }
 
 async function refreshAll() {
-  await Promise.all([loadGroups(), loadPermissions()]);
+  await Promise.all([loadGroups(), loadPermissions(), loadResourceOptions()]);
 }
 
 async function handleSearch() {
@@ -523,12 +621,18 @@ onMounted(() => {
         <div class="group-header">
           <span class="group-title">权限组</span>
           <Space>
-            <Button size="small" type="text" @click="openCreateGroup">
+            <Button
+              v-access:code="PERMISSION_ACCESS.groupCreate"
+              size="small"
+              type="text"
+              @click="openCreateGroup"
+            >
               <template #icon>
                 <IconifyIcon icon="lucide:plus" />
               </template>
             </Button>
             <Button
+              v-access:code="PERMISSION_ACCESS.groupEdit"
               size="small"
               type="text"
               :disabled="!selectedGroupId"
@@ -540,6 +644,7 @@ onMounted(() => {
             </Button>
             <Popconfirm title="确认删除该权限组？" @confirm="handleDeleteGroup">
               <Button
+                v-access:code="PERMISSION_ACCESS.groupDelete"
                 danger
                 size="small"
                 type="text"
@@ -606,13 +711,21 @@ onMounted(() => {
               :refresh="refreshAll"
               storage-key="permission-list"
             />
-            <Button :loading="syncing" @click="handleSync">
+            <Button
+              v-access:code="PERMISSION_ACCESS.sync"
+              :loading="syncing"
+              @click="handleSync"
+            >
               <template #icon>
                 <IconifyIcon icon="lucide:refresh-cw" />
               </template>
               同步权限
             </Button>
-            <Button type="primary" @click="openCreate">
+            <Button
+              v-access:code="PERMISSION_ACCESS.create"
+              type="primary"
+              @click="openCreate"
+            >
               <template #icon>
                 <IconifyIcon icon="lucide:plus" />
               </template>
@@ -666,7 +779,12 @@ onMounted(() => {
 
             <template v-else-if="column.key === 'action'">
               <Space>
-                <Button size="small" type="link" @click="openEdit(record)">
+                <Button
+                  v-access:code="PERMISSION_ACCESS.edit"
+                  size="small"
+                  type="link"
+                  @click="openEdit(record)"
+                >
                   <template #icon>
                     <IconifyIcon icon="lucide:pencil" />
                   </template>
@@ -676,7 +794,12 @@ onMounted(() => {
                   title="确认删除该权限点？"
                   @confirm="handleDelete(record)"
                 >
-                  <Button danger size="small" type="link">
+                  <Button
+                    v-access:code="PERMISSION_ACCESS.delete"
+                    danger
+                    size="small"
+                    type="link"
+                  >
                     <template #icon>
                       <IconifyIcon icon="lucide:trash-2" />
                     </template>
@@ -722,6 +845,46 @@ onMounted(() => {
         </Form.Item>
         <Form.Item label="状态" name="status">
           <Select v-model:value="formModel.status" :options="statusOptions" />
+        </Form.Item>
+        <Form.Item label="菜单资源" name="menuIds">
+          <TreeSelect
+            v-model:value="formModel.menuIds"
+            allow-clear
+            class="full-width-control"
+            :field-names="{
+              label: 'title',
+              value: 'value',
+              children: 'children',
+            }"
+            :loading="resourceOptionLoading"
+            multiple
+            placeholder="选择关联菜单"
+            show-search
+            :tree-checkable="true"
+            :tree-data="menuTreeSelectData"
+            tree-default-expand-all
+            tree-node-filter-prop="title"
+          />
+        </Form.Item>
+        <Form.Item label="API资源" name="apiIds">
+          <TreeSelect
+            v-model:value="formModel.apiIds"
+            allow-clear
+            class="full-width-control"
+            :field-names="{
+              label: 'title',
+              value: 'value',
+              children: 'children',
+            }"
+            :loading="resourceOptionLoading"
+            multiple
+            placeholder="选择关联API"
+            show-search
+            :tree-checkable="true"
+            :tree-data="apiTreeSelectData"
+            tree-default-expand-all
+            tree-node-filter-prop="title"
+          />
         </Form.Item>
         <Form.Item label="描述" name="description">
           <Input.TextArea
