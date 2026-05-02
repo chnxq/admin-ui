@@ -1,26 +1,20 @@
 <script lang="ts" setup>
 import type {
   FormInstance,
-  TableColumnType,
   TableColumnsType,
+  TableColumnType,
   TablePaginationConfig,
 } from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
 
+import type { AdminOrgUnit } from '#/api/admin/org-units';
+import type { AdminPosition } from '#/api/admin/positions';
+import type { AdminRole } from '#/api/admin/roles';
 import type {
   AdminUser,
   AdminUserSaveInput,
   AdminUserStatus,
 } from '#/api/admin/users';
-import type {
-  AdminOrgUnit,
-} from '#/api/admin/org-units';
-import type {
-  AdminPosition,
-} from '#/api/admin/positions';
-import type {
-  AdminRole,
-} from '#/api/admin/roles';
 import type {
   AdminTableColumn,
   AdminTableSorting,
@@ -45,18 +39,13 @@ import {
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import {
-  listAdminOrgUnitsApi,
-} from '#/api/admin/org-units';
-import {
-  listAdminPositionsApi,
-} from '#/api/admin/positions';
-import {
-  listAdminRolesApi,
-} from '#/api/admin/roles';
+import { listAdminOrgUnitsApi } from '#/api/admin/org-units';
+import { listAdminPositionsApi } from '#/api/admin/positions';
+import { listAdminRolesApi } from '#/api/admin/roles';
 import {
   createAdminUserApi,
   deleteAdminUserApi,
+  getAdminUserApi,
   listAdminUsersApi,
   updateAdminUserApi,
 } from '#/api/admin/users';
@@ -69,18 +58,22 @@ import {
 } from '#/components/admin-table-toolbar/shared';
 
 interface AdminUserFormModel extends AdminUserSaveInput {
+  address: string;
+  avatar: string;
+  gender?: 'FEMALE' | 'MALE' | 'SECRET';
   orgUnitIds: number[];
   password: string;
   positionIds: number[];
+  region: string;
   roleIds: number[];
-  status: AdminUserStatus;
+  status?: AdminUserStatus;
   telephone: string;
   username: string;
 }
 
 type AdminTableChangeSorter =
-  | TableColumnType<AdminUser>['sorter']
-  | Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
+  | Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2]
+  | TableColumnType<AdminUser>['sorter'];
 
 type AdminUserTableRecord = AdminUser | Record<string, any>;
 
@@ -91,6 +84,12 @@ const statusOptions = [
   { label: '锁定', value: 'LOCKED' },
   { label: '过期', value: 'EXPIRED' },
   { label: '关闭', value: 'CLOSED' },
+];
+
+const genderOptions = [
+  { label: '保密', value: 'SECRET' },
+  { label: '男', value: 'MALE' },
+  { label: '女', value: 'FEMALE' },
 ];
 
 const statusTextMap: Record<AdminUserStatus, string> = {
@@ -216,18 +215,21 @@ const pager = reactive({
 });
 
 const formModel = reactive<AdminUserFormModel>({
+  address: '',
+  avatar: '',
   description: '',
   email: '',
+  gender: undefined,
   mobile: '',
   nickname: '',
   orgUnitIds: [],
   password: '',
   positionIds: [],
   realname: '',
+  region: '',
   remark: '',
   roleIds: [],
-  roles: [],
-  status: 'NORMAL',
+  status: undefined,
   telephone: '',
   username: '',
 });
@@ -241,9 +243,9 @@ const displayColumns = computed<TableColumnsType<AdminUser>>(() =>
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
   email: [{ message: '请输入有效邮箱', type: 'email' }],
-  orgUnitIds: [{ message: '请选择组织', required: true, type: 'array' }],
-  password: editingId.value ? [] : [{ message: '请输入初始密码', required: true }],
-  roleIds: [{ message: '请选择角色', required: true, type: 'array' }],
+  password: editingId.value
+    ? []
+    : [{ message: '请输入初始密码', required: true }],
   status: [{ message: '请选择状态', required: true }],
   username: [{ message: '请输入用户名', required: true }],
 }));
@@ -277,18 +279,21 @@ const tablePagination = computed<TablePaginationConfig>(() => ({
 
 function resetFormModel() {
   Object.assign(formModel, {
+    address: '',
+    avatar: '',
     description: '',
     email: '',
+    gender: undefined,
     mobile: '',
     nickname: '',
     orgUnitIds: [],
     password: '',
     positionIds: [],
     realname: '',
+    region: '',
     remark: '',
     roleIds: [],
-    roles: [],
-    status: 'NORMAL',
+    status: undefined,
     telephone: '',
     username: '',
   });
@@ -421,45 +426,67 @@ async function openEdit(record: AdminUserTableRecord) {
     return;
   }
 
-  editingId.value = user.id;
-  Object.assign(formModel, {
-    description: user.description ?? '',
-    email: user.email ?? '',
-    mobile: user.mobile ?? '',
-    nickname: user.nickname ?? '',
-    orgUnitIds: user.orgUnitIds ?? [],
-    password: '',
-    positionIds: user.positionIds ?? [],
-    realname: user.realname ?? '',
-    remark: user.remark ?? '',
-    roleIds: user.roleIds ?? [],
-    roles: user.roles ?? [],
-    status: user.status ?? 'NORMAL',
-    telephone: user.telephone ?? '',
-    username: user.username ?? '',
-  });
-  modalOpen.value = true;
-  await nextTick();
-  formRef.value?.clearValidate();
+  optionLoading.value = true;
+  try {
+    const detail = await getAdminUserApi(user.id);
+    editingId.value = user.id;
+    Object.assign(formModel, {
+      address: detail.address ?? '',
+      avatar: detail.avatar ?? '',
+      description: detail.description ?? '',
+      email: detail.email ?? '',
+      gender: detail.gender,
+      mobile: detail.mobile ?? '',
+      nickname: detail.nickname ?? '',
+      orgUnitIds: detail.orgUnitIds ?? [],
+      password: '',
+      positionIds: detail.positionIds ?? [],
+      realname: detail.realname ?? '',
+      region: detail.region ?? '',
+      remark: detail.remark ?? '',
+      roleIds: detail.roleIds ?? [],
+      status: detail.status,
+      telephone: detail.telephone ?? '',
+      username: detail.username ?? '',
+    });
+    modalOpen.value = true;
+    await nextTick();
+    formRef.value?.clearValidate();
+  } catch (error) {
+    message.error((error as Error).message || '加载用户详情失败');
+  } finally {
+    optionLoading.value = false;
+  }
 }
 
 async function submitUser() {
-  await formRef.value?.validate();
+  try {
+    await formRef.value?.validate();
+  } catch (error) {
+    if ((error as { errorFields?: unknown[] })?.errorFields) {
+      return;
+    }
+    message.error((error as Error).message || '表单校验失败');
+    return;
+  }
 
   submitting.value = true;
   try {
     const payload: AdminUserSaveInput = {
+      address: formModel.address,
+      avatar: formModel.avatar,
       description: formModel.description,
       email: formModel.email,
+      gender: formModel.gender,
       mobile: formModel.mobile,
       nickname: formModel.nickname,
       orgUnitIds: [...formModel.orgUnitIds],
       password: formModel.password,
       positionIds: [...formModel.positionIds],
       realname: formModel.realname,
+      region: formModel.region,
       remark: formModel.remark,
       roleIds: [...formModel.roleIds],
-      roles: [...(formModel.roles ?? [])],
       status: formModel.status,
       telephone: formModel.telephone,
       username: formModel.username,
@@ -473,6 +500,8 @@ async function submitUser() {
     }
     modalOpen.value = false;
     await loadUsers();
+  } catch (error) {
+    message.error((error as Error).message || '保存用户失败');
   } finally {
     submitting.value = false;
   }
@@ -499,36 +528,57 @@ onMounted(async () => {
   <Page auto-content-height title="用户管理">
     <div ref="tableSurfaceRef" class="admin-user-surface">
       <div class="admin-user-toolbar">
-        <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item label="用户名" name="username">
+        <Form
+          class="admin-user-search"
+          :model="searchForm"
+          layout="inline"
+          @finish="handleSearch"
+        >
+          <Form.Item
+            class="admin-user-search__item"
+            label="用户名"
+            name="username"
+          >
             <Input
               v-model:value="searchForm.username"
               allow-clear
               placeholder="输入用户名"
             />
           </Form.Item>
-          <Form.Item label="姓名" name="realname">
+          <Form.Item
+            class="admin-user-search__item"
+            label="姓名"
+            name="realname"
+          >
             <Input
               v-model:value="searchForm.realname"
               allow-clear
               placeholder="输入姓名"
             />
           </Form.Item>
-          <Form.Item label="手机" name="mobile">
+          <Form.Item class="admin-user-search__item" label="手机" name="mobile">
             <Input
               v-model:value="searchForm.mobile"
               allow-clear
               placeholder="输入手机号"
             />
           </Form.Item>
-          <Form.Item label="电话" name="telephone">
+          <Form.Item
+            class="admin-user-search__item"
+            label="电话"
+            name="telephone"
+          >
             <Input
               v-model:value="searchForm.telephone"
               allow-clear
               placeholder="输入电话"
             />
           </Form.Item>
-          <Form.Item label="组织" name="orgUnitId">
+          <Form.Item
+            class="admin-user-search__item"
+            label="组织"
+            name="orgUnitId"
+          >
             <Select
               v-model:value="searchForm.orgUnitId"
               allow-clear
@@ -536,10 +586,13 @@ onMounted(async () => {
               :options="orgSelectOptions"
               placeholder="选择组织"
               show-search
-              style="width: 180px"
             />
           </Form.Item>
-          <Form.Item label="岗位" name="positionId">
+          <Form.Item
+            class="admin-user-search__item"
+            label="岗位"
+            name="positionId"
+          >
             <Select
               v-model:value="searchForm.positionId"
               allow-clear
@@ -547,10 +600,9 @@ onMounted(async () => {
               :options="positionSelectOptions"
               placeholder="选择岗位"
               show-search
-              style="width: 180px"
             />
           </Form.Item>
-          <Form.Item label="角色" name="roleId">
+          <Form.Item class="admin-user-search__item" label="角色" name="roleId">
             <Select
               v-model:value="searchForm.roleId"
               allow-clear
@@ -558,19 +610,17 @@ onMounted(async () => {
               :options="roleSelectOptions"
               placeholder="选择角色"
               show-search
-              style="width: 180px"
             />
           </Form.Item>
-          <Form.Item label="状态" name="status">
+          <Form.Item class="admin-user-search__item" label="状态" name="status">
             <Select
               v-model:value="searchForm.status"
               allow-clear
               :options="statusOptions"
               placeholder="选择状态"
-              style="width: 140px"
             />
           </Form.Item>
-          <Form.Item>
+          <Form.Item class="admin-user-search__actions">
             <Space>
               <Button html-type="submit" type="primary">
                 <template #icon>
@@ -588,7 +638,7 @@ onMounted(async () => {
           </Form.Item>
         </Form>
 
-        <Space>
+        <Space class="admin-user-toolbar__actions">
           <AdminTableToolbar
             v-model:column-keys="visibleColumnKeys"
             :columns="columns"
@@ -707,41 +757,73 @@ onMounted(async () => {
         ref="formRef"
         :model="formModel"
         :rules="formRules"
+        autocomplete="off"
         layout="vertical"
       >
+        <input
+          aria-hidden="true"
+          autocomplete="username"
+          class="admin-user-autofill-guard"
+          tabindex="-1"
+          type="text"
+        />
+        <input
+          aria-hidden="true"
+          autocomplete="current-password"
+          class="admin-user-autofill-guard"
+          tabindex="-1"
+          type="password"
+        />
         <div class="admin-user-form-grid">
           <Form.Item label="用户名" name="username">
             <Input
               v-model:value="formModel.username"
               :disabled="Boolean(editingId)"
+              autocomplete="off"
+              name="admin-user-username"
               placeholder="请输入用户名"
+            />
+          </Form.Item>
+          <Form.Item label="昵称" name="nickname">
+            <Input
+              v-model:value="formModel.nickname"
+              placeholder="请输入昵称"
+            />
+          </Form.Item>
+          <Form.Item label="真实姓名" name="realname">
+            <Input
+              v-model:value="formModel.realname"
+              placeholder="请输入真实姓名"
             />
           </Form.Item>
           <Form.Item label="状态" name="status">
             <Select v-model:value="formModel.status" :options="statusOptions" />
           </Form.Item>
-          <Form.Item class="admin-user-form-grid--full" label="密码" name="password">
+          <Form.Item label="性别" name="gender">
+            <Select
+              v-model:value="formModel.gender"
+              allow-clear
+              :options="genderOptions"
+              placeholder="选择性别"
+            />
+          </Form.Item>
+          <Form.Item
+            class="admin-user-form-grid--full"
+            label="密码"
+            name="password"
+          >
             <Input.Password
               v-model:value="formModel.password"
+              :autocomplete="editingId ? 'new-password' : 'new-password'"
+              name="admin-user-password"
               :placeholder="editingId ? '留空则不修改密码' : '请输入初始密码'"
             />
           </Form.Item>
-          <Form.Item label="姓名" name="realname">
-            <Input v-model:value="formModel.realname" placeholder="请输入姓名" />
-          </Form.Item>
-          <Form.Item label="昵称" name="nickname">
-            <Input v-model:value="formModel.nickname" placeholder="请输入昵称" />
-          </Form.Item>
-          <Form.Item label="手机" name="mobile">
-            <Input v-model:value="formModel.mobile" placeholder="请输入手机号" />
-          </Form.Item>
-          <Form.Item label="电话" name="telephone">
-            <Input v-model:value="formModel.telephone" placeholder="请输入电话" />
-          </Form.Item>
-          <Form.Item class="admin-user-form-grid--full" label="邮箱" name="email">
-            <Input v-model:value="formModel.email" placeholder="请输入邮箱" />
-          </Form.Item>
-          <Form.Item class="admin-user-form-grid--full" label="组织" name="orgUnitIds">
+          <Form.Item
+            class="admin-user-form-grid--full"
+            label="归属组织"
+            name="orgUnitIds"
+          >
             <Select
               v-model:value="formModel.orgUnitIds"
               mode="multiple"
@@ -751,7 +833,11 @@ onMounted(async () => {
               show-search
             />
           </Form.Item>
-          <Form.Item class="admin-user-form-grid--full" label="岗位" name="positionIds">
+          <Form.Item
+            class="admin-user-form-grid--full"
+            label="岗位"
+            name="positionIds"
+          >
             <Select
               v-model:value="formModel.positionIds"
               mode="multiple"
@@ -761,7 +847,11 @@ onMounted(async () => {
               show-search
             />
           </Form.Item>
-          <Form.Item class="admin-user-form-grid--full" label="角色" name="roleIds">
+          <Form.Item
+            class="admin-user-form-grid--full"
+            label="角色"
+            name="roleIds"
+          >
             <Select
               v-model:value="formModel.roleIds"
               mode="multiple"
@@ -771,14 +861,82 @@ onMounted(async () => {
               show-search
             />
           </Form.Item>
-          <Form.Item class="admin-user-form-grid--full" label="描述" name="description">
+          <Form.Item
+            class="admin-user-form-grid--full"
+            label="头像"
+            name="avatar"
+          >
+            <Input
+              v-model:value="formModel.avatar"
+              autocomplete="off"
+              name="admin-user-avatar"
+              placeholder="请输入头像地址"
+            />
+          </Form.Item>
+          <Form.Item label="邮箱" name="email">
+            <Input
+              v-model:value="formModel.email"
+              autocomplete="off"
+              name="admin-user-email"
+              placeholder="请输入邮箱"
+            />
+          </Form.Item>
+          <Form.Item label="手机" name="mobile">
+            <Input
+              v-model:value="formModel.mobile"
+              autocomplete="off"
+              name="admin-user-mobile"
+              placeholder="请输入手机号"
+            />
+          </Form.Item>
+          <Form.Item label="电话" name="telephone">
+            <Input
+              v-model:value="formModel.telephone"
+              autocomplete="off"
+              name="admin-user-telephone"
+              placeholder="请输入电话"
+            />
+          </Form.Item>
+          <Form.Item
+            class="admin-user-form-grid--full"
+            label="地址"
+            name="address"
+          >
+            <Input
+              v-model:value="formModel.address"
+              autocomplete="off"
+              name="admin-user-address"
+              placeholder="请输入地址"
+            />
+          </Form.Item>
+          <Form.Item
+            class="admin-user-form-grid--full"
+            label="地区"
+            name="region"
+          >
+            <Input
+              v-model:value="formModel.region"
+              autocomplete="off"
+              name="admin-user-region"
+              placeholder="请输入地区"
+            />
+          </Form.Item>
+          <Form.Item
+            class="admin-user-form-grid--full"
+            label="描述"
+            name="description"
+          >
             <Input.TextArea
               v-model:value="formModel.description"
               :auto-size="{ minRows: 3, maxRows: 5 }"
               placeholder="请输入描述"
             />
           </Form.Item>
-          <Form.Item class="admin-user-form-grid--full" label="备注" name="remark">
+          <Form.Item
+            class="admin-user-form-grid--full"
+            label="备注"
+            name="remark"
+          >
             <Input.TextArea
               v-model:value="formModel.remark"
               :auto-size="{ minRows: 2, maxRows: 4 }"
@@ -811,6 +969,58 @@ onMounted(async () => {
   gap: 12px;
   align-items: flex-start;
   justify-content: space-between;
+}
+
+.admin-user-autofill-guard {
+  position: absolute;
+  width: 0;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border: 0;
+  opacity: 0;
+}
+
+.admin-user-toolbar__actions {
+  align-items: center;
+}
+
+.admin-user-search {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 12px 16px;
+  min-width: min(100%, 920px);
+}
+
+:deep(.admin-user-search .ant-form-item) {
+  margin-bottom: 0;
+}
+
+:deep(.admin-user-search .ant-form-item-row) {
+  width: 100%;
+}
+
+:deep(.admin-user-search .ant-form-item-control) {
+  min-width: 0;
+}
+
+:deep(.admin-user-search .ant-form-item-control-input),
+:deep(.admin-user-search .ant-form-item-control-input-content),
+:deep(.admin-user-search .ant-input),
+:deep(.admin-user-search .ant-select) {
+  width: 100%;
+}
+
+.admin-user-search__item {
+  min-width: 0;
+}
+
+.admin-user-search__actions {
+  display: flex;
+  align-items: flex-end;
 }
 
 .admin-user-table {
@@ -853,6 +1063,11 @@ onMounted(async () => {
 
   .admin-user-toolbar {
     align-items: stretch;
+  }
+
+  .admin-user-search {
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
   }
 
   .admin-user-form-grid {

@@ -1,15 +1,12 @@
+import type { AdminSorting } from './paging';
+
 import type {
   identityservicev1_ListUserResponse,
   identityservicev1_User,
 } from '#/api/generated/admin/service/v1';
 
 import { userClient } from './clients';
-import {
-  getAdminList,
-  toAdminTotal,
-  toPagingRequest,
-  type AdminSorting,
-} from './paging';
+import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
 
 export type AdminUser = identityservicev1_User;
 export type AdminUserStatus = NonNullable<identityservicev1_User['status']>;
@@ -34,17 +31,20 @@ export interface AdminUserListResult {
 }
 
 export interface AdminUserSaveInput {
+  address?: string;
+  avatar?: string;
   description?: string;
   email?: string;
+  gender?: identityservicev1_User['gender'];
   mobile?: string;
   nickname?: string;
   orgUnitIds?: number[];
   password?: string;
   positionIds?: number[];
+  region?: string;
   realname?: string;
   remark?: string;
   roleIds?: number[];
-  roles?: string[];
   status?: AdminUserStatus;
   telephone?: string;
   username?: string;
@@ -57,16 +57,19 @@ function cleanText(value?: string) {
 
 function toUserData(input: AdminUserSaveInput): AdminUser {
   return {
+    address: cleanText(input.address),
+    avatar: cleanText(input.avatar),
     description: cleanText(input.description),
     email: cleanText(input.email),
+    gender: input.gender,
     mobile: cleanText(input.mobile),
     nickname: cleanText(input.nickname),
     orgUnitIds: input.orgUnitIds ?? [],
     positionIds: input.positionIds ?? [],
+    region: cleanText(input.region),
     realname: cleanText(input.realname),
     remark: cleanText(input.remark),
     roleIds: input.roleIds ?? [],
-    roles: input.roles ?? [],
     status: input.status ?? 'NORMAL',
     telephone: cleanText(input.telephone),
     username: cleanText(input.username),
@@ -156,9 +159,13 @@ export async function updateAdminUserApi(
       'username',
       'nickname',
       'realname',
+      'avatar',
       'email',
       'mobile',
       'telephone',
+      'gender',
+      'address',
+      'region',
       'status',
       'description',
       'remark',
