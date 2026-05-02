@@ -4,7 +4,12 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { orgUnitClient } from './clients';
-import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
+import {
+  getAdminList,
+  toAdminTotal,
+  toPagingRequest,
+  type AdminSorting,
+} from './paging';
 
 export type AdminOrgUnit = identityservicev1_OrgUnit;
 export type AdminOrgUnitStatus = NonNullable<AdminOrgUnit['status']>;
@@ -15,6 +20,7 @@ export interface AdminOrgUnitListParams {
   name?: string;
   page?: number;
   pageSize?: number;
+  sorting?: AdminSorting[];
 }
 
 export interface AdminOrgUnitListResult {
@@ -108,6 +114,7 @@ export async function listAdminOrgUnitsApi(
       ],
       page: params.page,
       pageSize: params.pageSize ?? 100,
+      sorting: params.sorting,
     }),
   );
   const items = response.items ?? [];

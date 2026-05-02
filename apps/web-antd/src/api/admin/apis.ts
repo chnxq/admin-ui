@@ -4,7 +4,12 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { apiClient } from './clients';
-import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
+import {
+  getAdminList,
+  toAdminTotal,
+  toPagingRequest,
+  type AdminSorting,
+} from './paging';
 
 export type AdminApi = resourceservicev1_Api;
 export type AdminApiScope = NonNullable<resourceservicev1_Api['scope']>;
@@ -16,6 +21,7 @@ export interface AdminApiListParams {
   page?: number;
   pageSize?: number;
   path?: string;
+  sorting?: AdminSorting[];
 }
 
 export interface AdminApiListResult {
@@ -77,6 +83,7 @@ export async function listAdminApisApi(
       ],
       page: params.page,
       pageSize: params.pageSize,
+      sorting: params.sorting,
     }),
   );
 

@@ -6,7 +6,12 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { permissionClient, permissionGroupClient } from './clients';
-import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
+import {
+  getAdminList,
+  toAdminTotal,
+  toPagingRequest,
+  type AdminSorting,
+} from './paging';
 
 export type AdminPermission = permissionservicev1_Permission;
 export type AdminPermissionGroup = permissionservicev1_PermissionGroup;
@@ -23,6 +28,7 @@ export interface AdminPermissionListParams {
   name?: string;
   page?: number;
   pageSize?: number;
+  sorting?: AdminSorting[];
 }
 
 export interface AdminPermissionListResult {
@@ -145,6 +151,7 @@ export async function listAdminPermissionsApi(
         ],
         page: params.page,
         pageSize: params.pageSize,
+        sorting: params.sorting,
       }),
     );
 
@@ -166,6 +173,10 @@ export async function listAdminPermissionGroupsApi(
       toPagingRequest({
         page: params.page ?? 1,
         pageSize: params.pageSize ?? 200,
+        sorting: [
+          { direction: 'ASC', field: 'sort_order' },
+          { direction: 'ASC', field: 'id' },
+        ],
       }),
     );
   const items = response.items ?? [];

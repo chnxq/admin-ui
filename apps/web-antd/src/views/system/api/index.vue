@@ -12,7 +12,10 @@ import type {
   AdminApiScope,
   AdminApiStatus,
 } from '#/api/admin/apis';
-import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
+import type {
+  AdminTableColumn,
+  AdminTableSorting,
+} from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -42,8 +45,10 @@ import {
 } from '#/api/admin/apis';
 import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
 import {
+  applyAdminTableSorting,
   filterVisibleAdminTableColumns,
   getDefaultVisibleColumnKeys,
+  toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
 
 interface AdminApiFormModel extends AdminApiSaveInput {
@@ -54,6 +59,8 @@ interface AdminApiFormModel extends AdminApiSaveInput {
 }
 
 type AdminApiTableRecord = AdminApi | Record<string, any>;
+type AdminTableChangeSorter =
+  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
 
 const methodOptions = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(
   (value) => ({
@@ -86,22 +93,30 @@ const scopeTextMap: Record<AdminApiScope, string> = {
 const columns: AdminTableColumn<AdminApi>[] = [
   {
     dataIndex: 'description',
+    sortable: true,
+    sorter: true,
     title: '描述',
     width: 220,
   },
   {
     dataIndex: 'path',
+    sortable: true,
+    sorter: true,
     title: '路径',
     width: 260,
   },
   {
     dataIndex: 'method',
     key: 'method',
+    sortable: true,
+    sorter: true,
     title: '方法',
     width: 90,
   },
   {
     dataIndex: 'module',
+    sortable: true,
+    sorter: true,
     title: '模块',
     width: 150,
   },
@@ -112,24 +127,33 @@ const columns: AdminTableColumn<AdminApi>[] = [
   },
   {
     dataIndex: 'operation',
+    sortable: true,
+    sorter: true,
     title: '操作',
     width: 220,
   },
   {
     dataIndex: 'scope',
     key: 'scope',
+    sortable: true,
+    sorter: true,
     title: '范围',
     width: 110,
   },
   {
     dataIndex: 'status',
     key: 'status',
+    sortable: true,
+    sorter: true,
     title: '状态',
     width: 90,
   },
   {
     dataIndex: 'createdAt',
     key: 'createdAt',
+    sortField: 'created_at',
+    sortable: true,
+    sorter: true,
     title: '创建时间',
     width: 170,
   },
@@ -149,6 +173,7 @@ const editingId = ref<number>();
 const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const apis = ref<AdminApi[]>([]);
+const sorting = ref<AdminTableSorting[]>([]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -176,7 +201,10 @@ const formModel = reactive<AdminApiFormModel>({
 
 const modalTitle = computed(() => (editingId.value ? '编辑API' : '新增API'));
 const displayColumns = computed<TableColumnsType<AdminApi>>(() =>
-  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+  filterVisibleAdminTableColumns(
+    applyAdminTableSorting(columns, sorting.value),
+    visibleColumnKeys.value,
+  ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
   method: [{ message: '请选择请求方法', required: true }],
@@ -256,6 +284,7 @@ async function loadApis() {
       page: pager.page,
       pageSize: pager.pageSize,
       path: searchForm.path,
+      sorting: sorting.value,
     });
     apis.value = response.items;
     pager.total = response.total;
@@ -276,12 +305,18 @@ async function handleReset() {
   searchForm.module = '';
   searchForm.path = '';
   pager.page = 1;
+  sorting.value = [];
   await loadApis();
 }
 
-async function handleTableChange(pagination: TablePaginationConfig) {
+async function handleTableChange(
+  pagination: TablePaginationConfig,
+  _filters: Record<string, any>,
+  sorter: AdminTableChangeSorter,
+) {
   pager.page = pagination.current ?? 1;
   pager.pageSize = pagination.pageSize ?? 10;
+  sorting.value = toAdminTableSorting(sorter as any);
   await loadApis();
 }
 

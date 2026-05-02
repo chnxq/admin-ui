@@ -1,6 +1,7 @@
 import type { TableColumnsType } from 'ant-design-vue';
 
 type ColumnPath = Array<number | string> | number | string;
+type AdminTableSortOrder = 'ascend' | 'descend';
 
 type AdminTableColumnBase<T> = TableColumnsType<T>[number] & {
   alwaysVisible?: boolean;
@@ -10,9 +11,21 @@ type AdminTableColumnBase<T> = TableColumnsType<T>[number] & {
   exportValue?: (record: T) => unknown;
   hideInColumnSettings?: boolean;
   key?: number | string;
+  sortField?: string;
+  sortable?: boolean;
 };
 
 export type AdminTableColumn<T = Record<string, any>> = AdminTableColumnBase<T>;
+export interface AdminTableSorting {
+  direction: 'ASC' | 'DESC';
+  field: string;
+}
+
+interface AdminTableSorterLike<T = Record<string, any>> {
+  column?: AdminTableColumn<T>;
+  field?: ColumnPath;
+  order?: AdminTableSortOrder | null;
+}
 
 function normalizePath(path?: ColumnPath): Array<number | string> {
   if (Array.isArray(path)) {
@@ -31,6 +44,13 @@ function escapeCsvCell(value: string) {
   return `"${value.replaceAll('"', '""')}"`;
 }
 
+function toSnakeCase(value: string) {
+  return value
+    .replaceAll(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replaceAll(/[-\s]+/g, '_')
+    .toLowerCase();
+}
+
 export function getAdminTableColumnKey<T>(
   column: Pick<AdminTableColumnBase<T>, 'dataIndex' | 'key'>,
 ) {
@@ -39,9 +59,7 @@ export function getAdminTableColumnKey<T>(
   }
 
   const path = normalizePath(column.dataIndex as ColumnPath | undefined);
-  return path.length > 0
-    ? path.map(String).join('.')
-    : undefined;
+  return path.length > 0 ? path.map(String).join('.') : undefined;
 }
 
 export function getAdminTableColumnTitle<T>(
@@ -54,6 +72,25 @@ export function getAdminTableColumnTitle<T>(
     return column.title.trim();
   }
   return undefined;
+}
+
+export function getAdminTableColumnSortField<T>(
+  column: Pick<AdminTableColumnBase<T>, 'dataIndex' | 'sortField' | 'sortable'>,
+) {
+  const configured = column.sortField?.trim();
+  if (configured) {
+    return configured;
+  }
+  if (!column.sortable) {
+    return undefined;
+  }
+
+  const path = normalizePath(column.dataIndex as ColumnPath | undefined);
+  if (path.length === 0) {
+    return undefined;
+  }
+
+  return path.map((segment) => toSnakeCase(String(segment))).join('.');
 }
 
 export function getDefaultVisibleColumnKeys<T>(columns: AdminTableColumn<T>[]) {
@@ -74,6 +111,58 @@ export function filterVisibleAdminTableColumns<T>(
       return true;
     }
     return column.alwaysVisible || keySet.has(key);
+  });
+}
+
+export function applyAdminTableSorting<T>(
+  columns: AdminTableColumn<T>[],
+  sorting: AdminTableSorting[] = [],
+): AdminTableColumn<T>[] {
+  const sortingMap = new Map(
+    sorting.map((item) => [
+      item.field,
+      item.direction === 'ASC' ? 'ascend' : 'descend',
+    ]),
+  );
+
+  return columns.map((column) => {
+    const sortField = getAdminTableColumnSortField(column);
+    const sortOrder = sortField ? sortingMap.get(sortField) : undefined;
+    if (!column.sortable && sortOrder === undefined) {
+      return column;
+    }
+
+    return {
+      ...column,
+      sortOrder: (sortOrder ?? null) as AdminTableSortOrder | null,
+    };
+  });
+}
+
+export function toAdminTableSorting<T>(
+  sorter?: AdminTableSorterLike<T> | AdminTableSorterLike<T>[],
+) {
+  const items = Array.isArray(sorter) ? sorter : sorter ? [sorter] : [];
+
+  return items.flatMap((item) => {
+    const direction =
+      item.order === 'ascend'
+        ? 'ASC'
+        : item.order === 'descend'
+          ? 'DESC'
+          : undefined;
+    if (!direction) {
+      return [];
+    }
+
+    const field =
+      (item.column && getAdminTableColumnSortField(item.column)) ||
+      normalizeSortField(item.field);
+    if (!field) {
+      return [];
+    }
+
+    return [{ direction, field } satisfies AdminTableSorting];
   });
 }
 
@@ -148,7 +237,7 @@ export function buildAdminTableCsv<T extends Record<string, any>>(
       .join(','),
   );
 
-  return [`\uFEFF${  header}`, ...lines].join('\r\n');
+  return [`\uFEFF${header}`, ...lines].join('\r\n');
 }
 
 function normalizeAdminTableExportValue(value: unknown): string {
@@ -197,11 +286,17 @@ function resolveHeuristicExportValue<T extends Record<string, any>>(
     case 'orgUnit': {
       return [record.name, record.description].filter(Boolean).join(' / ');
     }
+    case 'orgUnits': {
+      return record.orgUnitNames ?? [];
+    }
     case 'permission': {
       return [record.name, record.code].filter(Boolean).join(' / ');
     }
     case 'position': {
       return [record.name, record.code].filter(Boolean).join(' / ');
+    }
+    case 'positions': {
+      return record.positionNames ?? [];
     }
     case 'resource': {
       return [
@@ -222,6 +317,15 @@ function resolveHeuristicExportValue<T extends Record<string, any>>(
       return undefined;
     }
   }
+}
+
+function normalizeSortField(field?: ColumnPath) {
+  const path = normalizePath(field);
+  if (path.length === 0) {
+    return undefined;
+  }
+
+  return path.map((segment) => toSnakeCase(String(segment))).join('.');
 }
 
 function resolveValueByPath(

@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  applyAdminTableSorting,
   buildAdminTableCsv,
   filterVisibleAdminTableColumns,
   flattenAdminTableData,
   getAdminTableColumnKey,
   getDefaultVisibleColumnKeys,
+  toAdminTableSorting,
 } from './shared';
 
 describe('admin-table-toolbar shared', () => {
@@ -84,5 +86,37 @@ describe('admin-table-toolbar shared', () => {
     expect(csv).toContain('13800000000 / admin@example.com');
     expect(csv).toContain('Admin / Auditor');
     expect(csv).not.toContain('Action');
+  });
+
+  it('converts table sorter state to backend sorting fields', () => {
+    const columns = [
+      { dataIndex: 'createdAt', sorter: true, sortable: true, title: 'Created' },
+      { dataIndex: 'sortOrder', sorter: true, sortable: true, title: 'Sort' },
+      { key: 'identity', sortField: 'username', sortable: true, title: 'User' },
+    ];
+
+    expect(
+      toAdminTableSorting([
+        { column: columns[0], order: 'descend' },
+        { column: columns[2], order: 'ascend' },
+      ]),
+    ).toEqual([
+      { direction: 'DESC', field: 'created_at' },
+      { direction: 'ASC', field: 'username' },
+    ]);
+  });
+
+  it('applies controlled sort order back onto visible columns', () => {
+    const columns = [
+      { dataIndex: 'createdAt', sorter: true, sortable: true, title: 'Created' },
+      { dataIndex: 'sortOrder', sorter: true, sortable: true, title: 'Sort' },
+    ];
+
+    const sorted = applyAdminTableSorting(columns, [
+      { direction: 'ASC', field: 'sort_order' },
+    ]);
+
+    expect(sorted[0]!.sortOrder).toBeNull();
+    expect(sorted[1]!.sortOrder).toBe('ascend');
   });
 });

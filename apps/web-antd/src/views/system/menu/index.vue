@@ -1,5 +1,9 @@
 <script lang="ts" setup>
-import type { FormInstance, TableColumnsType } from 'ant-design-vue';
+import type {
+  FormInstance,
+  TableColumnsType,
+  TablePaginationConfig,
+} from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
 
 import type {
@@ -8,7 +12,10 @@ import type {
   AdminMenuStatus,
   AdminMenuType,
 } from '#/api/admin/menus';
-import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
+import type {
+  AdminTableColumn,
+  AdminTableSorting,
+} from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -39,8 +46,10 @@ import {
 } from '#/api/admin/menus';
 import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
 import {
+  applyAdminTableSorting,
   filterVisibleAdminTableColumns,
   getDefaultVisibleColumnKeys,
+  toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
 
 interface AdminMenuFormModel extends AdminMenuSaveInput {
@@ -55,6 +64,8 @@ interface AdminMenuFormModel extends AdminMenuSaveInput {
 }
 
 type AdminMenuTableRecord = AdminMenu | Record<string, any>;
+type AdminTableChangeSorter =
+  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
 
 const statusOptions = [
   { label: '启用', value: 'ON' },
@@ -85,11 +96,16 @@ const typeTextMap: Record<AdminMenuType, string> = {
 const columns: AdminTableColumn<AdminMenu>[] = [
   {
     key: 'menu',
+    sortField: 'name',
+    sortable: true,
+    sorter: true,
     title: '菜单',
     width: 260,
   },
   {
     dataIndex: 'path',
+    sortable: true,
+    sorter: true,
     title: '路径',
     width: 180,
   },
@@ -101,18 +117,25 @@ const columns: AdminTableColumn<AdminMenu>[] = [
   {
     dataIndex: 'type',
     key: 'type',
+    sortable: true,
+    sorter: true,
     title: '类型',
     width: 100,
   },
   {
     dataIndex: 'status',
     key: 'status',
+    sortable: true,
+    sorter: true,
     title: '状态',
     width: 100,
   },
   {
     dataIndex: 'createdAt',
     key: 'createdAt',
+    sortField: 'created_at',
+    sortable: true,
+    sorter: true,
     title: '创建时间',
     width: 170,
   },
@@ -133,6 +156,7 @@ const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const menuItems = ref<AdminMenu[]>([]);
 const menuTree = ref<AdminMenu[]>([]);
+const sorting = ref<AdminTableSorting[]>([]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -154,7 +178,10 @@ const formModel = reactive<AdminMenuFormModel>({
 
 const modalTitle = computed(() => (editingId.value ? '编辑菜单' : '新增菜单'));
 const displayColumns = computed<TableColumnsType<AdminMenu>>(() =>
-  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+  filterVisibleAdminTableColumns(
+    applyAdminTableSorting(columns, sorting.value),
+    visibleColumnKeys.value,
+  ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
   name: [{ message: '请输入菜单名称', required: true }],
@@ -222,6 +249,7 @@ async function loadMenus() {
       name: searchForm.name,
       path: searchForm.path,
       pageSize: 200,
+      sorting: sorting.value,
     });
     menuItems.value = response.items;
     menuTree.value = response.tree;
@@ -239,6 +267,16 @@ async function handleSearch() {
 async function handleReset() {
   searchForm.name = '';
   searchForm.path = '';
+  sorting.value = [];
+  await loadMenus();
+}
+
+async function handleTableChange(
+  _pagination: TablePaginationConfig,
+  _filters: Record<string, any>,
+  sorter: AdminTableChangeSorter,
+) {
+  sorting.value = toAdminTableSorting(sorter as any);
   await loadMenus();
 }
 
@@ -400,6 +438,7 @@ onMounted(() => {
         :pagination="false"
         row-key="id"
         size="middle"
+        @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'menu'">

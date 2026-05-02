@@ -13,7 +13,10 @@ import type {
   AdminTenantStatus,
   AdminTenantType,
 } from '#/api/admin/tenants';
-import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
+import type {
+  AdminTableColumn,
+  AdminTableSorting,
+} from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -42,8 +45,10 @@ import {
 } from '#/api/admin/tenants';
 import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
 import {
+  applyAdminTableSorting,
   filterVisibleAdminTableColumns,
   getDefaultVisibleColumnKeys,
+  toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
 
 interface AdminTenantFormModel extends AdminTenantSaveInput {
@@ -55,6 +60,8 @@ interface AdminTenantFormModel extends AdminTenantSaveInput {
 }
 
 type AdminTenantTableRecord = AdminTenant | Record<string, any>;
+type AdminTableChangeSorter =
+  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
 
 const statusOptions = [
   { label: '启用', value: 'ON' },
@@ -101,14 +108,14 @@ const typeTextMap: Record<AdminTenantType, string> = {
 };
 
 const columns: AdminTableColumn<AdminTenant>[] = [
-  { dataIndex: 'id', title: 'ID', width: 80 },
-  { key: 'tenant', title: '租户', width: 260 },
-  { dataIndex: 'domain', title: '域名', width: 180 },
-  { dataIndex: 'type', key: 'type', title: '类型', width: 120 },
-  { dataIndex: 'status', key: 'status', title: '状态', width: 100 },
-  { dataIndex: 'auditStatus', key: 'auditStatus', title: '审核', width: 100 },
+  { dataIndex: 'id', sortField: 'id', sortable: true, sorter: true, title: 'ID', width: 80 },
+  { key: 'tenant', sortField: 'name', sortable: true, sorter: true, title: '租户', width: 260 },
+  { dataIndex: 'domain', sortable: true, sorter: true, title: '域名', width: 180 },
+  { dataIndex: 'type', key: 'type', sortable: true, sorter: true, title: '类型', width: 120 },
+  { dataIndex: 'status', key: 'status', sortable: true, sorter: true, title: '状态', width: 100 },
+  { dataIndex: 'auditStatus', key: 'auditStatus', sortField: 'audit_status', sortable: true, sorter: true, title: '审核', width: 100 },
   { dataIndex: 'memberCount', title: '成员数', width: 100 },
-  { dataIndex: 'createdAt', key: 'createdAt', title: '创建时间', width: 170 },
+  { dataIndex: 'createdAt', key: 'createdAt', sortField: 'created_at', sortable: true, sorter: true, title: '创建时间', width: 170 },
   { fixed: 'right', key: 'action', title: '操作', width: 150 },
 ];
 
@@ -119,6 +126,7 @@ const editingId = ref<number>();
 const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const tenants = ref<AdminTenant[]>([]);
+const sorting = ref<AdminTableSorting[]>([]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -147,7 +155,10 @@ const formModel = reactive<AdminTenantFormModel>({
 
 const modalTitle = computed(() => (editingId.value ? '编辑租户' : '新增租户'));
 const displayColumns = computed<TableColumnsType<AdminTenant>>(() =>
-  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+  filterVisibleAdminTableColumns(
+    applyAdminTableSorting(columns, sorting.value),
+    visibleColumnKeys.value,
+  ),
 );
 const formRules: Record<string, Rule[]> = {
   code: [{ message: '请输入租户编码', required: true }],
@@ -205,6 +216,7 @@ async function loadTenants() {
       name: searchForm.name,
       page: pager.page,
       pageSize: pager.pageSize,
+      sorting: sorting.value,
     });
     tenants.value = result.items;
     pager.total = result.total;
@@ -222,12 +234,18 @@ function handleReset() {
   searchForm.code = '';
   searchForm.name = '';
   pager.page = 1;
+  sorting.value = [];
   void loadTenants();
 }
 
-function handleTableChange(pagination: TablePaginationConfig) {
+function handleTableChange(
+  pagination: TablePaginationConfig,
+  _filters: Record<string, any>,
+  sorter: AdminTableChangeSorter,
+) {
   pager.page = pagination.current ?? 1;
   pager.pageSize = pagination.pageSize ?? 10;
+  sorting.value = toAdminTableSorting(sorter as any);
   void loadTenants();
 }
 
@@ -338,7 +356,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-          新增租户
+            新增租户
           </Button>
         </Space>
       </div>

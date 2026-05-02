@@ -12,7 +12,10 @@ import type {
   AdminPositionStatus,
   AdminPositionType,
 } from '#/api/admin/positions';
-import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
+import type {
+  AdminTableColumn,
+  AdminTableSorting,
+} from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -43,8 +46,10 @@ import {
 } from '#/api/admin/positions';
 import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
 import {
+  applyAdminTableSorting,
   filterVisibleAdminTableColumns,
   getDefaultVisibleColumnKeys,
+  toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
 
 interface AdminPositionFormModel extends AdminPositionSaveInput {
@@ -59,6 +64,8 @@ interface AdminPositionFormModel extends AdminPositionSaveInput {
 }
 
 type AdminPositionTableRecord = AdminPosition | Record<string, any>;
+type AdminTableChangeSorter =
+  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
 
 const statusOptions = [
   { label: '启用', value: 'ON' },
@@ -89,14 +96,14 @@ const typeTextMap: Record<AdminPositionType, string> = {
 };
 
 const columns: AdminTableColumn<AdminPosition>[] = [
-  { dataIndex: 'id', title: 'ID', width: 80 },
-  { key: 'position', title: '职位', width: 260 },
+  { dataIndex: 'id', sortField: 'id', sortable: true, sorter: true, title: 'ID', width: 80 },
+  { key: 'position', sortField: 'name', sortable: true, sorter: true, title: '职位', width: 260 },
   { dataIndex: 'orgUnitName', title: '组织', width: 180 },
-  { dataIndex: 'type', key: 'type', title: '类型', width: 120 },
-  { dataIndex: 'level', title: '职级', width: 90 },
-  { dataIndex: 'headcount', title: '编制', width: 90 },
-  { dataIndex: 'status', key: 'status', title: '状态', width: 100 },
-  { dataIndex: 'createdAt', key: 'createdAt', title: '创建时间', width: 170 },
+  { dataIndex: 'type', key: 'type', sortable: true, sorter: true, title: '类型', width: 120 },
+  { dataIndex: 'level', sortable: true, sorter: true, title: '职级', width: 90 },
+  { dataIndex: 'headcount', sortable: true, sorter: true, title: '编制', width: 90 },
+  { dataIndex: 'status', key: 'status', sortable: true, sorter: true, title: '状态', width: 100 },
+  { dataIndex: 'createdAt', key: 'createdAt', sortField: 'created_at', sortable: true, sorter: true, title: '创建时间', width: 170 },
   { fixed: 'right', key: 'action', title: '操作', width: 150 },
 ];
 
@@ -107,6 +114,7 @@ const editingId = ref<number>();
 const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const positions = ref<AdminPosition[]>([]);
+const sorting = ref<AdminTableSorting[]>([]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -139,7 +147,10 @@ const formModel = reactive<AdminPositionFormModel>({
 
 const modalTitle = computed(() => (editingId.value ? '编辑职位' : '新增职位'));
 const displayColumns = computed<TableColumnsType<AdminPosition>>(() =>
-  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+  filterVisibleAdminTableColumns(
+    applyAdminTableSorting(columns, sorting.value),
+    visibleColumnKeys.value,
+  ),
 );
 const formRules: Record<string, Rule[]> = {
   code: [{ message: '请输入职位编码', required: true }],
@@ -195,6 +206,7 @@ async function loadPositions() {
       name: searchForm.name,
       page: pager.page,
       pageSize: pager.pageSize,
+      sorting: sorting.value,
     });
     positions.value = result.items;
     pager.total = result.total;
@@ -212,12 +224,18 @@ function handleReset() {
   searchForm.code = '';
   searchForm.name = '';
   pager.page = 1;
+  sorting.value = [];
   void loadPositions();
 }
 
-function handleTableChange(pagination: TablePaginationConfig) {
+function handleTableChange(
+  pagination: TablePaginationConfig,
+  _filters: Record<string, any>,
+  sorter: AdminTableChangeSorter,
+) {
   pager.page = pagination.current ?? 1;
   pager.pageSize = pagination.pageSize ?? 10;
+  sorting.value = toAdminTableSorting(sorter as any);
   void loadPositions();
 }
 
@@ -332,7 +350,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-          新增职位
+            新增职位
           </Button>
         </Space>
       </div>

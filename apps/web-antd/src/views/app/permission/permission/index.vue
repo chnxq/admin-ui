@@ -15,7 +15,10 @@ import type {
   AdminPermissionSaveInput,
   AdminPermissionStatus,
 } from '#/api/admin/permissions';
-import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
+import type {
+  AdminTableColumn,
+  AdminTableSorting,
+} from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -51,8 +54,10 @@ import {
 } from '#/api/admin/permissions';
 import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
 import {
+  applyAdminTableSorting,
   filterVisibleAdminTableColumns,
   getDefaultVisibleColumnKeys,
+  toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
 
 interface AdminPermissionFormModel extends AdminPermissionSaveInput {
@@ -69,6 +74,8 @@ interface AdminPermissionGroupFormModel extends AdminPermissionGroupSaveInput {
 }
 
 type PermissionRecord = AdminPermission | Record<string, any>;
+type AdminTableChangeSorter =
+  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
 
 const statusOptions = [
   { label: '启用', value: 'ON' },
@@ -83,18 +90,26 @@ const statusTextMap: Record<AdminPermissionStatus, string> = {
 const columns: AdminTableColumn<AdminPermission>[] = [
   {
     key: 'permission',
+    sortField: 'name',
+    sortable: true,
+    sorter: true,
     title: '权限点',
     width: 280,
   },
   {
     dataIndex: 'groupName',
     key: 'group',
+    sortField: 'group_id',
+    sortable: true,
+    sorter: true,
     title: '权限组',
     width: 150,
   },
   {
     dataIndex: 'status',
     key: 'status',
+    sortable: true,
+    sorter: true,
     title: '状态',
     width: 100,
   },
@@ -106,6 +121,9 @@ const columns: AdminTableColumn<AdminPermission>[] = [
   {
     dataIndex: 'createdAt',
     key: 'createdAt',
+    sortField: 'created_at',
+    sortable: true,
+    sorter: true,
     title: '创建时间',
     width: 170,
   },
@@ -133,6 +151,7 @@ const tableSurfaceRef = ref<HTMLElement>();
 const permissions = ref<AdminPermission[]>([]);
 const groups = ref<AdminPermissionGroup[]>([]);
 const groupTree = ref<AdminPermissionGroup[]>([]);
+const sorting = ref<AdminTableSorting[]>([]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -183,7 +202,10 @@ const groupModalTitle = computed(() =>
 );
 
 const displayColumns = computed<TableColumnsType<AdminPermission>>(() =>
-  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+  filterVisibleAdminTableColumns(
+    applyAdminTableSorting(columns, sorting.value),
+    visibleColumnKeys.value,
+  ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
   code: [{ message: '请输入权限编码', required: true }],
@@ -304,6 +326,7 @@ async function loadPermissions() {
       name: searchForm.name,
       page: pager.page,
       pageSize: pager.pageSize,
+      sorting: sorting.value,
     });
     permissions.value = response.items;
     pager.total = response.total;
@@ -327,12 +350,18 @@ async function handleReset() {
   searchForm.code = '';
   searchForm.name = '';
   pager.page = 1;
+  sorting.value = [];
   await loadPermissions();
 }
 
-async function handleTableChange(pagination: TablePaginationConfig) {
+async function handleTableChange(
+  pagination: TablePaginationConfig,
+  _filters: Record<string, any>,
+  sorter: AdminTableChangeSorter,
+) {
   pager.page = pagination.current ?? 1;
   pager.pageSize = pagination.pageSize ?? 10;
+  sorting.value = toAdminTableSorting(sorter as any);
   await loadPermissions();
 }
 

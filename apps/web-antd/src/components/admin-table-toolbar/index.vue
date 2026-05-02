@@ -1,15 +1,20 @@
 <script lang="ts" setup>
-import { computed, ref, toRef, watch } from 'vue';
+import type { AdminTableColumn } from './shared';
 
-import { useFullscreen } from '@vueuse/core';
+import { computed, ref, toRef, watch } from 'vue';
 
 import { IconifyIcon } from '@vben/icons';
 import { downloadFileFromBlobPart } from '@vben/utils';
 
+import { useFullscreen } from '@vueuse/core';
 import { Button, Checkbox, Dropdown, Space, Tooltip } from 'ant-design-vue';
 
-import { buildAdminTableCsv, flattenAdminTableData, getAdminTableColumnKey, getAdminTableColumnTitle } from './shared';
-import type { AdminTableColumn } from './shared';
+import {
+  buildAdminTableCsv,
+  flattenAdminTableData,
+  getAdminTableColumnKey,
+  getAdminTableColumnTitle,
+} from './shared';
 
 defineOptions({ name: 'AdminTableToolbar' });
 
@@ -94,13 +99,13 @@ function arraysEqual(left: string[], right: string[]) {
 
 function sanitizeColumnKeys(columnKeys: string[]) {
   const allowedKeys = new Set(columnOptions.value.map((column) => column.key));
-  const lockedKeys = columnOptions.value
+  const lockedKeys = new Set(columnOptions.value
     .filter((column) => column.locked)
-    .map((column) => column.key);
+    .map((column) => column.key));
 
   const nextKeys = columnOptions.value
     .map((column) => column.key)
-    .filter((key) => columnKeys.includes(key) || lockedKeys.includes(key));
+    .filter((key) => columnKeys.includes(key) || lockedKeys.has(key));
 
   if (nextKeys.length === 0 && columnOptions.value[0]) {
     nextKeys.push(columnOptions.value[0].key);

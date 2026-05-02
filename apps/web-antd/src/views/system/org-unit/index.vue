@@ -1,5 +1,9 @@
 <script lang="ts" setup>
-import type { FormInstance, TableColumnsType } from 'ant-design-vue';
+import type {
+  FormInstance,
+  TableColumnsType,
+  TablePaginationConfig,
+} from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
 
 import type {
@@ -8,7 +12,10 @@ import type {
   AdminOrgUnitStatus,
   AdminOrgUnitType,
 } from '#/api/admin/org-units';
-import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
+import type {
+  AdminTableColumn,
+  AdminTableSorting,
+} from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -38,8 +45,10 @@ import {
 } from '#/api/admin/org-units';
 import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
 import {
+  applyAdminTableSorting,
   filterVisibleAdminTableColumns,
   getDefaultVisibleColumnKeys,
+  toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
 
 interface AdminOrgUnitFormModel extends AdminOrgUnitSaveInput {
@@ -51,6 +60,8 @@ interface AdminOrgUnitFormModel extends AdminOrgUnitSaveInput {
 }
 
 type AdminOrgUnitTableRecord = AdminOrgUnit | Record<string, any>;
+type AdminTableChangeSorter =
+  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
 
 const statusOptions = [
   { label: '启用', value: 'ON' },
@@ -89,13 +100,13 @@ const typeTextMap: Record<AdminOrgUnitType, string> = {
 };
 
 const columns: AdminTableColumn<AdminOrgUnit>[] = [
-  { key: 'orgUnit', title: '组织', width: 260 },
-  { dataIndex: 'code', title: '编码', width: 160 },
-  { dataIndex: 'type', key: 'type', title: '类型', width: 120 },
-  { dataIndex: 'sortOrder', title: '排序', width: 90 },
-  { dataIndex: 'status', key: 'status', title: '状态', width: 100 },
+  { key: 'orgUnit', sortField: 'name', sortable: true, sorter: true, title: '组织', width: 260 },
+  { dataIndex: 'code', sortable: true, sorter: true, title: '编码', width: 160 },
+  { dataIndex: 'type', key: 'type', sortable: true, sorter: true, title: '类型', width: 120 },
+  { dataIndex: 'sortOrder', sortField: 'sort_order', sortable: true, sorter: true, title: '排序', width: 90 },
+  { dataIndex: 'status', key: 'status', sortable: true, sorter: true, title: '状态', width: 100 },
   { dataIndex: 'leaderName', title: '负责人', width: 140 },
-  { dataIndex: 'createdAt', key: 'createdAt', title: '创建时间', width: 170 },
+  { dataIndex: 'createdAt', key: 'createdAt', sortField: 'created_at', sortable: true, sorter: true, title: '创建时间', width: 170 },
   { fixed: 'right', key: 'action', title: '操作', width: 150 },
 ];
 
@@ -107,6 +118,7 @@ const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const orgUnits = ref<AdminOrgUnit[]>([]);
 const orgUnitTree = ref<AdminOrgUnit[]>([]);
+const sorting = ref<AdminTableSorting[]>([]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -132,7 +144,10 @@ const modalTitle = computed(() =>
   editingId.value ? '编辑组织单元' : '新增组织单元',
 );
 const displayColumns = computed<TableColumnsType<AdminOrgUnit>>(() =>
-  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+  filterVisibleAdminTableColumns(
+    applyAdminTableSorting(columns, sorting.value),
+    visibleColumnKeys.value,
+  ),
 );
 const formRules: Record<string, Rule[]> = {
   code: [{ message: '请输入组织编码', required: true }],
@@ -186,6 +201,7 @@ async function loadOrgUnits() {
       name: searchForm.name,
       page: 1,
       pageSize: 200,
+      sorting: sorting.value,
     });
     orgUnits.value = result.items;
     orgUnitTree.value = result.tree;
@@ -201,6 +217,16 @@ function handleSearch() {
 function handleReset() {
   searchForm.code = '';
   searchForm.name = '';
+  sorting.value = [];
+  void loadOrgUnits();
+}
+
+function handleTableChange(
+  _pagination: TablePaginationConfig,
+  _filters: Record<string, any>,
+  sorter: AdminTableChangeSorter,
+) {
+  sorting.value = toAdminTableSorting(sorter as any);
   void loadOrgUnits();
 }
 
@@ -312,7 +338,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-          新增组织
+            新增组织
           </Button>
         </Space>
       </div>
@@ -325,6 +351,7 @@ onMounted(() => {
         :pagination="false"
         :row-key="(record) => record.id ?? record.code ?? record.name"
         size="middle"
+        @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'orgUnit'">

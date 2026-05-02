@@ -4,7 +4,12 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { roleClient } from './clients';
-import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
+import {
+  getAdminList,
+  toAdminTotal,
+  toPagingRequest,
+  type AdminSorting,
+} from './paging';
 
 export type AdminRole = permissionservicev1_Role;
 export type AdminRoleStatus = NonNullable<permissionservicev1_Role['status']>;
@@ -15,6 +20,7 @@ export interface AdminRoleListParams {
   name?: string;
   page?: number;
   pageSize?: number;
+  sorting?: AdminSorting[];
 }
 
 export interface AdminRoleListResult {
@@ -69,6 +75,7 @@ export async function listAdminRolesApi(
       ],
       page: params.page,
       pageSize: params.pageSize,
+      sorting: params.sorting,
     }),
   );
 

@@ -10,6 +10,7 @@ import {
   getAdminList,
   toAdminTotal,
   toPagingRequest,
+  type AdminSorting,
   unwrapAdminEnvelope,
 } from './paging';
 
@@ -22,6 +23,7 @@ export interface AdminMenuListParams {
   page?: number;
   pageSize?: number;
   path?: string;
+  sorting?: AdminSorting[];
 }
 
 export interface AdminMenuListResult {
@@ -117,6 +119,7 @@ export async function listAdminMenusApi(
       ],
       page: params.page,
       pageSize: params.pageSize ?? 100,
+      sorting: params.sorting,
     }),
   );
   const items = response.items ?? [];

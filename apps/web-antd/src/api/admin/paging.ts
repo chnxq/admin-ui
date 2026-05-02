@@ -3,6 +3,8 @@ import type {
   pagination_FilterExpr,
   pagination_Operator,
   pagination_PagingRequest,
+  pagination_Sorting,
+  pagination_Sorting_Direction,
 } from '#/api/generated/admin/service/v1';
 
 import { requestClient } from '#/api/request';
@@ -14,10 +16,16 @@ export interface AdminFilterCondition {
   values?: Array<number | string>;
 }
 
+export interface AdminSorting {
+  direction: pagination_Sorting_Direction;
+  field: string;
+}
+
 export interface AdminPagingParams {
   conditions?: AdminFilterCondition[];
   page?: number;
   pageSize?: number;
+  sorting?: AdminSorting[];
 }
 
 interface ResponseEnvelope<T = unknown> {
@@ -34,6 +42,13 @@ function toFilterCondition(
     op: condition.op,
     value: condition.value === undefined ? undefined : String(condition.value),
     values: condition.values?.map(String),
+  };
+}
+
+function toSorting(sorting: AdminSorting): pagination_Sorting {
+  return {
+    direction: sorting.direction,
+    field: sorting.field,
   };
 }
 
@@ -69,6 +84,13 @@ function appendFilterExpr(
   }
 }
 
+function appendSorting(params: URLSearchParams, sorting?: pagination_Sorting[]) {
+  for (const item of sorting ?? []) {
+    appendParam(params, 'sorting.field', item.field);
+    appendParam(params, 'sorting.direction', item.direction);
+  }
+}
+
 export function buildFilterExpr(
   conditions: AdminFilterCondition[] = [],
 ): pagination_FilterExpr | undefined {
@@ -96,14 +118,22 @@ export function toPagingRequest({
   conditions,
   page = 1,
   pageSize = 10,
+  sorting,
 }: AdminPagingParams = {}): pagination_PagingRequest {
+  const normalizedSorting = sorting
+    ?.filter((item) => item.field)
+    .map((item) => toSorting(item));
+
   return {
     filterExpr: buildFilterExpr(conditions),
     limit: pageSize,
     offset: (page - 1) * pageSize,
     page,
     pageSize,
-    sorting: undefined,
+    sorting:
+      normalizedSorting && normalizedSorting.length > 0
+        ? normalizedSorting
+        : undefined,
   };
 }
 
@@ -119,6 +149,7 @@ export function buildPagingQuery(params: pagination_PagingRequest) {
   appendParam(query, 'filter', params.filter);
   appendFilterExpr(query, params.filterExpr);
   appendParam(query, 'orderBy', params.orderBy);
+  appendSorting(query, params.sorting);
 
   return query.toString();
 }

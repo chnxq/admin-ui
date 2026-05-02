@@ -4,7 +4,12 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { positionClient } from './clients';
-import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
+import {
+  getAdminList,
+  toAdminTotal,
+  toPagingRequest,
+  type AdminSorting,
+} from './paging';
 
 export type AdminPosition = identityservicev1_Position;
 export type AdminPositionStatus = NonNullable<AdminPosition['status']>;
@@ -15,6 +20,7 @@ export interface AdminPositionListParams {
   name?: string;
   page?: number;
   pageSize?: number;
+  sorting?: AdminSorting[];
 }
 
 export interface AdminPositionListResult {
@@ -75,6 +81,7 @@ export async function listAdminPositionsApi(
       ],
       page: params.page,
       pageSize: params.pageSize,
+      sorting: params.sorting,
     }),
   );
 

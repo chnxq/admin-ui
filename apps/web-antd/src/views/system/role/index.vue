@@ -12,7 +12,10 @@ import type {
   AdminRoleStatus,
   AdminRoleType,
 } from '#/api/admin/roles';
-import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
+import type {
+  AdminTableColumn,
+  AdminTableSorting,
+} from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -42,8 +45,10 @@ import {
 } from '#/api/admin/roles';
 import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
 import {
+  applyAdminTableSorting,
   filterVisibleAdminTableColumns,
   getDefaultVisibleColumnKeys,
+  toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
 
 interface AdminRoleFormModel extends AdminRoleSaveInput {
@@ -55,6 +60,8 @@ interface AdminRoleFormModel extends AdminRoleSaveInput {
 }
 
 type AdminRoleTableRecord = AdminRole | Record<string, any>;
+type AdminTableChangeSorter =
+  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
 
 const statusOptions = [
   { label: '启用', value: 'ON' },
@@ -81,34 +88,50 @@ const typeTextMap: Record<AdminRoleType, string> = {
 const columns: AdminTableColumn<AdminRole>[] = [
   {
     dataIndex: 'id',
+    sortField: 'id',
+    sortable: true,
+    sorter: true,
     title: 'ID',
     width: 80,
   },
   {
     key: 'role',
+    sortField: 'name',
+    sortable: true,
+    sorter: true,
     title: '角色',
     width: 260,
   },
   {
     dataIndex: 'type',
     key: 'type',
+    sortable: true,
+    sorter: true,
     title: '类型',
     width: 120,
   },
   {
     dataIndex: 'sortOrder',
+    sortField: 'sort_order',
+    sortable: true,
+    sorter: true,
     title: '排序',
     width: 90,
   },
   {
     dataIndex: 'status',
     key: 'status',
+    sortable: true,
+    sorter: true,
     title: '状态',
     width: 100,
   },
   {
     dataIndex: 'createdAt',
     key: 'createdAt',
+    sortField: 'created_at',
+    sortable: true,
+    sorter: true,
     title: '创建时间',
     width: 170,
   },
@@ -127,6 +150,7 @@ const editingId = ref<number>();
 const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const roles = ref<AdminRole[]>([]);
+const sorting = ref<AdminTableSorting[]>([]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -152,7 +176,10 @@ const formModel = reactive<AdminRoleFormModel>({
 
 const modalTitle = computed(() => (editingId.value ? '编辑角色' : '新增角色'));
 const displayColumns = computed<TableColumnsType<AdminRole>>(() =>
-  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+  filterVisibleAdminTableColumns(
+    applyAdminTableSorting(columns, sorting.value),
+    visibleColumnKeys.value,
+  ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
   code: [{ message: '请输入角色编码', required: true }],
@@ -209,6 +236,7 @@ async function loadRoles() {
       name: searchForm.name,
       page: pager.page,
       pageSize: pager.pageSize,
+      sorting: sorting.value,
     });
     roles.value = response.items;
     pager.total = response.total;
@@ -228,12 +256,18 @@ async function handleReset() {
   searchForm.code = '';
   searchForm.name = '';
   pager.page = 1;
+  sorting.value = [];
   await loadRoles();
 }
 
-async function handleTableChange(pagination: TablePaginationConfig) {
+async function handleTableChange(
+  pagination: TablePaginationConfig,
+  _filters: Record<string, any>,
+  sorter: AdminTableChangeSorter,
+) {
   pager.page = pagination.current ?? 1;
   pager.pageSize = pagination.pageSize ?? 10;
+  sorting.value = toAdminTableSorting(sorter as any);
   await loadRoles();
 }
 
@@ -354,7 +388,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-          新增角色
+            新增角色
           </Button>
         </Space>
       </div>

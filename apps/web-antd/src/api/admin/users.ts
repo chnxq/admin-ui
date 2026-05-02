@@ -4,14 +4,27 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { userClient } from './clients';
-import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
+import {
+  getAdminList,
+  toAdminTotal,
+  toPagingRequest,
+  type AdminSorting,
+} from './paging';
 
 export type AdminUser = identityservicev1_User;
 export type AdminUserStatus = NonNullable<identityservicev1_User['status']>;
 
 export interface AdminUserListParams {
+  mobile?: string;
+  orgUnitId?: number;
   page?: number;
   pageSize?: number;
+  positionId?: number;
+  realname?: string;
+  roleId?: number;
+  sorting?: AdminSorting[];
+  status?: AdminUserStatus;
+  telephone?: string;
   username?: string;
 }
 
@@ -25,12 +38,15 @@ export interface AdminUserSaveInput {
   email?: string;
   mobile?: string;
   nickname?: string;
+  orgUnitIds?: number[];
   password?: string;
+  positionIds?: number[];
   realname?: string;
   remark?: string;
   roleIds?: number[];
   roles?: string[];
   status?: AdminUserStatus;
+  telephone?: string;
   username?: string;
 }
 
@@ -45,11 +61,14 @@ function toUserData(input: AdminUserSaveInput): AdminUser {
     email: cleanText(input.email),
     mobile: cleanText(input.mobile),
     nickname: cleanText(input.nickname),
+    orgUnitIds: input.orgUnitIds ?? [],
+    positionIds: input.positionIds ?? [],
     realname: cleanText(input.realname),
     remark: cleanText(input.remark),
     roleIds: input.roleIds ?? [],
     roles: input.roles ?? [],
     status: input.status ?? 'NORMAL',
+    telephone: cleanText(input.telephone),
     username: cleanText(input.username),
   } as AdminUser;
 }
@@ -66,9 +85,45 @@ export async function listAdminUsersApi(
           op: 'CONTAINS',
           value: cleanText(params.username),
         },
+        {
+          field: 'realname',
+          op: 'CONTAINS',
+          value: cleanText(params.realname),
+        },
+        {
+          field: 'mobile',
+          op: 'CONTAINS',
+          value: cleanText(params.mobile),
+        },
+        {
+          field: 'telephone',
+          op: 'CONTAINS',
+          value: cleanText(params.telephone),
+        },
+        {
+          field: 'org_unit_id',
+          op: 'EQ',
+          value: params.orgUnitId,
+        },
+        {
+          field: 'position_id',
+          op: 'EQ',
+          value: params.positionId,
+        },
+        {
+          field: 'role_id',
+          op: 'EQ',
+          value: params.roleId,
+        },
+        {
+          field: 'status',
+          op: 'EQ',
+          value: params.status,
+        },
       ],
       page: params.page,
       pageSize: params.pageSize,
+      sorting: params.sorting,
     }),
   );
 
@@ -103,9 +158,13 @@ export async function updateAdminUserApi(
       'realname',
       'email',
       'mobile',
+      'telephone',
       'status',
       'description',
       'remark',
+      'orgUnitIds',
+      'positionIds',
+      'roleIds',
     ].join(','),
   });
 }

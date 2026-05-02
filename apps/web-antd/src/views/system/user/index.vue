@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type {
   FormInstance,
+  TableColumnType,
   TableColumnsType,
   TablePaginationConfig,
 } from 'ant-design-vue';
@@ -11,7 +12,19 @@ import type {
   AdminUserSaveInput,
   AdminUserStatus,
 } from '#/api/admin/users';
-import type { AdminTableColumn } from '#/components/admin-table-toolbar/shared';
+import type {
+  AdminOrgUnit,
+} from '#/api/admin/org-units';
+import type {
+  AdminPosition,
+} from '#/api/admin/positions';
+import type {
+  AdminRole,
+} from '#/api/admin/roles';
+import type {
+  AdminTableColumn,
+  AdminTableSorting,
+} from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -33,6 +46,15 @@ import {
 import dayjs from 'dayjs';
 
 import {
+  listAdminOrgUnitsApi,
+} from '#/api/admin/org-units';
+import {
+  listAdminPositionsApi,
+} from '#/api/admin/positions';
+import {
+  listAdminRolesApi,
+} from '#/api/admin/roles';
+import {
   createAdminUserApi,
   deleteAdminUserApi,
   listAdminUsersApi,
@@ -40,15 +62,25 @@ import {
 } from '#/api/admin/users';
 import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
 import {
+  applyAdminTableSorting,
   filterVisibleAdminTableColumns,
   getDefaultVisibleColumnKeys,
+  toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
 
 interface AdminUserFormModel extends AdminUserSaveInput {
+  orgUnitIds: number[];
   password: string;
+  positionIds: number[];
+  roleIds: number[];
   status: AdminUserStatus;
+  telephone: string;
   username: string;
 }
+
+type AdminTableChangeSorter =
+  | TableColumnType<AdminUser>['sorter']
+  | Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
 
 type AdminUserTableRecord = AdminUser | Record<string, any>;
 
@@ -73,39 +105,74 @@ const statusTextMap: Record<AdminUserStatus, string> = {
 const columns: AdminTableColumn<AdminUser>[] = [
   {
     dataIndex: 'id',
+    sortField: 'id',
+    sortable: true,
+    sorter: true,
     title: 'ID',
     width: 80,
   },
   {
     key: 'identity',
+    sortField: 'username',
+    sortable: true,
+    sorter: true,
     title: '用户',
     width: 220,
   },
   {
-    key: 'contact',
-    title: '联系方式',
+    dataIndex: 'mobile',
+    key: 'mobile',
+    sortable: true,
+    sorter: true,
+    title: '手机',
+    width: 140,
+  },
+  {
+    dataIndex: 'telephone',
+    key: 'telephone',
+    sortable: true,
+    sorter: true,
+    title: '电话',
+    width: 140,
+  },
+  {
+    key: 'orgUnits',
+    title: '组织',
+    width: 220,
+  },
+  {
+    key: 'positions',
+    title: '岗位',
     width: 220,
   },
   {
     key: 'roles',
     title: '角色',
-    width: 180,
+    width: 220,
   },
   {
     dataIndex: 'status',
     key: 'status',
+    sortable: true,
+    sorter: true,
     title: '状态',
     width: 100,
   },
   {
     dataIndex: 'lastLoginAt',
     key: 'lastLoginAt',
+    sortField: 'last_login_at',
+    sortable: true,
+    sorter: true,
     title: '最后登录',
     width: 170,
   },
   {
     dataIndex: 'createdAt',
     key: 'createdAt',
+    sortField: 'created_at',
+    sortable: true,
+    sorter: true,
     title: '创建时间',
     width: 170,
   },
@@ -120,13 +187,25 @@ const columns: AdminTableColumn<AdminUser>[] = [
 const loading = ref(false);
 const modalOpen = ref(false);
 const submitting = ref(false);
+const optionLoading = ref(false);
 const editingId = ref<number>();
 const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const users = ref<AdminUser[]>([]);
+const orgOptions = ref<AdminOrgUnit[]>([]);
+const positionOptions = ref<AdminPosition[]>([]);
+const roleOptions = ref<AdminRole[]>([]);
+const sorting = ref<AdminTableSorting[]>([]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
+  mobile: '',
+  orgUnitId: undefined as number | undefined,
+  positionId: undefined as number | undefined,
+  realname: '',
+  roleId: undefined as number | undefined,
+  status: undefined as AdminUserStatus | undefined,
+  telephone: '',
   username: '',
 });
 
@@ -141,27 +220,52 @@ const formModel = reactive<AdminUserFormModel>({
   email: '',
   mobile: '',
   nickname: '',
+  orgUnitIds: [],
   password: '',
+  positionIds: [],
   realname: '',
   remark: '',
   roleIds: [],
   roles: [],
   status: 'NORMAL',
+  telephone: '',
   username: '',
 });
 
 const modalTitle = computed(() => (editingId.value ? '编辑用户' : '新增用户'));
 const displayColumns = computed<TableColumnsType<AdminUser>>(() =>
-  filterVisibleAdminTableColumns(columns, visibleColumnKeys.value),
+  filterVisibleAdminTableColumns(
+    applyAdminTableSorting(columns, sorting.value),
+    visibleColumnKeys.value,
+  ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
   email: [{ message: '请输入有效邮箱', type: 'email' }],
-  password: editingId.value
-    ? []
-    : [{ message: '请输入初始密码', required: true }],
+  orgUnitIds: [{ message: '请选择组织', required: true, type: 'array' }],
+  password: editingId.value ? [] : [{ message: '请输入初始密码', required: true }],
+  roleIds: [{ message: '请选择角色', required: true, type: 'array' }],
   status: [{ message: '请选择状态', required: true }],
   username: [{ message: '请输入用户名', required: true }],
 }));
+
+const orgSelectOptions = computed(() =>
+  orgOptions.value.map((item) => ({
+    label: item.name ?? `#${item.id}`,
+    value: item.id,
+  })),
+);
+const positionSelectOptions = computed(() =>
+  positionOptions.value.map((item) => ({
+    label: item.name ?? `#${item.id}`,
+    value: item.id,
+  })),
+);
+const roleSelectOptions = computed(() =>
+  roleOptions.value.map((item) => ({
+    label: item.name ?? `#${item.id}`,
+    value: item.id,
+  })),
+);
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
   current: pager.page,
@@ -177,12 +281,15 @@ function resetFormModel() {
     email: '',
     mobile: '',
     nickname: '',
+    orgUnitIds: [],
     password: '',
+    positionIds: [],
     realname: '',
     remark: '',
     roleIds: [],
     roles: [],
     status: 'NORMAL',
+    telephone: '',
     username: '',
   });
 }
@@ -194,6 +301,14 @@ function toAdminUser(record: AdminUserTableRecord) {
 function displayRoles(record: AdminUserTableRecord) {
   const user = toAdminUser(record);
   return user.roleNames?.length ? user.roleNames : (user.roles ?? []);
+}
+
+function displayOrgUnits(record: AdminUserTableRecord) {
+  return toAdminUser(record).orgUnitNames ?? [];
+}
+
+function displayPositions(record: AdminUserTableRecord) {
+  return toAdminUser(record).positionNames ?? [];
 }
 
 function formatTime(value?: string) {
@@ -220,12 +335,36 @@ function getStatusColor(status?: AdminUserStatus) {
   return 'default';
 }
 
+async function loadReferenceOptions() {
+  optionLoading.value = true;
+  try {
+    const [orgResult, positionResult, roleResult] = await Promise.all([
+      listAdminOrgUnitsApi({ page: 1, pageSize: 200 }),
+      listAdminPositionsApi({ page: 1, pageSize: 200 }),
+      listAdminRolesApi({ page: 1, pageSize: 200 }),
+    ]);
+    orgOptions.value = orgResult.items;
+    positionOptions.value = positionResult.items;
+    roleOptions.value = roleResult.items;
+  } finally {
+    optionLoading.value = false;
+  }
+}
+
 async function loadUsers() {
   loading.value = true;
   try {
     const response = await listAdminUsersApi({
+      mobile: searchForm.mobile,
+      orgUnitId: searchForm.orgUnitId,
       page: pager.page,
       pageSize: pager.pageSize,
+      positionId: searchForm.positionId,
+      realname: searchForm.realname,
+      roleId: searchForm.roleId,
+      sorting: sorting.value,
+      status: searchForm.status,
+      telephone: searchForm.telephone,
       username: searchForm.username,
     });
     users.value = response.items;
@@ -243,14 +382,27 @@ async function handleSearch() {
 }
 
 async function handleReset() {
+  searchForm.mobile = '';
+  searchForm.orgUnitId = undefined;
+  searchForm.positionId = undefined;
+  searchForm.realname = '';
+  searchForm.roleId = undefined;
+  searchForm.status = undefined;
+  searchForm.telephone = '';
   searchForm.username = '';
+  sorting.value = [];
   pager.page = 1;
   await loadUsers();
 }
 
-async function handleTableChange(pagination: TablePaginationConfig) {
+async function handleTableChange(
+  pagination: TablePaginationConfig,
+  _filters: Record<string, unknown>,
+  sorter: AdminTableChangeSorter,
+) {
   pager.page = pagination.current ?? 1;
   pager.pageSize = pagination.pageSize ?? 10;
+  sorting.value = toAdminTableSorting(sorter as any);
   await loadUsers();
 }
 
@@ -275,12 +427,15 @@ async function openEdit(record: AdminUserTableRecord) {
     email: user.email ?? '',
     mobile: user.mobile ?? '',
     nickname: user.nickname ?? '',
+    orgUnitIds: user.orgUnitIds ?? [],
     password: '',
+    positionIds: user.positionIds ?? [],
     realname: user.realname ?? '',
     remark: user.remark ?? '',
     roleIds: user.roleIds ?? [],
     roles: user.roles ?? [],
     status: user.status ?? 'NORMAL',
+    telephone: user.telephone ?? '',
     username: user.username ?? '',
   });
   modalOpen.value = true;
@@ -293,11 +448,27 @@ async function submitUser() {
 
   submitting.value = true;
   try {
+    const payload: AdminUserSaveInput = {
+      description: formModel.description,
+      email: formModel.email,
+      mobile: formModel.mobile,
+      nickname: formModel.nickname,
+      orgUnitIds: [...formModel.orgUnitIds],
+      password: formModel.password,
+      positionIds: [...formModel.positionIds],
+      realname: formModel.realname,
+      remark: formModel.remark,
+      roleIds: [...formModel.roleIds],
+      roles: [...(formModel.roles ?? [])],
+      status: formModel.status,
+      telephone: formModel.telephone,
+      username: formModel.username,
+    };
     if (editingId.value) {
-      await updateAdminUserApi(editingId.value, formModel);
+      await updateAdminUserApi(editingId.value, payload);
       message.success('用户已更新');
     } else {
-      await createAdminUserApi(formModel);
+      await createAdminUserApi(payload);
       message.success('用户已创建');
     }
     modalOpen.value = false;
@@ -319,8 +490,8 @@ async function handleDelete(record: AdminUserTableRecord) {
   await loadUsers();
 }
 
-onMounted(() => {
-  loadUsers();
+onMounted(async () => {
+  await Promise.all([loadReferenceOptions(), loadUsers()]);
 });
 </script>
 
@@ -334,6 +505,69 @@ onMounted(() => {
               v-model:value="searchForm.username"
               allow-clear
               placeholder="输入用户名"
+            />
+          </Form.Item>
+          <Form.Item label="姓名" name="realname">
+            <Input
+              v-model:value="searchForm.realname"
+              allow-clear
+              placeholder="输入姓名"
+            />
+          </Form.Item>
+          <Form.Item label="手机" name="mobile">
+            <Input
+              v-model:value="searchForm.mobile"
+              allow-clear
+              placeholder="输入手机号"
+            />
+          </Form.Item>
+          <Form.Item label="电话" name="telephone">
+            <Input
+              v-model:value="searchForm.telephone"
+              allow-clear
+              placeholder="输入电话"
+            />
+          </Form.Item>
+          <Form.Item label="组织" name="orgUnitId">
+            <Select
+              v-model:value="searchForm.orgUnitId"
+              allow-clear
+              :loading="optionLoading"
+              :options="orgSelectOptions"
+              placeholder="选择组织"
+              show-search
+              style="width: 180px"
+            />
+          </Form.Item>
+          <Form.Item label="岗位" name="positionId">
+            <Select
+              v-model:value="searchForm.positionId"
+              allow-clear
+              :loading="optionLoading"
+              :options="positionSelectOptions"
+              placeholder="选择岗位"
+              show-search
+              style="width: 180px"
+            />
+          </Form.Item>
+          <Form.Item label="角色" name="roleId">
+            <Select
+              v-model:value="searchForm.roleId"
+              allow-clear
+              :loading="optionLoading"
+              :options="roleSelectOptions"
+              placeholder="选择角色"
+              show-search
+              style="width: 180px"
+            />
+          </Form.Item>
+          <Form.Item label="状态" name="status">
+            <Select
+              v-model:value="searchForm.status"
+              allow-clear
+              :options="statusOptions"
+              placeholder="选择状态"
+              style="width: 140px"
             />
           </Form.Item>
           <Form.Item>
@@ -368,7 +602,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-          新增用户
+            新增用户
           </Button>
         </Space>
       </div>
@@ -395,11 +629,22 @@ onMounted(() => {
             </div>
           </template>
 
-          <template v-else-if="column.key === 'contact'">
-            <div class="identity-cell">
-              <span>{{ record.mobile || '-' }}</span>
-              <span class="identity-sub">{{ record.email || '-' }}</span>
-            </div>
+          <template v-else-if="column.key === 'orgUnits'">
+            <Space v-if="displayOrgUnits(record).length > 0" wrap>
+              <Tag v-for="orgUnit in displayOrgUnits(record)" :key="orgUnit">
+                {{ orgUnit }}
+              </Tag>
+            </Space>
+            <span v-else>-</span>
+          </template>
+
+          <template v-else-if="column.key === 'positions'">
+            <Space v-if="displayPositions(record).length > 0" wrap>
+              <Tag v-for="position in displayPositions(record)" :key="position">
+                {{ position }}
+              </Tag>
+            </Space>
+            <span v-else>-</span>
           </template>
 
           <template v-else-if="column.key === 'roles'">
@@ -455,6 +700,7 @@ onMounted(() => {
       destroy-on-close
       :confirm-loading="submitting"
       :title="modalTitle"
+      width="720px"
       @ok="submitUser"
     >
       <Form
@@ -463,40 +709,83 @@ onMounted(() => {
         :rules="formRules"
         layout="vertical"
       >
-        <Form.Item label="用户名" name="username">
-          <Input
-            v-model:value="formModel.username"
-            placeholder="请输入用户名"
-          />
-        </Form.Item>
-        <Form.Item label="初始密码" name="password">
-          <Input.Password
-            v-model:value="formModel.password"
-            :placeholder="editingId ? '留空则不修改密码' : '请输入初始密码'"
-          />
-        </Form.Item>
-        <Form.Item label="状态" name="status">
-          <Select v-model:value="formModel.status" :options="statusOptions" />
-        </Form.Item>
-        <Form.Item label="姓名" name="realname">
-          <Input v-model:value="formModel.realname" placeholder="请输入姓名" />
-        </Form.Item>
-        <Form.Item label="昵称" name="nickname">
-          <Input v-model:value="formModel.nickname" placeholder="请输入昵称" />
-        </Form.Item>
-        <Form.Item label="手机号" name="mobile">
-          <Input v-model:value="formModel.mobile" placeholder="请输入手机号" />
-        </Form.Item>
-        <Form.Item label="邮箱" name="email">
-          <Input v-model:value="formModel.email" placeholder="请输入邮箱" />
-        </Form.Item>
-        <Form.Item label="描述" name="description">
-          <Input.TextArea
-            v-model:value="formModel.description"
-            :auto-size="{ minRows: 3, maxRows: 5 }"
-            placeholder="请输入描述"
-          />
-        </Form.Item>
+        <div class="admin-user-form-grid">
+          <Form.Item label="用户名" name="username">
+            <Input
+              v-model:value="formModel.username"
+              :disabled="Boolean(editingId)"
+              placeholder="请输入用户名"
+            />
+          </Form.Item>
+          <Form.Item label="状态" name="status">
+            <Select v-model:value="formModel.status" :options="statusOptions" />
+          </Form.Item>
+          <Form.Item class="admin-user-form-grid--full" label="密码" name="password">
+            <Input.Password
+              v-model:value="formModel.password"
+              :placeholder="editingId ? '留空则不修改密码' : '请输入初始密码'"
+            />
+          </Form.Item>
+          <Form.Item label="姓名" name="realname">
+            <Input v-model:value="formModel.realname" placeholder="请输入姓名" />
+          </Form.Item>
+          <Form.Item label="昵称" name="nickname">
+            <Input v-model:value="formModel.nickname" placeholder="请输入昵称" />
+          </Form.Item>
+          <Form.Item label="手机" name="mobile">
+            <Input v-model:value="formModel.mobile" placeholder="请输入手机号" />
+          </Form.Item>
+          <Form.Item label="电话" name="telephone">
+            <Input v-model:value="formModel.telephone" placeholder="请输入电话" />
+          </Form.Item>
+          <Form.Item class="admin-user-form-grid--full" label="邮箱" name="email">
+            <Input v-model:value="formModel.email" placeholder="请输入邮箱" />
+          </Form.Item>
+          <Form.Item class="admin-user-form-grid--full" label="组织" name="orgUnitIds">
+            <Select
+              v-model:value="formModel.orgUnitIds"
+              mode="multiple"
+              :loading="optionLoading"
+              :options="orgSelectOptions"
+              placeholder="选择组织"
+              show-search
+            />
+          </Form.Item>
+          <Form.Item class="admin-user-form-grid--full" label="岗位" name="positionIds">
+            <Select
+              v-model:value="formModel.positionIds"
+              mode="multiple"
+              :loading="optionLoading"
+              :options="positionSelectOptions"
+              placeholder="选择岗位"
+              show-search
+            />
+          </Form.Item>
+          <Form.Item class="admin-user-form-grid--full" label="角色" name="roleIds">
+            <Select
+              v-model:value="formModel.roleIds"
+              mode="multiple"
+              :loading="optionLoading"
+              :options="roleSelectOptions"
+              placeholder="选择角色"
+              show-search
+            />
+          </Form.Item>
+          <Form.Item class="admin-user-form-grid--full" label="描述" name="description">
+            <Input.TextArea
+              v-model:value="formModel.description"
+              :auto-size="{ minRows: 3, maxRows: 5 }"
+              placeholder="请输入描述"
+            />
+          </Form.Item>
+          <Form.Item class="admin-user-form-grid--full" label="备注" name="remark">
+            <Input.TextArea
+              v-model:value="formModel.remark"
+              :auto-size="{ minRows: 2, maxRows: 4 }"
+              placeholder="请输入备注"
+            />
+          </Form.Item>
+        </div>
       </Form>
     </Modal>
   </Page>
@@ -547,13 +836,27 @@ onMounted(() => {
   color: hsl(var(--muted-foreground));
 }
 
-@media (max-width: 640px) {
+.admin-user-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+
+.admin-user-form-grid--full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
   .admin-user-surface {
     padding: 12px;
   }
 
   .admin-user-toolbar {
     align-items: stretch;
+  }
+
+  .admin-user-form-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 </style>
