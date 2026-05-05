@@ -85,6 +85,7 @@ const ROLE_ACCESS = {
   create: ['roles:create'],
   delete: ['roles:delete'],
   edit: ['roles:edit'],
+  export: ['roles:export'],
 } as const;
 
 const statusOptions = [
@@ -224,6 +225,10 @@ const displayColumns = computed<TableColumnsType<AdminRole>>(() =>
   ),
 );
 
+function isDefined<T>(value: T | undefined): value is T {
+  return value !== undefined;
+}
+
 const permissionTreeData = computed(() =>
   buildPermissionTree(permissionGroups.value, permissions.value),
 );
@@ -261,7 +266,7 @@ const apiMap = computed(() => {
 const selectedAuthorizePermissions = computed(() =>
   authorizePermissionIds.value
     .map((id) => permissionMap.value.get(id))
-    .filter(Boolean),
+    .filter(isDefined),
 );
 
 const selectedAuthorizeMenuIds = computed(() =>
@@ -279,13 +284,13 @@ const selectedAuthorizeApiIds = computed(() =>
 const selectedAuthorizeMenus = computed(() =>
   selectedAuthorizeMenuIds.value
     .map((id) => menuMap.value.get(id))
-    .filter(Boolean),
+    .filter(isDefined),
 );
 
 const selectedAuthorizeApis = computed(() =>
   selectedAuthorizeApiIds.value
     .map((id) => apiMap.value.get(id))
-    .filter(Boolean),
+    .filter(isDefined),
 );
 
 const formRules = computed<Record<string, Rule[]>>(() => ({
@@ -598,9 +603,9 @@ function handleAuthorizePermissionChange(
 ) {
   const nextValues = Array.isArray(values)
     ? values
-    : values === undefined
+    : (values === undefined
       ? []
-      : [values];
+      : [values]);
   authorizePermissionIds.value = normalizePermissionIds(nextValues);
 }
 
@@ -707,6 +712,7 @@ onMounted(async () => {
           <AdminTableToolbar
             v-model:column-keys="visibleColumnKeys"
             :columns="columns"
+            :export-access-codes="ROLE_ACCESS.export"
             :data-source="roles"
             file-name="system-roles"
             :fullscreen-target="tableSurfaceRef"
@@ -1011,10 +1017,9 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  height: 100%;
-  min-height: 0;
+  min-height: 100%;
   padding: 16px;
-  overflow: hidden;
+  overflow-y: auto;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: 8px;

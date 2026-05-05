@@ -64,6 +64,13 @@ type AdminTableChangeSorter = Parameters<
   NonNullable<InstanceType<typeof Table>['$props']['onChange']>
 >[2];
 
+const ORG_UNIT_ACCESS = {
+  create: ['org:units:create'],
+  delete: ['org:units:delete'],
+  edit: ['org:units:edit'],
+  export: ['org:units:export'],
+} as const;
+
 const statusOptions = [
   { label: '启用', value: 'ON' },
   { label: '禁用', value: 'OFF' },
@@ -371,13 +378,18 @@ onMounted(() => {
           <AdminTableToolbar
             v-model:column-keys="visibleColumnKeys"
             :columns="columns"
+            :export-access-codes="ORG_UNIT_ACCESS.export"
             :data-source="orgUnitTree"
             file-name="system-org-units"
             :fullscreen-target="tableSurfaceRef"
             :refresh="loadOrgUnits"
             storage-key="system-org-unit-list"
           />
-          <Button type="primary" @click="openCreateModal">
+          <Button
+            v-access:code="ORG_UNIT_ACCESS.create"
+            type="primary"
+            @click="openCreateModal"
+          >
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
@@ -416,10 +428,16 @@ onMounted(() => {
           </template>
           <template v-else-if="column.key === 'action'">
             <Space>
-              <Button size="small" type="link" @click="openEditModal(record)">
+              <Button
+                v-access:code="ORG_UNIT_ACCESS.edit"
+                size="small"
+                type="link"
+                @click="openEditModal(record)"
+              >
                 编辑
               </Button>
               <Popconfirm
+                v-access:code="ORG_UNIT_ACCESS.delete"
                 title="确认删除该组织单元？"
                 @confirm="handleDelete(record)"
               >

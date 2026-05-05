@@ -3,6 +3,7 @@ import type { AdminTableColumn } from './shared';
 
 import { computed, ref, toRef, watch } from 'vue';
 
+import { AccessControl } from '@vben/access';
 import { IconifyIcon } from '@vben/icons';
 import { downloadFileFromBlobPart } from '@vben/utils';
 
@@ -23,6 +24,7 @@ const props = withDefaults(
     columnKeys: string[];
     columns: AdminTableColumn<any>[];
     dataSource?: Record<string, any>[];
+    exportAccessCodes?: readonly string[];
     fileName?: string;
     fullscreenTarget?: HTMLElement | null;
     lockedColumnKeys?: string[];
@@ -31,6 +33,7 @@ const props = withDefaults(
   }>(),
   {
     dataSource: () => [],
+    exportAccessCodes: undefined,
     fileName: 'table-export',
     fullscreenTarget: undefined,
     lockedColumnKeys: () => ['action'],
@@ -99,9 +102,11 @@ function arraysEqual(left: string[], right: string[]) {
 
 function sanitizeColumnKeys(columnKeys: string[]) {
   const allowedKeys = new Set(columnOptions.value.map((column) => column.key));
-  const lockedKeys = new Set(columnOptions.value
-    .filter((column) => column.locked)
-    .map((column) => column.key));
+  const lockedKeys = new Set(
+    columnOptions.value
+      .filter((column) => column.locked)
+      .map((column) => column.key),
+  );
 
   const nextKeys = columnOptions.value
     .map((column) => column.key)
@@ -205,7 +210,24 @@ watch(
 
 <template>
   <Space class="admin-table-toolbar" :size="8">
-    <Tooltip title="导出">
+    <AccessControl
+      v-if="props.exportAccessCodes?.length"
+      :codes="[...props.exportAccessCodes]"
+      type="code"
+    >
+      <Tooltip title="导出">
+        <Button
+          class="admin-table-toolbar__button"
+          :disabled="exportColumns.length === 0"
+          @click="handleExport"
+        >
+          <template #icon>
+            <IconifyIcon icon="lucide:download" />
+          </template>
+        </Button>
+      </Tooltip>
+    </AccessControl>
+    <Tooltip v-else title="导出">
       <Button
         class="admin-table-toolbar__button"
         :disabled="exportColumns.length === 0"

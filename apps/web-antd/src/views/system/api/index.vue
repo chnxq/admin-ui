@@ -67,6 +67,7 @@ const API_ACCESS = {
   create: ['apis:create'],
   delete: ['apis:delete'],
   edit: ['apis:edit'],
+  export: ['apis:export'],
   sync: ['apis:sync:create'],
 } as const;
 
@@ -457,6 +458,7 @@ onMounted(() => {
           <AdminTableToolbar
             v-model:column-keys="visibleColumnKeys"
             :columns="columns"
+            :export-access-codes="API_ACCESS.export"
             :data-source="apis"
             file-name="system-apis"
             :fullscreen-target="tableSurfaceRef"
@@ -606,10 +608,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  height: 100%;
-  min-height: 0;
+  min-height: 100%;
   padding: 16px;
-  overflow: hidden;
+  overflow-y: auto;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: 8px;

@@ -60,8 +60,16 @@ interface AdminTenantFormModel extends AdminTenantSaveInput {
 }
 
 type AdminTenantTableRecord = AdminTenant | Record<string, any>;
-type AdminTableChangeSorter =
-  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
+type AdminTableChangeSorter = Parameters<
+  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
+>[2];
+
+const TENANT_ACCESS = {
+  create: ['tenants:create'],
+  delete: ['tenants:delete'],
+  edit: ['tenants:edit'],
+  export: ['tenants:export'],
+} as const;
 
 const statusOptions = [
   { label: '启用', value: 'ON' },
@@ -108,14 +116,64 @@ const typeTextMap: Record<AdminTenantType, string> = {
 };
 
 const columns: AdminTableColumn<AdminTenant>[] = [
-  { dataIndex: 'id', sortField: 'id', sortable: true, sorter: true, title: 'ID', width: 80 },
-  { key: 'tenant', sortField: 'name', sortable: true, sorter: true, title: '租户', width: 260 },
-  { dataIndex: 'domain', sortable: true, sorter: true, title: '域名', width: 180 },
-  { dataIndex: 'type', key: 'type', sortable: true, sorter: true, title: '类型', width: 120 },
-  { dataIndex: 'status', key: 'status', sortable: true, sorter: true, title: '状态', width: 100 },
-  { dataIndex: 'auditStatus', key: 'auditStatus', sortField: 'audit_status', sortable: true, sorter: true, title: '审核', width: 100 },
+  {
+    dataIndex: 'id',
+    sortField: 'id',
+    sortable: true,
+    sorter: true,
+    title: 'ID',
+    width: 80,
+  },
+  {
+    key: 'tenant',
+    sortField: 'name',
+    sortable: true,
+    sorter: true,
+    title: '租户',
+    width: 260,
+  },
+  {
+    dataIndex: 'domain',
+    sortable: true,
+    sorter: true,
+    title: '域名',
+    width: 180,
+  },
+  {
+    dataIndex: 'type',
+    key: 'type',
+    sortable: true,
+    sorter: true,
+    title: '类型',
+    width: 120,
+  },
+  {
+    dataIndex: 'status',
+    key: 'status',
+    sortable: true,
+    sorter: true,
+    title: '状态',
+    width: 100,
+  },
+  {
+    dataIndex: 'auditStatus',
+    key: 'auditStatus',
+    sortField: 'audit_status',
+    sortable: true,
+    sorter: true,
+    title: '审核',
+    width: 100,
+  },
   { dataIndex: 'memberCount', title: '成员数', width: 100 },
-  { dataIndex: 'createdAt', key: 'createdAt', sortField: 'created_at', sortable: true, sorter: true, title: '创建时间', width: 170 },
+  {
+    dataIndex: 'createdAt',
+    key: 'createdAt',
+    sortField: 'created_at',
+    sortable: true,
+    sorter: true,
+    title: '创建时间',
+    width: 170,
+  },
   { fixed: 'right', key: 'action', title: '操作', width: 150 },
 ];
 
@@ -346,13 +404,18 @@ onMounted(() => {
           <AdminTableToolbar
             v-model:column-keys="visibleColumnKeys"
             :columns="columns"
+            :export-access-codes="TENANT_ACCESS.export"
             :data-source="tenants"
             file-name="system-tenants"
             :fullscreen-target="tableSurfaceRef"
             :refresh="loadTenants"
             storage-key="system-tenant-list"
           />
-          <Button type="primary" @click="openCreateModal">
+          <Button
+            v-access:code="TENANT_ACCESS.create"
+            type="primary"
+            @click="openCreateModal"
+          >
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
@@ -403,10 +466,16 @@ onMounted(() => {
           </template>
           <template v-else-if="column.key === 'action'">
             <Space>
-              <Button size="small" type="link" @click="openEditModal(record)">
+              <Button
+                v-access:code="TENANT_ACCESS.edit"
+                size="small"
+                type="link"
+                @click="openEditModal(record)"
+              >
                 编辑
               </Button>
               <Popconfirm
+                v-access:code="TENANT_ACCESS.delete"
                 title="确认删除该租户？"
                 @confirm="handleDelete(record)"
               >

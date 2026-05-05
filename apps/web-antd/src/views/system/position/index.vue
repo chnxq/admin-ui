@@ -64,8 +64,16 @@ interface AdminPositionFormModel extends AdminPositionSaveInput {
 }
 
 type AdminPositionTableRecord = AdminPosition | Record<string, any>;
-type AdminTableChangeSorter =
-  Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2];
+type AdminTableChangeSorter = Parameters<
+  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
+>[2];
+
+const POSITION_ACCESS = {
+  create: ['positions:create'],
+  delete: ['positions:delete'],
+  edit: ['positions:edit'],
+  export: ['positions:export'],
+} as const;
 
 const statusOptions = [
   { label: '启用', value: 'ON' },
@@ -96,14 +104,62 @@ const typeTextMap: Record<AdminPositionType, string> = {
 };
 
 const columns: AdminTableColumn<AdminPosition>[] = [
-  { dataIndex: 'id', sortField: 'id', sortable: true, sorter: true, title: 'ID', width: 80 },
-  { key: 'position', sortField: 'name', sortable: true, sorter: true, title: '职位', width: 260 },
+  {
+    dataIndex: 'id',
+    sortField: 'id',
+    sortable: true,
+    sorter: true,
+    title: 'ID',
+    width: 80,
+  },
+  {
+    key: 'position',
+    sortField: 'name',
+    sortable: true,
+    sorter: true,
+    title: '职位',
+    width: 260,
+  },
   { dataIndex: 'orgUnitName', title: '组织', width: 180 },
-  { dataIndex: 'type', key: 'type', sortable: true, sorter: true, title: '类型', width: 120 },
-  { dataIndex: 'level', sortable: true, sorter: true, title: '职级', width: 90 },
-  { dataIndex: 'headcount', sortable: true, sorter: true, title: '编制', width: 90 },
-  { dataIndex: 'status', key: 'status', sortable: true, sorter: true, title: '状态', width: 100 },
-  { dataIndex: 'createdAt', key: 'createdAt', sortField: 'created_at', sortable: true, sorter: true, title: '创建时间', width: 170 },
+  {
+    dataIndex: 'type',
+    key: 'type',
+    sortable: true,
+    sorter: true,
+    title: '类型',
+    width: 120,
+  },
+  {
+    dataIndex: 'level',
+    sortable: true,
+    sorter: true,
+    title: '职级',
+    width: 90,
+  },
+  {
+    dataIndex: 'headcount',
+    sortable: true,
+    sorter: true,
+    title: '编制',
+    width: 90,
+  },
+  {
+    dataIndex: 'status',
+    key: 'status',
+    sortable: true,
+    sorter: true,
+    title: '状态',
+    width: 100,
+  },
+  {
+    dataIndex: 'createdAt',
+    key: 'createdAt',
+    sortField: 'created_at',
+    sortable: true,
+    sorter: true,
+    title: '创建时间',
+    width: 170,
+  },
   { fixed: 'right', key: 'action', title: '操作', width: 150 },
 ];
 
@@ -340,13 +396,18 @@ onMounted(() => {
           <AdminTableToolbar
             v-model:column-keys="visibleColumnKeys"
             :columns="columns"
+            :export-access-codes="POSITION_ACCESS.export"
             :data-source="positions"
             file-name="system-positions"
             :fullscreen-target="tableSurfaceRef"
             :refresh="loadPositions"
             storage-key="system-position-list"
           />
-          <Button type="primary" @click="openCreateModal">
+          <Button
+            v-access:code="POSITION_ACCESS.create"
+            type="primary"
+            @click="openCreateModal"
+          >
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
@@ -385,10 +446,16 @@ onMounted(() => {
           </template>
           <template v-else-if="column.key === 'action'">
             <Space>
-              <Button size="small" type="link" @click="openEditModal(record)">
+              <Button
+                v-access:code="POSITION_ACCESS.edit"
+                size="small"
+                type="link"
+                @click="openEditModal(record)"
+              >
                 编辑
               </Button>
               <Popconfirm
+                v-access:code="POSITION_ACCESS.delete"
                 title="确认删除该职位？"
                 @confirm="handleDelete(record)"
               >

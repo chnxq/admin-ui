@@ -78,6 +78,7 @@ const MENU_ACCESS = {
   create: ['menus:create'],
   delete: ['menus:delete'],
   edit: ['menus:edit'],
+  export: ['menus:export'],
   sync: ['menus:sync:create', 'menus:create'],
 } as const;
 
@@ -438,6 +439,7 @@ onMounted(() => {
           <AdminTableToolbar
             v-model:column-keys="visibleColumnKeys"
             :columns="columns"
+            :export-access-codes="MENU_ACCESS.export"
             :data-source="menuTree"
             file-name="system-menus"
             :fullscreen-target="tableSurfaceRef"
@@ -638,10 +640,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  height: 100%;
-  min-height: 0;
+  min-height: 100%;
   padding: 16px;
-  overflow: hidden;
+  overflow-y: auto;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: 8px;

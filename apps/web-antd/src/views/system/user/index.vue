@@ -81,6 +81,7 @@ const USER_ACCESS = {
   create: ['users:create'],
   delete: ['users:delete'],
   edit: ['users:edit'],
+  export: ['users:export'],
 } as const;
 
 const statusOptions = [
@@ -648,6 +649,7 @@ onMounted(async () => {
           <AdminTableToolbar
             v-model:column-keys="visibleColumnKeys"
             :columns="columns"
+            :export-access-codes="USER_ACCESS.export"
             :data-source="users"
             file-name="system-users"
             :fullscreen-target="tableSurfaceRef"
@@ -974,10 +976,9 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  height: 100%;
-  min-height: 0;
+  min-height: 100%;
   padding: 16px;
-  overflow: hidden;
+  overflow-y: auto;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: 8px;

@@ -87,10 +87,11 @@ const PERMISSION_ACCESS = {
   create: ['permissions:create'],
   delete: ['permissions:delete'],
   edit: ['permissions:edit'],
-  groupCreate: ['permission:group:create'],
-  groupDelete: ['permission:group:delete'],
-  groupEdit: ['permission:group:edit'],
-  sync: ['permissions:sync:perm:create'],
+  export: ['permissions:export'],
+  groupCreate: ['permission:groups:create'],
+  groupDelete: ['permission:groups:delete'],
+  groupEdit: ['permission:groups:edit'],
+  sync: ['permissions:sync:perms:create'],
 } as const;
 
 const statusOptions = [
@@ -705,6 +706,7 @@ onMounted(() => {
             <AdminTableToolbar
               v-model:column-keys="visibleColumnKeys"
               :columns="columns"
+              :export-access-codes="PERMISSION_ACCESS.export"
               :data-source="permissions"
               file-name="permission-list"
               :fullscreen-target="tableSurfaceRef"
@@ -956,24 +958,26 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   gap: 16px;
-  height: 100%;
-  min-height: 0;
+  align-items: start;
+  min-height: 100%;
 }
 
 .admin-permission-groups,
 .admin-permission-surface {
-  min-height: 0;
   padding: 16px;
-  overflow: hidden;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
 }
 
 .admin-permission-groups {
+  position: sticky;
+  top: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
 }
 
 .group-header {
@@ -991,6 +995,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto;
 }
 
 .admin-permission-toolbar {
@@ -1036,6 +1041,12 @@ onMounted(() => {
 @media (max-width: 900px) {
   .admin-permission-layout {
     grid-template-columns: 1fr;
+  }
+
+  .admin-permission-groups {
+    position: static;
+    top: auto;
+    max-height: none;
   }
 }
 
