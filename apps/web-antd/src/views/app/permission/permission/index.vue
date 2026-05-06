@@ -216,10 +216,14 @@ const selectedGroupName = computed(() => {
 });
 
 const modalTitle = computed(() =>
-  editingId.value ? $t('page.permission.editTitle') : $t('page.permission.createTitle'),
+  editingId.value
+    ? $t('page.permission.editTitle')
+    : $t('page.permission.createTitle'),
 );
 const groupModalTitle = computed(() =>
-  editingGroupId.value ? $t('page.permission.groupEditTitle') : $t('page.permission.groupCreateTitle'),
+  editingGroupId.value
+    ? $t('page.permission.groupEditTitle')
+    : $t('page.permission.groupCreateTitle'),
 );
 
 const displayColumns = computed<TableColumnsType<AdminPermission>>(() =>
@@ -229,15 +233,49 @@ const displayColumns = computed<TableColumnsType<AdminPermission>>(() =>
   ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
-  code: [{ message: $t('ui.formRules.required', [$t('page.permission.code')]), required: true }],
-  name: [{ message: $t('ui.formRules.required', [$t('page.permission.name')]), required: true }],
-  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.permission.status')]), required: true }],
+  code: [
+    {
+      message: $t('ui.formRules.required', [$t('page.permission.code')]),
+      required: true,
+    },
+  ],
+  name: [
+    {
+      message: $t('ui.formRules.required', [$t('page.permission.name')]),
+      required: true,
+    },
+  ],
+  status: [
+    {
+      message: $t('ui.formRules.selectRequired', [
+        $t('page.permission.status'),
+      ]),
+      required: true,
+    },
+  ],
 }));
 
 const groupFormRules = computed<Record<string, Rule[]>>(() => ({
-  module: [{ message: $t('ui.formRules.required', [$t('page.permission.groupModule')]), required: true }],
-  name: [{ message: $t('ui.formRules.required', [$t('page.permission.groupName')]), required: true }],
-  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.permission.status')]), required: true }],
+  module: [
+    {
+      message: $t('ui.formRules.required', [$t('page.permission.groupModule')]),
+      required: true,
+    },
+  ],
+  name: [
+    {
+      message: $t('ui.formRules.required', [$t('page.permission.groupName')]),
+      required: true,
+    },
+  ],
+  status: [
+    {
+      message: $t('ui.formRules.selectRequired', [
+        $t('page.permission.status'),
+      ]),
+      required: true,
+    },
+  ],
 }));
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
@@ -359,7 +397,10 @@ async function loadResourceOptions() {
     menuOptions.value = menuResponse.items;
     apiOptions.value = apiResponse.items;
   } catch (error) {
-    message.error((error as Error).message || $t('page.permission.loadResourceOptionsFailed'));
+    message.error(
+      (error as Error).message ||
+        $t('page.permission.loadResourceOptionsFailed'),
+    );
   } finally {
     resourceOptionLoading.value = false;
   }
@@ -411,7 +452,9 @@ async function loadGroups() {
     groups.value = response.items;
     groupTree.value = response.tree;
   } catch (error) {
-    message.error((error as Error).message || $t('page.permission.loadGroupsFailed'));
+    message.error(
+      (error as Error).message || $t('page.permission.loadGroupsFailed'),
+    );
   } finally {
     groupLoading.value = false;
   }
@@ -431,7 +474,9 @@ async function loadPermissions() {
     permissions.value = response.items;
     pager.total = response.total;
   } catch (error) {
-    message.error((error as Error).message || $t('page.permission.loadPermissionsFailed'));
+    message.error(
+      (error as Error).message || $t('page.permission.loadPermissionsFailed'),
+    );
   } finally {
     loading.value = false;
   }
@@ -621,7 +666,9 @@ onMounted(() => {
     <div class="admin-permission-layout">
       <aside class="admin-permission-groups">
         <div class="group-header">
-          <span class="group-title">{{ $t('page.permission.groupPanelTitle') }}</span>
+          <span class="group-title">{{
+            $t('page.permission.groupPanelTitle')
+          }}</span>
           <Space>
             <Button
               v-access:code="PERMISSION_ACCESS.groupCreate"
@@ -645,7 +692,11 @@ onMounted(() => {
               </template>
             </Button>
             <Popconfirm
-              :title="$t('ui.actionMessage.deleteConfirm', [$t('page.permission.groupName')])"
+              :title="
+                $t('ui.actionMessage.deleteConfirm', [
+                  $t('page.permission.groupName'),
+                ])
+              "
               @confirm="handleDeleteGroup"
             >
               <Button
@@ -774,8 +825,20 @@ onMounted(() => {
 
             <template v-else-if="column.key === 'resource'">
               <Space :size="4">
-                <Tag>{{ $t('page.permission.menuResourceCount', { count: record.menuIds?.length ?? 0 }) }}</Tag>
-                <Tag>{{ $t('page.permission.apiResourceCount', { count: record.apiIds?.length ?? 0 }) }}</Tag>
+                <Tag>
+{{
+                  $t('page.permission.menuResourceCount', {
+                    count: record.menuIds?.length ?? 0,
+                  })
+                }}
+</Tag>
+                <Tag>
+{{
+                  $t('page.permission.apiResourceCount', {
+                    count: record.apiIds?.length ?? 0,
+                  })
+                }}
+</Tag>
               </Space>
             </template>
 
@@ -797,7 +860,11 @@ onMounted(() => {
                   {{ $t('common.edit') }}
                 </Button>
                 <Popconfirm
-                  :title="$t('ui.actionMessage.deleteConfirm', [$t('page.permission.moduleName')])"
+                  :title="
+                    $t('ui.actionMessage.deleteConfirm', [
+                      $t('page.permission.moduleName'),
+                    ])
+                  "
                   @confirm="handleDelete(record)"
                 >
                   <Button
@@ -833,7 +900,10 @@ onMounted(() => {
         layout="vertical"
       >
         <Form.Item :label="$t('page.permission.name')" name="name">
-          <Input v-model:value="formModel.name" :placeholder="$t('page.permission.placeholderName')" />
+          <Input
+            v-model:value="formModel.name"
+            :placeholder="$t('page.permission.placeholderName')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.permission.code')" name="code">
           <Input
@@ -892,7 +962,10 @@ onMounted(() => {
             tree-node-filter-prop="title"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.permission.description')" name="description">
+        <Form.Item
+          :label="$t('page.permission.description')"
+          name="description"
+        >
           <Input.TextArea
             v-model:value="formModel.description"
             :auto-size="{ minRows: 3, maxRows: 5 }"
@@ -930,7 +1003,10 @@ onMounted(() => {
           />
         </Form.Item>
         <Form.Item :label="$t('page.permission.groupModule')" name="module">
-          <Input v-model:value="groupFormModel.module" :placeholder="$t('page.permission.placeholderGroupModule')" />
+          <Input
+            v-model:value="groupFormModel.module"
+            :placeholder="$t('page.permission.placeholderGroupModule')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.permission.status')" name="status">
           <Select
@@ -938,14 +1014,20 @@ onMounted(() => {
             :options="statusOptions"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.permission.groupSortOrder')" name="sortOrder">
+        <Form.Item
+          :label="$t('page.permission.groupSortOrder')"
+          name="sortOrder"
+        >
           <InputNumber
             v-model:value="groupFormModel.sortOrder"
             class="full-width-control"
             :min="0"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.permission.description')" name="description">
+        <Form.Item
+          :label="$t('page.permission.description')"
+          name="description"
+        >
           <Input.TextArea
             v-model:value="groupFormModel.description"
             :auto-size="{ minRows: 3, maxRows: 5 }"

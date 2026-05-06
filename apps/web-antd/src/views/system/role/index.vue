@@ -297,10 +297,30 @@ const selectedAuthorizeApis = computed(() =>
 );
 
 const formRules = computed<Record<string, Rule[]>>(() => ({
-  code: [{ message: $t('ui.formRules.required', [$t('page.role.code')]), required: true }],
-  name: [{ message: $t('ui.formRules.required', [$t('page.role.name')]), required: true }],
-  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.role.status')]), required: true }],
-  type: [{ message: $t('ui.formRules.selectRequired', [$t('page.role.type')]), required: true }],
+  code: [
+    {
+      message: $t('ui.formRules.required', [$t('page.role.code')]),
+      required: true,
+    },
+  ],
+  name: [
+    {
+      message: $t('ui.formRules.required', [$t('page.role.name')]),
+      required: true,
+    },
+  ],
+  status: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.role.status')]),
+      required: true,
+    },
+  ],
+  type: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.role.type')]),
+      required: true,
+    },
+  ],
 }));
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
@@ -477,7 +497,9 @@ async function loadPermissionOptions() {
     permissionGroups.value = groupResponse.items;
     permissions.value = permissionResponse.items;
   } catch (error) {
-    message.error((error as Error).message || $t('page.role.loadPermissionOptionsFailed'));
+    message.error(
+      (error as Error).message || $t('page.role.loadPermissionOptionsFailed'),
+    );
     throw error;
   } finally {
     permissionOptionLoading.value = false;
@@ -499,7 +521,9 @@ async function loadAuthorizeResources() {
     apiOptions.value = apiResponse.items;
     authorizeResourcesLoaded.value = true;
   } catch (error) {
-    message.error((error as Error).message || $t('page.role.loadAuthorizeResourcesFailed'));
+    message.error(
+      (error as Error).message || $t('page.role.loadAuthorizeResourcesFailed'),
+    );
     throw error;
   } finally {
     resourceOptionLoading.value = false;
@@ -595,7 +619,9 @@ async function openAuthorize(record: AdminRoleTableRecord) {
   } catch (error) {
     authorizeModalOpen.value = false;
     resetAuthorizeState();
-    message.error((error as Error).message || $t('page.role.loadAuthorizeFailed'));
+    message.error(
+      (error as Error).message || $t('page.role.loadAuthorizeFailed'),
+    );
   } finally {
     authorizeLoading.value = false;
   }
@@ -792,7 +818,11 @@ onMounted(async () => {
                 {{ $t('common.edit') }}
               </Button>
               <Popconfirm
-                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.role.moduleName')])"
+                :title="
+                  $t('ui.actionMessage.deleteConfirm', [
+                    $t('page.role.moduleName'),
+                  ])
+                "
                 @confirm="handleDelete(record)"
               >
                 <Button
@@ -828,10 +858,16 @@ onMounted(async () => {
         layout="vertical"
       >
         <Form.Item :label="$t('page.role.name')" name="name">
-          <Input v-model:value="formModel.name" :placeholder="$t('page.role.placeholderName')" />
+          <Input
+            v-model:value="formModel.name"
+            :placeholder="$t('page.role.placeholderName')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.role.code')" name="code">
-          <Input v-model:value="formModel.code" :placeholder="$t('page.role.placeholderCode')" />
+          <Input
+            v-model:value="formModel.code"
+            :placeholder="$t('page.role.placeholderCode')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.role.type')" name="type">
           <Select v-model:value="formModel.type" :options="typeOptions" />
@@ -904,9 +940,18 @@ onMounted(async () => {
               {{ getStatusText(authorizeRole?.status) }}
             </Tag>
             <Tag>{{ getTypeText(authorizeRole?.type) }}</Tag>
-            <Tag>{{ $t('page.role.permissions') }} {{ selectedAuthorizePermissions.length }}</Tag>
-            <Tag>{{ $t('page.role.relatedMenus') }} {{ selectedAuthorizeMenus.length }}</Tag>
-            <Tag>{{ $t('page.role.relatedApis') }} {{ selectedAuthorizeApis.length }}</Tag>
+            <Tag>
+{{ $t('page.role.permissions') }}
+              {{ selectedAuthorizePermissions.length }}
+</Tag>
+            <Tag>
+{{ $t('page.role.relatedMenus') }}
+              {{ selectedAuthorizeMenus.length }}
+</Tag>
+            <Tag>
+{{ $t('page.role.relatedApis') }}
+              {{ selectedAuthorizeApis.length }}
+</Tag>
           </Space>
         </div>
 
@@ -937,7 +982,9 @@ onMounted(async () => {
         <div class="authorize-preview-grid">
           <section class="authorize-preview-panel">
             <div class="authorize-preview-header">
-              <span class="authorize-preview-title">{{ $t('page.role.selectedPermissions') }}</span>
+              <span class="authorize-preview-title">{{
+                $t('page.role.selectedPermissions')
+              }}</span>
               <Tag>{{ selectedAuthorizePermissions.length }}</Tag>
             </div>
             <div
@@ -957,12 +1004,17 @@ onMounted(async () => {
                 </span>
               </div>
             </div>
-            <Empty v-else :description="$t('page.role.emptySelectedPermissions')" />
+            <Empty
+              v-else
+              :description="$t('page.role.emptySelectedPermissions')"
+            />
           </section>
 
           <section class="authorize-preview-panel">
             <div class="authorize-preview-header">
-              <span class="authorize-preview-title">{{ $t('page.role.relatedMenus') }}</span>
+              <span class="authorize-preview-title">{{
+                $t('page.role.relatedMenus')
+              }}</span>
               <Tag>{{ selectedAuthorizeMenus.length }}</Tag>
             </div>
             <div
@@ -987,7 +1039,9 @@ onMounted(async () => {
 
           <section class="authorize-preview-panel">
             <div class="authorize-preview-header">
-              <span class="authorize-preview-title">{{ $t('page.role.relatedApis') }}</span>
+              <span class="authorize-preview-title">{{
+                $t('page.role.relatedApis')
+              }}</span>
               <Tag>{{ selectedAuthorizeApis.length }}</Tag>
             </div>
             <div

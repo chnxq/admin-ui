@@ -104,7 +104,9 @@ const auditStatusTextMap: Record<AdminTenantAuditStatus, string> = {
   APPROVED: $t('enum.tenant.auditStatus.APPROVED'),
   PENDING: $t('enum.tenant.auditStatus.PENDING'),
   REJECTED: $t('enum.tenant.auditStatus.REJECTED'),
-  TENANT_AUDIT_STATUS_UNSPECIFIED: $t('enum.tenant.auditStatus.TENANT_AUDIT_STATUS_UNSPECIFIED'),
+  TENANT_AUDIT_STATUS_UNSPECIFIED: $t(
+    'enum.tenant.auditStatus.TENANT_AUDIT_STATUS_UNSPECIFIED',
+  ),
 };
 
 const typeTextMap: Record<AdminTenantType, string> = {
@@ -165,7 +167,11 @@ const columns: AdminTableColumn<AdminTenant>[] = [
     title: $t('page.tenant.auditStatus'),
     width: 100,
   },
-  { dataIndex: 'memberCount', title: $t('page.tenant.memberCount'), width: 100 },
+  {
+    dataIndex: 'memberCount',
+    title: $t('page.tenant.memberCount'),
+    width: 100,
+  },
   {
     dataIndex: 'createdAt',
     key: 'createdAt',
@@ -222,10 +228,30 @@ const displayColumns = computed<TableColumnsType<AdminTenant>>(() =>
   ),
 );
 const formRules: Record<string, Rule[]> = {
-  code: [{ message: $t('ui.formRules.required', [$t('page.tenant.code')]), required: true }],
-  name: [{ message: $t('ui.formRules.required', [$t('page.tenant.name')]), required: true }],
-  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.tenant.status')]), required: true }],
-  type: [{ message: $t('ui.formRules.selectRequired', [$t('page.tenant.type')]), required: true }],
+  code: [
+    {
+      message: $t('ui.formRules.required', [$t('page.tenant.code')]),
+      required: true,
+    },
+  ],
+  name: [
+    {
+      message: $t('ui.formRules.required', [$t('page.tenant.name')]),
+      required: true,
+    },
+  ],
+  status: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.tenant.status')]),
+      required: true,
+    },
+  ],
+  type: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.tenant.type')]),
+      required: true,
+    },
+  ],
 };
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
@@ -479,10 +505,18 @@ onMounted(() => {
               </Button>
               <Popconfirm
                 v-access:code="TENANT_ACCESS.delete"
-                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.tenant.moduleName')])"
+                :title="
+                  $t('ui.actionMessage.deleteConfirm', [
+                    $t('page.tenant.moduleName'),
+                  ])
+                "
                 @confirm="handleDelete(record)"
               >
-                <Button danger size="small" type="link">{{ $t('common.delete') }}</Button>
+                <Button danger size="small" type="link">
+{{
+                  $t('common.delete')
+                }}
+</Button>
               </Popconfirm>
             </Space>
           </template>
@@ -505,13 +539,22 @@ onMounted(() => {
         :rules="formRules"
       >
         <Form.Item :label="$t('page.tenant.name')" name="name">
-          <Input v-model:value="formModel.name" :placeholder="$t('page.tenant.placeholderName')" />
+          <Input
+            v-model:value="formModel.name"
+            :placeholder="$t('page.tenant.placeholderName')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.tenant.code')" name="code">
-          <Input v-model:value="formModel.code" :placeholder="$t('page.tenant.placeholderCode')" />
+          <Input
+            v-model:value="formModel.code"
+            :placeholder="$t('page.tenant.placeholderCode')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.tenant.domain')" name="domain">
-          <Input v-model:value="formModel.domain" :placeholder="$t('page.tenant.placeholderDomain')" />
+          <Input
+            v-model:value="formModel.domain"
+            :placeholder="$t('page.tenant.placeholderDomain')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.tenant.logoUrl')" name="logoUrl">
           <Input
@@ -520,7 +563,10 @@ onMounted(() => {
           />
         </Form.Item>
         <Form.Item :label="$t('page.tenant.industry')" name="industry">
-          <Input v-model:value="formModel.industry" :placeholder="$t('page.tenant.placeholderIndustry')" />
+          <Input
+            v-model:value="formModel.industry"
+            :placeholder="$t('page.tenant.placeholderIndustry')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.tenant.type')" name="type">
           <Select v-model:value="formModel.type" :options="typeOptions" />
@@ -534,7 +580,10 @@ onMounted(() => {
             :options="auditStatusOptions"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.tenant.subscriptionPlan')" name="subscriptionPlan">
+        <Form.Item
+          :label="$t('page.tenant.subscriptionPlan')"
+          name="subscriptionPlan"
+        >
           <Input
             v-model:value="formModel.subscriptionPlan"
             :placeholder="$t('page.tenant.placeholderSubscriptionPlan')"

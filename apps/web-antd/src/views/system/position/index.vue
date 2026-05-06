@@ -121,7 +121,11 @@ const columns: AdminTableColumn<AdminPosition>[] = [
     title: $t('page.position.position'),
     width: 260,
   },
-  { dataIndex: 'orgUnitName', title: $t('page.position.orgUnitName'), width: 180 },
+  {
+    dataIndex: 'orgUnitName',
+    title: $t('page.position.orgUnitName'),
+    width: 180,
+  },
   {
     dataIndex: 'type',
     key: 'type',
@@ -203,7 +207,9 @@ const formModel = reactive<AdminPositionFormModel>({
 });
 
 const modalTitle = computed(() =>
-  editingId.value ? $t('page.position.editTitle') : $t('page.position.createTitle'),
+  editingId.value
+    ? $t('page.position.editTitle')
+    : $t('page.position.createTitle'),
 );
 const displayColumns = computed<TableColumnsType<AdminPosition>>(() =>
   filterVisibleAdminTableColumns(
@@ -212,10 +218,30 @@ const displayColumns = computed<TableColumnsType<AdminPosition>>(() =>
   ),
 );
 const formRules: Record<string, Rule[]> = {
-  code: [{ message: $t('ui.formRules.required', [$t('page.position.code')]), required: true }],
-  name: [{ message: $t('ui.formRules.required', [$t('page.position.name')]), required: true }],
-  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.position.status')]), required: true }],
-  type: [{ message: $t('ui.formRules.selectRequired', [$t('page.position.type')]), required: true }],
+  code: [
+    {
+      message: $t('ui.formRules.required', [$t('page.position.code')]),
+      required: true,
+    },
+  ],
+  name: [
+    {
+      message: $t('ui.formRules.required', [$t('page.position.name')]),
+      required: true,
+    },
+  ],
+  status: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.position.status')]),
+      required: true,
+    },
+  ],
+  type: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.position.type')]),
+      required: true,
+    },
+  ],
 };
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
@@ -459,10 +485,18 @@ onMounted(() => {
               </Button>
               <Popconfirm
                 v-access:code="POSITION_ACCESS.delete"
-                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.position.moduleName')])"
+                :title="
+                  $t('ui.actionMessage.deleteConfirm', [
+                    $t('page.position.moduleName'),
+                  ])
+                "
                 @confirm="handleDelete(record)"
               >
-                <Button danger size="small" type="link">{{ $t('common.delete') }}</Button>
+                <Button danger size="small" type="link">
+{{
+                  $t('common.delete')
+                }}
+</Button>
               </Popconfirm>
             </Space>
           </template>
@@ -485,10 +519,16 @@ onMounted(() => {
         :rules="formRules"
       >
         <Form.Item :label="$t('page.position.name')" name="name">
-          <Input v-model:value="formModel.name" :placeholder="$t('page.position.placeholderName')" />
+          <Input
+            v-model:value="formModel.name"
+            :placeholder="$t('page.position.placeholderName')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.position.code')" name="code">
-          <Input v-model:value="formModel.code" :placeholder="$t('page.position.placeholderCode')" />
+          <Input
+            v-model:value="formModel.code"
+            :placeholder="$t('page.position.placeholderCode')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.position.type')" name="type">
           <Select v-model:value="formModel.type" :options="typeOptions" />
@@ -517,7 +557,10 @@ onMounted(() => {
             :placeholder="$t('page.position.placeholderJobGrade')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.position.isKeyPosition')" name="isKeyPosition">
+        <Form.Item
+          :label="$t('page.position.isKeyPosition')"
+          name="isKeyPosition"
+        >
           <Checkbox v-model:checked="formModel.isKeyPosition" />
         </Form.Item>
         <Form.Item :label="$t('page.position.description')" name="description">

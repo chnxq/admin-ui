@@ -204,11 +204,36 @@ const displayColumns = computed<TableColumnsType<AdminMenu>>(() =>
   ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
-  name: [{ message: $t('ui.formRules.required', [$t('page.menu.name')]), required: true }],
-  path: [{ message: $t('ui.formRules.required', [$t('page.menu.path')]), required: true }],
-  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.menu.status')]), required: true }],
-  title: [{ message: $t('ui.formRules.required', [$t('page.menu.title')]), required: true }],
-  type: [{ message: $t('ui.formRules.selectRequired', [$t('page.menu.type')]), required: true }],
+  name: [
+    {
+      message: $t('ui.formRules.required', [$t('page.menu.name')]),
+      required: true,
+    },
+  ],
+  path: [
+    {
+      message: $t('ui.formRules.required', [$t('page.menu.path')]),
+      required: true,
+    },
+  ],
+  status: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.menu.status')]),
+      required: true,
+    },
+  ],
+  title: [
+    {
+      message: $t('ui.formRules.required', [$t('page.menu.title')]),
+      required: true,
+    },
+  ],
+  type: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.menu.type')]),
+      required: true,
+    },
+  ],
 }));
 
 const parentOptions = computed(() =>
@@ -533,7 +558,11 @@ onMounted(() => {
                 {{ $t('common.edit') }}
               </Button>
               <Popconfirm
-                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.menu.moduleName')])"
+                :title="
+                  $t('ui.actionMessage.deleteConfirm', [
+                    $t('page.menu.moduleName'),
+                  ])
+                "
                 @confirm="handleDelete(record)"
               >
                 <Button
@@ -576,13 +605,22 @@ onMounted(() => {
           />
         </Form.Item>
         <Form.Item :label="$t('page.menu.title')" name="title">
-          <Input v-model:value="formModel.title" :placeholder="$t('page.menu.placeholderTitle')" />
+          <Input
+            v-model:value="formModel.title"
+            :placeholder="$t('page.menu.placeholderTitle')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.menu.name')" name="name">
-          <Input v-model:value="formModel.name" :placeholder="$t('page.menu.placeholderName')" />
+          <Input
+            v-model:value="formModel.name"
+            :placeholder="$t('page.menu.placeholderName')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.menu.path')" name="path">
-          <Input v-model:value="formModel.path" :placeholder="$t('page.menu.placeholderPath')" />
+          <Input
+            v-model:value="formModel.path"
+            :placeholder="$t('page.menu.placeholderPath')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.menu.component')" name="component">
           <Input

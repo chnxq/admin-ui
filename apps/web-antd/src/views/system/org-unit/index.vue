@@ -192,7 +192,9 @@ const formModel = reactive<AdminOrgUnitFormModel>({
 });
 
 const modalTitle = computed(() =>
-  editingId.value ? $t('page.orgUnit.editTitle') : $t('page.orgUnit.createTitle'),
+  editingId.value
+    ? $t('page.orgUnit.editTitle')
+    : $t('page.orgUnit.createTitle'),
 );
 const displayColumns = computed<TableColumnsType<AdminOrgUnit>>(() =>
   filterVisibleAdminTableColumns(
@@ -201,10 +203,30 @@ const displayColumns = computed<TableColumnsType<AdminOrgUnit>>(() =>
   ),
 );
 const formRules: Record<string, Rule[]> = {
-  code: [{ message: $t('ui.formRules.required', [$t('page.orgUnit.code')]), required: true }],
-  name: [{ message: $t('ui.formRules.required', [$t('page.orgUnit.name')]), required: true }],
-  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.orgUnit.status')]), required: true }],
-  type: [{ message: $t('ui.formRules.selectRequired', [$t('page.orgUnit.type')]), required: true }],
+  code: [
+    {
+      message: $t('ui.formRules.required', [$t('page.orgUnit.code')]),
+      required: true,
+    },
+  ],
+  name: [
+    {
+      message: $t('ui.formRules.required', [$t('page.orgUnit.name')]),
+      required: true,
+    },
+  ],
+  status: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.orgUnit.status')]),
+      required: true,
+    },
+  ],
+  type: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.orgUnit.type')]),
+      required: true,
+    },
+  ],
 };
 
 const parentOptions = computed(() =>
@@ -439,10 +461,18 @@ onMounted(() => {
               </Button>
               <Popconfirm
                 v-access:code="ORG_UNIT_ACCESS.delete"
-                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.orgUnit.moduleName')])"
+                :title="
+                  $t('ui.actionMessage.deleteConfirm', [
+                    $t('page.orgUnit.moduleName'),
+                  ])
+                "
                 @confirm="handleDelete(record)"
               >
-                <Button danger size="small" type="link">{{ $t('common.delete') }}</Button>
+                <Button danger size="small" type="link">
+{{
+                  $t('common.delete')
+                }}
+</Button>
               </Popconfirm>
             </Space>
           </template>

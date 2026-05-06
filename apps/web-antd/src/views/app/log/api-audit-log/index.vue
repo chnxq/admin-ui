@@ -291,7 +291,10 @@ onMounted(() => {
               :placeholder="$t('page.apiAuditLog.searchUsername')"
             />
           </Form.Item>
-          <Form.Item :label="$t('page.apiAuditLog.httpMethod')" name="httpMethod">
+          <Form.Item
+            :label="$t('page.apiAuditLog.httpMethod')"
+            name="httpMethod"
+          >
             <Select
               v-model:value="searchForm.httpMethod"
               allow-clear
@@ -314,7 +317,10 @@ onMounted(() => {
               :placeholder="$t('page.apiAuditLog.searchApiModule')"
             />
           </Form.Item>
-          <Form.Item :label="$t('page.apiAuditLog.statusCode')" name="statusCode">
+          <Form.Item
+            :label="$t('page.apiAuditLog.statusCode')"
+            name="statusCode"
+          >
             <InputNumber
               v-model:value="searchForm.statusCode"
               :controls="false"

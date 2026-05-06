@@ -252,12 +252,32 @@ const displayColumns = computed<TableColumnsType<AdminUser>>(() =>
   ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
-  email: [{ message: $t('ui.formRules.required', [$t('page.user.email')]), type: 'email' }],
+  email: [
+    {
+      message: $t('ui.formRules.required', [$t('page.user.email')]),
+      type: 'email',
+    },
+  ],
   password: editingId.value
     ? []
-    : [{ message: $t('ui.formRules.required', [$t('page.user.password')]), required: true }],
-  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.user.status')]), required: true }],
-  username: [{ message: $t('ui.formRules.required', [$t('page.user.username')]), required: true }],
+    : [
+        {
+          message: $t('ui.formRules.required', [$t('page.user.password')]),
+          required: true,
+        },
+      ],
+  status: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.user.status')]),
+      required: true,
+    },
+  ],
+  username: [
+    {
+      message: $t('ui.formRules.required', [$t('page.user.username')]),
+      required: true,
+    },
+  ],
 }));
 
 const orgSelectOptions = computed(() =>
@@ -566,7 +586,11 @@ onMounted(async () => {
               :placeholder="$t('page.user.searchRealname')"
             />
           </Form.Item>
-          <Form.Item class="admin-user-search__item" :label="$t('page.user.mobile')" name="mobile">
+          <Form.Item
+            class="admin-user-search__item"
+            :label="$t('page.user.mobile')"
+            name="mobile"
+          >
             <Input
               v-model:value="searchForm.mobile"
               allow-clear
@@ -612,7 +636,11 @@ onMounted(async () => {
               show-search
             />
           </Form.Item>
-          <Form.Item class="admin-user-search__item" :label="$t('page.user.roles')" name="roleId">
+          <Form.Item
+            class="admin-user-search__item"
+            :label="$t('page.user.roles')"
+            name="roleId"
+          >
             <Select
               v-model:value="searchForm.roleId"
               allow-clear
@@ -622,7 +650,11 @@ onMounted(async () => {
               show-search
             />
           </Form.Item>
-          <Form.Item class="admin-user-search__item" :label="$t('page.user.status')" name="status">
+          <Form.Item
+            class="admin-user-search__item"
+            :label="$t('page.user.status')"
+            name="status"
+          >
             <Select
               v-model:value="searchForm.status"
               allow-clear
@@ -749,7 +781,11 @@ onMounted(async () => {
                 {{ $t('common.edit') }}
               </Button>
               <Popconfirm
-                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.user.moduleName')])"
+                :title="
+                  $t('ui.actionMessage.deleteConfirm', [
+                    $t('page.user.moduleName'),
+                  ])
+                "
                 @confirm="handleDelete(record)"
               >
                 <Button
@@ -841,7 +877,11 @@ onMounted(async () => {
               v-model:value="formModel.password"
               :autocomplete="editingId ? 'new-password' : 'new-password'"
               name="admin-user-password"
-              :placeholder="editingId ? $t('page.user.placeholderPasswordKeepEmpty') : $t('page.user.placeholderPassword')"
+              :placeholder="
+                editingId
+                  ? $t('page.user.placeholderPasswordKeepEmpty')
+                  : $t('page.user.placeholderPassword')
+              "
             />
           </Form.Item>
           <Form.Item

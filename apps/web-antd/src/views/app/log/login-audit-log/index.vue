@@ -208,15 +208,15 @@ function formatTime(value?: string) {
 }
 
 function getActionTypeText(value?: AdminLoginAuditLogActionType) {
-  return value ? actionTypeTextMap[value] ?? value : '-';
+  return value ? (actionTypeTextMap[value] ?? value) : '-';
 }
 
 function getRiskLevelText(value?: AdminLoginAuditLogRiskLevel) {
-  return value ? riskLevelTextMap[value] ?? value : '-';
+  return value ? (riskLevelTextMap[value] ?? value) : '-';
 }
 
 function getStatusText(value?: AdminLoginAuditLogStatus) {
-  return value ? statusTextMap[value] ?? value : '-';
+  return value ? (statusTextMap[value] ?? value) : '-';
 }
 
 function getStatusColor(value?: AdminLoginAuditLogStatus) {
@@ -242,11 +242,11 @@ function getRiskLevelColor(value?: AdminLoginAuditLogRiskLevel) {
     case 'HIGH': {
       return 'error';
     }
-    case 'MEDIUM': {
-      return 'warning';
-    }
     case 'LOW': {
       return 'success';
+    }
+    case 'MEDIUM': {
+      return 'warning';
     }
     default: {
       return 'default';
@@ -330,14 +330,20 @@ onMounted(() => {
               :placeholder="$t('page.loginAuditLog.searchUsername')"
             />
           </Form.Item>
-          <Form.Item :label="$t('page.loginAuditLog.ipAddress')" name="ipAddress">
+          <Form.Item
+            :label="$t('page.loginAuditLog.ipAddress')"
+            name="ipAddress"
+          >
             <Input
               v-model:value="searchForm.ipAddress"
               allow-clear
               :placeholder="$t('page.loginAuditLog.searchIpAddress')"
             />
           </Form.Item>
-          <Form.Item :label="$t('page.loginAuditLog.actionType')" name="actionType">
+          <Form.Item
+            :label="$t('page.loginAuditLog.actionType')"
+            name="actionType"
+          >
             <Select
               v-model:value="searchForm.actionType"
               allow-clear
@@ -346,7 +352,10 @@ onMounted(() => {
               style="width: 140px"
             />
           </Form.Item>
-          <Form.Item :label="$t('page.loginAuditLog.riskLevel')" name="riskLevel">
+          <Form.Item
+            :label="$t('page.loginAuditLog.riskLevel')"
+            name="riskLevel"
+          >
             <Select
               v-model:value="searchForm.riskLevel"
               allow-clear

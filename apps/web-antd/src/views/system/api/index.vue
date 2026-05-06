@@ -219,10 +219,30 @@ const displayColumns = computed<TableColumnsType<AdminApi>>(() =>
   ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
-  method: [{ message: $t('ui.formRules.selectRequired', [$t('page.api.method')]), required: true }],
-  path: [{ message: $t('ui.formRules.required', [$t('page.api.path')]), required: true }],
-  scope: [{ message: $t('ui.formRules.selectRequired', [$t('page.api.scope')]), required: true }],
-  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.api.status')]), required: true }],
+  method: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.api.method')]),
+      required: true,
+    },
+  ],
+  path: [
+    {
+      message: $t('ui.formRules.required', [$t('page.api.path')]),
+      required: true,
+    },
+  ],
+  scope: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.api.scope')]),
+      required: true,
+    },
+  ],
+  status: [
+    {
+      message: $t('ui.formRules.selectRequired', [$t('page.api.status')]),
+      required: true,
+    },
+  ],
 }));
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
@@ -468,10 +488,7 @@ onMounted(() => {
             :refresh="loadApis"
             storage-key="system-api-list"
           />
-          <Popconfirm
-            :title="$t('page.api.syncConfirm')"
-            @confirm="handleSync"
-          >
+          <Popconfirm :title="$t('page.api.syncConfirm')" @confirm="handleSync">
             <Button v-access:code="API_ACCESS.sync" :loading="syncing">
               <template #icon>
                 <IconifyIcon icon="lucide:refresh-cw" />
@@ -537,7 +554,11 @@ onMounted(() => {
                 {{ $t('common.edit') }}
               </Button>
               <Popconfirm
-                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.api.moduleName')])"
+                :title="
+                  $t('ui.actionMessage.deleteConfirm', [
+                    $t('page.api.moduleName'),
+                  ])
+                "
                 @confirm="handleDelete(record)"
               >
                 <Button
@@ -572,18 +593,30 @@ onMounted(() => {
         layout="vertical"
       >
         <Form.Item :label="$t('page.api.path')" name="path">
-          <Input v-model:value="formModel.path" :placeholder="$t('page.api.placeholderPath')" />
+          <Input
+            v-model:value="formModel.path"
+            :placeholder="$t('page.api.placeholderPath')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.api.method')" name="method">
           <Select v-model:value="formModel.method" :options="methodOptions" />
         </Form.Item>
         <Form.Item :label="$t('page.api.description')" name="description">
-          <Input v-model:value="formModel.description" :placeholder="$t('page.api.placeholderDescription')" />
+          <Input
+            v-model:value="formModel.description"
+            :placeholder="$t('page.api.placeholderDescription')"
+          />
         </Form.Item>
         <Form.Item :label="$t('page.api.module')" name="module">
-          <Input v-model:value="formModel.module" :placeholder="$t('page.api.placeholderModule')" />
+          <Input
+            v-model:value="formModel.module"
+            :placeholder="$t('page.api.placeholderModule')"
+          />
         </Form.Item>
-        <Form.Item :label="$t('page.api.moduleDescription')" name="moduleDescription">
+        <Form.Item
+          :label="$t('page.api.moduleDescription')"
+          name="moduleDescription"
+        >
           <Input
             v-model:value="formModel.moduleDescription"
             :placeholder="$t('page.api.placeholderModuleDescription')"
