@@ -493,10 +493,8 @@ onMounted(() => {
                 @confirm="handleDelete(record)"
               >
                 <Button danger size="small" type="link">
-{{
-                  $t('common.delete')
-                }}
-</Button>
+                  {{ $t('common.delete') }}
+                </Button>
               </Popconfirm>
             </Space>
           </template>

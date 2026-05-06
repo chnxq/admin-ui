@@ -826,19 +826,19 @@ onMounted(() => {
             <template v-else-if="column.key === 'resource'">
               <Space :size="4">
                 <Tag>
-{{
-                  $t('page.permission.menuResourceCount', {
-                    count: record.menuIds?.length ?? 0,
-                  })
-                }}
-</Tag>
+                  {{
+                    $t('page.permission.menuResourceCount', {
+                      count: record.menuIds?.length ?? 0,
+                    })
+                  }}
+                </Tag>
                 <Tag>
-{{
-                  $t('page.permission.apiResourceCount', {
-                    count: record.apiIds?.length ?? 0,
-                  })
-                }}
-</Tag>
+                  {{
+                    $t('page.permission.apiResourceCount', {
+                      count: record.apiIds?.length ?? 0,
+                    })
+                  }}
+                </Tag>
               </Space>
             </template>
 

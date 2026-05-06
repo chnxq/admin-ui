@@ -941,17 +941,17 @@ onMounted(async () => {
             </Tag>
             <Tag>{{ getTypeText(authorizeRole?.type) }}</Tag>
             <Tag>
-{{ $t('page.role.permissions') }}
+              {{ $t('page.role.permissions') }}
               {{ selectedAuthorizePermissions.length }}
-</Tag>
+            </Tag>
             <Tag>
-{{ $t('page.role.relatedMenus') }}
+              {{ $t('page.role.relatedMenus') }}
               {{ selectedAuthorizeMenus.length }}
-</Tag>
+            </Tag>
             <Tag>
-{{ $t('page.role.relatedApis') }}
+              {{ $t('page.role.relatedApis') }}
               {{ selectedAuthorizeApis.length }}
-</Tag>
+            </Tag>
           </Space>
         </div>
 
