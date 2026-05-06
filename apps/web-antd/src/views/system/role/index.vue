@@ -66,6 +66,7 @@ import {
   getDefaultVisibleColumnKeys,
   toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
+import { $t } from '#/locales';
 
 interface AdminRoleFormModel extends AdminRoleSaveInput {
   code: string;
@@ -89,25 +90,25 @@ const ROLE_ACCESS = {
 } as const;
 
 const statusOptions = [
-  { label: '启用', value: 'ON' },
-  { label: '停用', value: 'OFF' },
+  { label: $t('enum.role.status.ON'), value: 'ON' },
+  { label: $t('enum.role.status.OFF'), value: 'OFF' },
 ];
 
 const typeOptions = [
-  { label: '系统角色', value: 'SYSTEM' },
-  { label: '模板角色', value: 'TEMPLATE' },
-  { label: '租户角色', value: 'TENANT' },
+  { label: $t('enum.role.type.SYSTEM'), value: 'SYSTEM' },
+  { label: $t('enum.role.type.TEMPLATE'), value: 'TEMPLATE' },
+  { label: $t('enum.role.type.TENANT'), value: 'TENANT' },
 ];
 
 const statusTextMap: Record<AdminRoleStatus, string> = {
-  OFF: '停用',
-  ON: '启用',
+  OFF: $t('enum.role.status.OFF'),
+  ON: $t('enum.role.status.ON'),
 };
 
 const typeTextMap: Record<AdminRoleType, string> = {
-  SYSTEM: '系统角色',
-  TEMPLATE: '模板角色',
-  TENANT: '租户角色',
+  SYSTEM: $t('enum.role.type.SYSTEM'),
+  TEMPLATE: $t('enum.role.type.TEMPLATE'),
+  TENANT: $t('enum.role.type.TENANT'),
 };
 
 const columns: AdminTableColumn<AdminRole>[] = [
@@ -116,7 +117,7 @@ const columns: AdminTableColumn<AdminRole>[] = [
     sortField: 'id',
     sortable: true,
     sorter: true,
-    title: 'ID',
+    title: $t('page.role.id'),
     width: 80,
   },
   {
@@ -124,7 +125,7 @@ const columns: AdminTableColumn<AdminRole>[] = [
     sortField: 'name',
     sortable: true,
     sorter: true,
-    title: '角色',
+    title: $t('page.role.role'),
     width: 260,
   },
   {
@@ -132,7 +133,7 @@ const columns: AdminTableColumn<AdminRole>[] = [
     key: 'type',
     sortable: true,
     sorter: true,
-    title: '类型',
+    title: $t('page.role.type'),
     width: 120,
   },
   {
@@ -140,7 +141,7 @@ const columns: AdminTableColumn<AdminRole>[] = [
     sortField: 'sort_order',
     sortable: true,
     sorter: true,
-    title: '排序',
+    title: $t('ui.table.sortOrder'),
     width: 90,
   },
   {
@@ -148,7 +149,7 @@ const columns: AdminTableColumn<AdminRole>[] = [
     key: 'status',
     sortable: true,
     sorter: true,
-    title: '状态',
+    title: $t('page.role.status'),
     width: 100,
   },
   {
@@ -157,13 +158,13 @@ const columns: AdminTableColumn<AdminRole>[] = [
     sortField: 'created_at',
     sortable: true,
     sorter: true,
-    title: '创建时间',
+    title: $t('page.role.createdAt'),
     width: 170,
   },
   {
     fixed: 'right',
     key: 'action',
-    title: '操作',
+    title: $t('ui.table.action'),
     width: 220,
   },
 ];
@@ -211,11 +212,13 @@ const formModel = reactive<AdminRoleFormModel>({
   type: 'SYSTEM',
 });
 
-const modalTitle = computed(() => (editingId.value ? '编辑角色' : '新增角色'));
+const modalTitle = computed(() =>
+  editingId.value ? $t('page.role.editTitle') : $t('page.role.createTitle'),
+);
 const authorizeModalTitle = computed(() =>
   authorizeRole.value?.name
-    ? `角色授权 · ${authorizeRole.value.name}`
-    : '角色授权',
+    ? `${$t('page.role.authorizeTitle')} · ${authorizeRole.value.name}`
+    : $t('page.role.authorizeTitle'),
 );
 
 const displayColumns = computed<TableColumnsType<AdminRole>>(() =>
@@ -294,17 +297,17 @@ const selectedAuthorizeApis = computed(() =>
 );
 
 const formRules = computed<Record<string, Rule[]>>(() => ({
-  code: [{ message: '请输入角色编码', required: true }],
-  name: [{ message: '请输入角色名称', required: true }],
-  status: [{ message: '请选择状态', required: true }],
-  type: [{ message: '请选择类型', required: true }],
+  code: [{ message: $t('ui.formRules.required', [$t('page.role.code')]), required: true }],
+  name: [{ message: $t('ui.formRules.required', [$t('page.role.name')]), required: true }],
+  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.role.status')]), required: true }],
+  type: [{ message: $t('ui.formRules.selectRequired', [$t('page.role.type')]), required: true }],
 }));
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
   current: pager.page,
   pageSize: pager.pageSize,
   showSizeChanger: true,
-  showTotal: (total) => `共 ${total} 条`,
+  showTotal: (total) => `${$t('page.loginAuditLog.total')} ${total}`,
   total: pager.total,
 }));
 
@@ -474,7 +477,7 @@ async function loadPermissionOptions() {
     permissionGroups.value = groupResponse.items;
     permissions.value = permissionResponse.items;
   } catch (error) {
-    message.error((error as Error).message || '加载权限点选项失败');
+    message.error((error as Error).message || $t('page.role.loadPermissionOptionsFailed'));
     throw error;
   } finally {
     permissionOptionLoading.value = false;
@@ -496,7 +499,7 @@ async function loadAuthorizeResources() {
     apiOptions.value = apiResponse.items;
     authorizeResourcesLoaded.value = true;
   } catch (error) {
-    message.error((error as Error).message || '加载授权资源失败');
+    message.error((error as Error).message || $t('page.role.loadAuthorizeResourcesFailed'));
     throw error;
   } finally {
     resourceOptionLoading.value = false;
@@ -516,7 +519,7 @@ async function loadRoles() {
     roles.value = response.items;
     pager.total = response.total;
   } catch (error) {
-    message.error((error as Error).message || '加载角色列表失败');
+    message.error((error as Error).message || $t('page.role.loadFailed'));
   } finally {
     loading.value = false;
   }
@@ -557,7 +560,7 @@ async function openCreate() {
 async function openEdit(record: AdminRoleTableRecord) {
   const role = toAdminRole(record);
   if (!role.id) {
-    message.warning('缺少角色 ID');
+    message.warning($t('page.role.missingId'));
     return;
   }
 
@@ -571,7 +574,7 @@ async function openEdit(record: AdminRoleTableRecord) {
 async function openAuthorize(record: AdminRoleTableRecord) {
   const role = toAdminRole(record);
   if (!role.id) {
-    message.warning('缺少角色 ID');
+    message.warning($t('page.role.missingId'));
     return;
   }
 
@@ -592,7 +595,7 @@ async function openAuthorize(record: AdminRoleTableRecord) {
   } catch (error) {
     authorizeModalOpen.value = false;
     resetAuthorizeState();
-    message.error((error as Error).message || '加载角色授权数据失败');
+    message.error((error as Error).message || $t('page.role.loadAuthorizeFailed'));
   } finally {
     authorizeLoading.value = false;
   }
@@ -616,10 +619,10 @@ async function submitRole() {
   try {
     if (editingId.value) {
       await updateAdminRoleApi(editingId.value, formModel);
-      message.success('角色已更新');
+      message.success($t('page.role.updateSuccess'));
     } else {
       await createAdminRoleApi(formModel);
-      message.success('角色已创建');
+      message.success($t('page.role.createSuccess'));
     }
     modalOpen.value = false;
     await loadRoles();
@@ -630,7 +633,7 @@ async function submitRole() {
 
 async function submitAuthorize() {
   if (!authorizeRole.value?.id) {
-    message.warning('缺少角色 ID');
+    message.warning($t('page.role.missingId'));
     return;
   }
 
@@ -647,7 +650,7 @@ async function submitAuthorize() {
       permissions: [...authorizePermissionIds.value],
     };
     authorizeModalOpen.value = false;
-    message.success('角色授权已更新');
+    message.success($t('page.role.authorizeSuccess'));
     await loadRoles();
   } finally {
     authorizeSubmitting.value = false;
@@ -657,12 +660,12 @@ async function submitAuthorize() {
 async function handleDelete(record: AdminRoleTableRecord) {
   const role = toAdminRole(record);
   if (!role.id) {
-    message.warning('缺少角色 ID');
+    message.warning($t('page.role.missingId'));
     return;
   }
 
   await deleteAdminRoleApi(role.id);
-  message.success('角色已删除');
+  message.success($t('page.role.deleteSuccess'));
   await loadRoles();
 }
 
@@ -672,22 +675,22 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Page auto-content-height title="角色管理">
+  <Page auto-content-height :title="$t('menu.system.role')">
     <div ref="tableSurfaceRef" class="admin-role-surface">
       <div class="admin-role-toolbar">
         <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item label="角色名称" name="name">
+          <Form.Item :label="$t('page.role.name')" name="name">
             <Input
               v-model:value="searchForm.name"
               allow-clear
-              placeholder="输入角色名称"
+              :placeholder="$t('page.role.searchName')"
             />
           </Form.Item>
-          <Form.Item label="角色编码" name="code">
+          <Form.Item :label="$t('page.role.code')" name="code">
             <Input
               v-model:value="searchForm.code"
               allow-clear
-              placeholder="输入角色编码"
+              :placeholder="$t('page.role.searchCode')"
             />
           </Form.Item>
           <Form.Item>
@@ -696,13 +699,13 @@ onMounted(async () => {
                 <template #icon>
                   <IconifyIcon icon="lucide:search" />
                 </template>
-                查询
+                {{ $t('common.query') }}
               </Button>
               <Button @click="handleReset">
                 <template #icon>
                   <IconifyIcon icon="lucide:rotate-ccw" />
                 </template>
-                重置
+                {{ $t('common.reset') }}
               </Button>
             </Space>
           </Form.Item>
@@ -727,7 +730,7 @@ onMounted(async () => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-            新增角色
+            {{ $t('page.role.createTitle') }}
           </Button>
         </Space>
       </div>
@@ -775,7 +778,7 @@ onMounted(async () => {
                 <template #icon>
                   <IconifyIcon icon="lucide:shield-check" />
                 </template>
-                授权
+                {{ $t('page.role.authorize') }}
               </Button>
               <Button
                 v-access:code="ROLE_ACCESS.edit"
@@ -786,10 +789,10 @@ onMounted(async () => {
                 <template #icon>
                   <IconifyIcon icon="lucide:pencil" />
                 </template>
-                编辑
+                {{ $t('common.edit') }}
               </Button>
               <Popconfirm
-                title="确认删除该角色？"
+                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.role.moduleName')])"
                 @confirm="handleDelete(record)"
               >
                 <Button
@@ -802,7 +805,7 @@ onMounted(async () => {
                   <template #icon>
                     <IconifyIcon icon="lucide:trash-2" />
                   </template>
-                  删除
+                  {{ $t('common.delete') }}
                 </Button>
               </Popconfirm>
             </Space>
@@ -824,26 +827,26 @@ onMounted(async () => {
         :rules="formRules"
         layout="vertical"
       >
-        <Form.Item label="角色名称" name="name">
-          <Input v-model:value="formModel.name" placeholder="请输入角色名称" />
+        <Form.Item :label="$t('page.role.name')" name="name">
+          <Input v-model:value="formModel.name" :placeholder="$t('page.role.placeholderName')" />
         </Form.Item>
-        <Form.Item label="角色编码" name="code">
-          <Input v-model:value="formModel.code" placeholder="请输入角色编码" />
+        <Form.Item :label="$t('page.role.code')" name="code">
+          <Input v-model:value="formModel.code" :placeholder="$t('page.role.placeholderCode')" />
         </Form.Item>
-        <Form.Item label="类型" name="type">
+        <Form.Item :label="$t('page.role.type')" name="type">
           <Select v-model:value="formModel.type" :options="typeOptions" />
         </Form.Item>
-        <Form.Item label="状态" name="status">
+        <Form.Item :label="$t('page.role.status')" name="status">
           <Select v-model:value="formModel.status" :options="statusOptions" />
         </Form.Item>
-        <Form.Item label="排序" name="sortOrder">
+        <Form.Item :label="$t('ui.table.sortOrder')" name="sortOrder">
           <InputNumber
             v-model:value="formModel.sortOrder"
             class="full-width-control"
             :min="0"
           />
         </Form.Item>
-        <Form.Item label="权限点" name="permissions">
+        <Form.Item :label="$t('page.role.permissions')" name="permissions">
           <TreeSelect
             v-model:value="formModel.permissions"
             allow-clear
@@ -855,7 +858,7 @@ onMounted(async () => {
             }"
             :loading="permissionOptionLoading"
             multiple
-            placeholder="选择权限点"
+            :placeholder="$t('page.role.placeholderPermissions')"
             show-search
             :tree-checkable="true"
             :tree-data="permissionTreeData"
@@ -863,11 +866,11 @@ onMounted(async () => {
             tree-node-filter-prop="title"
           />
         </Form.Item>
-        <Form.Item label="描述" name="description">
+        <Form.Item :label="$t('page.role.description')" name="description">
           <Input.TextArea
             v-model:value="formModel.description"
             :auto-size="{ minRows: 3, maxRows: 5 }"
-            placeholder="请输入描述"
+            :placeholder="$t('page.user.placeholderDescription')"
           />
         </Form.Item>
       </Form>
@@ -901,14 +904,14 @@ onMounted(async () => {
               {{ getStatusText(authorizeRole?.status) }}
             </Tag>
             <Tag>{{ getTypeText(authorizeRole?.type) }}</Tag>
-            <Tag>权限 {{ selectedAuthorizePermissions.length }}</Tag>
-            <Tag>菜单 {{ selectedAuthorizeMenus.length }}</Tag>
-            <Tag>API {{ selectedAuthorizeApis.length }}</Tag>
+            <Tag>{{ $t('page.role.permissions') }} {{ selectedAuthorizePermissions.length }}</Tag>
+            <Tag>{{ $t('page.role.relatedMenus') }} {{ selectedAuthorizeMenus.length }}</Tag>
+            <Tag>{{ $t('page.role.relatedApis') }} {{ selectedAuthorizeApis.length }}</Tag>
           </Space>
         </div>
 
         <Form layout="vertical">
-          <Form.Item label="权限点">
+          <Form.Item :label="$t('page.role.permissions')">
             <TreeSelect
               :value="authorizePermissionIds"
               allow-clear
@@ -920,7 +923,7 @@ onMounted(async () => {
               }"
               :loading="permissionOptionLoading"
               multiple
-              placeholder="选择权限点"
+              :placeholder="$t('page.role.placeholderPermissions')"
               show-search
               :tree-checkable="true"
               :tree-data="permissionTreeData"
@@ -934,7 +937,7 @@ onMounted(async () => {
         <div class="authorize-preview-grid">
           <section class="authorize-preview-panel">
             <div class="authorize-preview-header">
-              <span class="authorize-preview-title">已选权限点</span>
+              <span class="authorize-preview-title">{{ $t('page.role.selectedPermissions') }}</span>
               <Tag>{{ selectedAuthorizePermissions.length }}</Tag>
             </div>
             <div
@@ -954,12 +957,12 @@ onMounted(async () => {
                 </span>
               </div>
             </div>
-            <Empty v-else description="未选择权限点" />
+            <Empty v-else :description="$t('page.role.emptySelectedPermissions')" />
           </section>
 
           <section class="authorize-preview-panel">
             <div class="authorize-preview-header">
-              <span class="authorize-preview-title">关联菜单</span>
+              <span class="authorize-preview-title">{{ $t('page.role.relatedMenus') }}</span>
               <Tag>{{ selectedAuthorizeMenus.length }}</Tag>
             </div>
             <div
@@ -979,12 +982,12 @@ onMounted(async () => {
                 </span>
               </div>
             </div>
-            <Empty v-else description="未关联菜单" />
+            <Empty v-else :description="$t('page.role.emptyRelatedMenus')" />
           </section>
 
           <section class="authorize-preview-panel">
             <div class="authorize-preview-header">
-              <span class="authorize-preview-title">关联 API</span>
+              <span class="authorize-preview-title">{{ $t('page.role.relatedApis') }}</span>
               <Tag>{{ selectedAuthorizeApis.length }}</Tag>
             </div>
             <div
@@ -1004,7 +1007,7 @@ onMounted(async () => {
                 </span>
               </div>
             </div>
-            <Empty v-else description="未关联 API" />
+            <Empty v-else :description="$t('page.role.emptyRelatedApis')" />
           </section>
         </div>
       </Spin>

@@ -50,6 +50,7 @@ import {
   getDefaultVisibleColumnKeys,
   toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
+import { $t } from '#/locales';
 
 interface AdminOrgUnitFormModel extends AdminOrgUnitSaveInput {
   code: string;
@@ -72,39 +73,39 @@ const ORG_UNIT_ACCESS = {
 } as const;
 
 const statusOptions = [
-  { label: '启用', value: 'ON' },
-  { label: '禁用', value: 'OFF' },
+  { label: $t('enum.status.ON'), value: 'ON' },
+  { label: $t('enum.status.OFF'), value: 'OFF' },
 ];
 
 const typeOptions = [
-  { label: '公司', value: 'COMPANY' },
-  { label: '事业部', value: 'DIVISION' },
-  { label: '部门', value: 'DEPARTMENT' },
-  { label: '团队', value: 'TEAM' },
-  { label: '项目组', value: 'PROJECT' },
-  { label: '委员会', value: 'COMMITTEE' },
-  { label: '区域', value: 'REGION' },
-  { label: '子公司', value: 'SUBSIDIARY' },
-  { label: '分支机构', value: 'BRANCH' },
-  { label: '其他', value: 'OTHER' },
+  { label: $t('enum.orgUnit.type.COMPANY'), value: 'COMPANY' },
+  { label: $t('enum.orgUnit.type.DIVISION'), value: 'DIVISION' },
+  { label: $t('enum.orgUnit.type.DEPARTMENT'), value: 'DEPARTMENT' },
+  { label: $t('enum.orgUnit.type.TEAM'), value: 'TEAM' },
+  { label: $t('enum.orgUnit.type.PROJECT'), value: 'PROJECT' },
+  { label: $t('enum.orgUnit.type.COMMITTEE'), value: 'COMMITTEE' },
+  { label: $t('enum.orgUnit.type.REGION'), value: 'REGION' },
+  { label: $t('enum.orgUnit.type.SUBSIDIARY'), value: 'SUBSIDIARY' },
+  { label: $t('enum.orgUnit.type.BRANCH'), value: 'BRANCH' },
+  { label: $t('enum.orgUnit.type.OTHER'), value: 'OTHER' },
 ];
 
 const statusTextMap: Record<AdminOrgUnitStatus, string> = {
-  OFF: '禁用',
-  ON: '启用',
+  OFF: $t('enum.status.OFF'),
+  ON: $t('enum.status.ON'),
 };
 
 const typeTextMap: Record<AdminOrgUnitType, string> = {
-  BRANCH: '分支机构',
-  COMMITTEE: '委员会',
-  COMPANY: '公司',
-  DEPARTMENT: '部门',
-  DIVISION: '事业部',
-  OTHER: '其他',
-  PROJECT: '项目组',
-  REGION: '区域',
-  SUBSIDIARY: '子公司',
-  TEAM: '团队',
+  BRANCH: $t('enum.orgUnit.type.BRANCH'),
+  COMMITTEE: $t('enum.orgUnit.type.COMMITTEE'),
+  COMPANY: $t('enum.orgUnit.type.COMPANY'),
+  DEPARTMENT: $t('enum.orgUnit.type.DEPARTMENT'),
+  DIVISION: $t('enum.orgUnit.type.DIVISION'),
+  OTHER: $t('enum.orgUnit.type.OTHER'),
+  PROJECT: $t('enum.orgUnit.type.PROJECT'),
+  REGION: $t('enum.orgUnit.type.REGION'),
+  SUBSIDIARY: $t('enum.orgUnit.type.SUBSIDIARY'),
+  TEAM: $t('enum.orgUnit.type.TEAM'),
 };
 
 const columns: AdminTableColumn<AdminOrgUnit>[] = [
@@ -113,14 +114,14 @@ const columns: AdminTableColumn<AdminOrgUnit>[] = [
     sortField: 'name',
     sortable: true,
     sorter: true,
-    title: '组织',
+    title: $t('page.orgUnit.orgUnit'),
     width: 260,
   },
   {
     dataIndex: 'code',
     sortable: true,
     sorter: true,
-    title: '编码',
+    title: $t('page.orgUnit.code'),
     width: 160,
   },
   {
@@ -128,7 +129,7 @@ const columns: AdminTableColumn<AdminOrgUnit>[] = [
     key: 'type',
     sortable: true,
     sorter: true,
-    title: '类型',
+    title: $t('page.orgUnit.type'),
     width: 120,
   },
   {
@@ -136,7 +137,7 @@ const columns: AdminTableColumn<AdminOrgUnit>[] = [
     sortField: 'sort_order',
     sortable: true,
     sorter: true,
-    title: '排序',
+    title: $t('page.orgUnit.sortOrder'),
     width: 90,
   },
   {
@@ -144,20 +145,20 @@ const columns: AdminTableColumn<AdminOrgUnit>[] = [
     key: 'status',
     sortable: true,
     sorter: true,
-    title: '状态',
+    title: $t('page.orgUnit.status'),
     width: 100,
   },
-  { dataIndex: 'leaderName', title: '负责人', width: 140 },
+  { dataIndex: 'leaderName', title: $t('page.orgUnit.leaderName'), width: 140 },
   {
     dataIndex: 'createdAt',
     key: 'createdAt',
     sortField: 'created_at',
     sortable: true,
     sorter: true,
-    title: '创建时间',
+    title: $t('page.orgUnit.createdAt'),
     width: 170,
   },
-  { fixed: 'right', key: 'action', title: '操作', width: 150 },
+  { fixed: 'right', key: 'action', title: $t('ui.table.action'), width: 150 },
 ];
 
 const loading = ref(false);
@@ -191,7 +192,7 @@ const formModel = reactive<AdminOrgUnitFormModel>({
 });
 
 const modalTitle = computed(() =>
-  editingId.value ? '编辑组织单元' : '新增组织单元',
+  editingId.value ? $t('page.orgUnit.editTitle') : $t('page.orgUnit.createTitle'),
 );
 const displayColumns = computed<TableColumnsType<AdminOrgUnit>>(() =>
   filterVisibleAdminTableColumns(
@@ -200,10 +201,10 @@ const displayColumns = computed<TableColumnsType<AdminOrgUnit>>(() =>
   ),
 );
 const formRules: Record<string, Rule[]> = {
-  code: [{ message: '请输入组织编码', required: true }],
-  name: [{ message: '请输入组织名称', required: true }],
-  status: [{ message: '请选择状态', required: true }],
-  type: [{ message: '请选择类型', required: true }],
+  code: [{ message: $t('ui.formRules.required', [$t('page.orgUnit.code')]), required: true }],
+  name: [{ message: $t('ui.formRules.required', [$t('page.orgUnit.name')]), required: true }],
+  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.orgUnit.status')]), required: true }],
+  type: [{ message: $t('ui.formRules.selectRequired', [$t('page.orgUnit.type')]), required: true }],
 };
 
 const parentOptions = computed(() =>
@@ -315,10 +316,10 @@ async function handleSubmit() {
   try {
     if (editingId.value) {
       await updateAdminOrgUnitApi(editingId.value, formModel);
-      message.success('组织单元已更新');
+      message.success($t('page.orgUnit.updateSuccess'));
     } else {
       await createAdminOrgUnitApi(formModel);
-      message.success('组织单元已创建');
+      message.success($t('page.orgUnit.createSuccess'));
     }
     modalOpen.value = false;
     await loadOrgUnits();
@@ -333,7 +334,7 @@ async function handleDelete(record: AdminOrgUnitTableRecord) {
     return;
   }
   await deleteAdminOrgUnitApi(orgUnit.id);
-  message.success('组织单元已删除');
+  message.success($t('page.orgUnit.deleteSuccess'));
   await loadOrgUnits();
 }
 
@@ -343,21 +344,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page auto-content-height>
+  <Page auto-content-height :title="$t('menu.system.orgUnit')">
     <div ref="tableSurfaceRef" class="admin-org-unit-surface">
       <div class="admin-org-unit-toolbar">
         <Space wrap>
           <Input
             v-model:value="searchForm.name"
             allow-clear
-            placeholder="组织名称"
+            :placeholder="$t('page.orgUnit.searchName')"
             style="width: 180px"
             @press-enter="handleSearch"
           />
           <Input
             v-model:value="searchForm.code"
             allow-clear
-            placeholder="组织编码"
+            :placeholder="$t('page.orgUnit.searchCode')"
             style="width: 180px"
             @press-enter="handleSearch"
           />
@@ -365,13 +366,13 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:search" />
             </template>
-            查询
+            {{ $t('common.query') }}
           </Button>
           <Button @click="handleReset">
             <template #icon>
               <IconifyIcon icon="lucide:rotate-ccw" />
             </template>
-            重置
+            {{ $t('common.reset') }}
           </Button>
         </Space>
         <Space>
@@ -393,7 +394,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-            新增组织
+            {{ $t('page.orgUnit.createButton') }}
           </Button>
         </Space>
       </div>
@@ -434,14 +435,14 @@ onMounted(() => {
                 type="link"
                 @click="openEditModal(record)"
               >
-                编辑
+                {{ $t('common.edit') }}
               </Button>
               <Popconfirm
                 v-access:code="ORG_UNIT_ACCESS.delete"
-                title="确认删除该组织单元？"
+                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.orgUnit.moduleName')])"
                 @confirm="handleDelete(record)"
               >
-                <Button danger size="small" type="link">删除</Button>
+                <Button danger size="small" type="link">{{ $t('common.delete') }}</Button>
               </Popconfirm>
             </Space>
           </template>
@@ -464,75 +465,75 @@ onMounted(() => {
         :rules="formRules"
         autocomplete="off"
       >
-        <Form.Item label="组织名称" name="name">
+        <Form.Item :label="$t('page.orgUnit.name')" name="name">
           <Input
             v-model:value="formModel.name"
             autocomplete="off"
             name="admin-org-unit-name"
-            placeholder="请输入组织名称"
+            :placeholder="$t('page.orgUnit.placeholderName')"
           />
         </Form.Item>
-        <Form.Item label="组织编码" name="code">
+        <Form.Item :label="$t('page.orgUnit.code')" name="code">
           <Input
             v-model:value="formModel.code"
             autocomplete="off"
             name="admin-org-unit-code"
-            placeholder="请输入组织编码"
+            :placeholder="$t('page.orgUnit.placeholderCode')"
           />
         </Form.Item>
-        <Form.Item label="上级组织" name="parentId">
+        <Form.Item :label="$t('page.orgUnit.parentId')" name="parentId">
           <Select
             v-model:value="formModel.parentId"
             allow-clear
             :options="parentOptions"
-            placeholder="请选择上级组织"
+            :placeholder="$t('page.orgUnit.placeholderParent')"
           />
         </Form.Item>
-        <Form.Item label="类型" name="type">
+        <Form.Item :label="$t('page.orgUnit.type')" name="type">
           <Select v-model:value="formModel.type" :options="typeOptions" />
         </Form.Item>
-        <Form.Item label="状态" name="status">
+        <Form.Item :label="$t('page.orgUnit.status')" name="status">
           <Select v-model:value="formModel.status" :options="statusOptions" />
         </Form.Item>
-        <Form.Item label="排序" name="sortOrder">
+        <Form.Item :label="$t('page.orgUnit.sortOrder')" name="sortOrder">
           <InputNumber v-model:value="formModel.sortOrder" class="full-input" />
         </Form.Item>
-        <Form.Item label="电话" name="phone">
+        <Form.Item :label="$t('page.orgUnit.phone')" name="phone">
           <Input
             v-model:value="formModel.phone"
             autocomplete="off"
             name="admin-org-unit-phone"
-            placeholder="请输入电话"
+            :placeholder="$t('page.orgUnit.placeholderPhone')"
           />
         </Form.Item>
-        <Form.Item label="邮箱" name="email">
+        <Form.Item :label="$t('page.orgUnit.email')" name="email">
           <Input
             v-model:value="formModel.email"
             autocomplete="off"
             name="admin-org-unit-email"
-            placeholder="请输入邮箱"
+            :placeholder="$t('page.orgUnit.placeholderEmail')"
           />
         </Form.Item>
-        <Form.Item label="地址" name="address">
+        <Form.Item :label="$t('page.orgUnit.address')" name="address">
           <Input
             v-model:value="formModel.address"
             autocomplete="off"
             name="admin-org-unit-address"
-            placeholder="请输入地址"
+            :placeholder="$t('page.orgUnit.placeholderAddress')"
           />
         </Form.Item>
-        <Form.Item label="描述" name="description">
+        <Form.Item :label="$t('page.orgUnit.description')" name="description">
           <Input.TextArea
             v-model:value="formModel.description"
             :rows="3"
-            placeholder="请输入描述"
+            :placeholder="$t('page.orgUnit.placeholderDescription')"
           />
         </Form.Item>
-        <Form.Item label="备注" name="remark">
+        <Form.Item :label="$t('page.orgUnit.remark')" name="remark">
           <Input.TextArea
             v-model:value="formModel.remark"
             :rows="2"
-            placeholder="请输入备注"
+            :placeholder="$t('page.orgUnit.placeholderRemark')"
           />
         </Form.Item>
       </Form>

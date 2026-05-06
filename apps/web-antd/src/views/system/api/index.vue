@@ -50,6 +50,7 @@ import {
   getDefaultVisibleColumnKeys,
   toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
+import { $t } from '#/locales';
 
 interface AdminApiFormModel extends AdminApiSaveInput {
   method: string;
@@ -79,24 +80,24 @@ const methodOptions = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(
 );
 
 const scopeOptions = [
-  { label: '管理后台', value: 'ADMIN' },
-  { label: '前台应用', value: 'APP' },
+  { label: $t('enum.api.scope.ADMIN'), value: 'ADMIN' },
+  { label: $t('enum.api.scope.APP'), value: 'APP' },
 ];
 
 const statusOptions = [
-  { label: '启用', value: 'ON' },
-  { label: '禁用', value: 'OFF' },
+  { label: $t('enum.status.ON'), value: 'ON' },
+  { label: $t('enum.status.OFF'), value: 'OFF' },
 ];
 
 const statusTextMap: Record<AdminApiStatus, string> = {
-  OFF: '禁用',
-  ON: '启用',
+  OFF: $t('enum.status.OFF'),
+  ON: $t('enum.status.ON'),
 };
 
 const scopeTextMap: Record<AdminApiScope, string> = {
-  ADMIN: '管理后台',
-  APP: '前台应用',
-  API_SCOPE_INVALID: '未设置',
+  ADMIN: $t('enum.api.scope.ADMIN'),
+  APP: $t('enum.api.scope.APP'),
+  API_SCOPE_INVALID: $t('enum.api.scope.API_SCOPE_INVALID'),
 };
 
 const columns: AdminTableColumn<AdminApi>[] = [
@@ -104,14 +105,14 @@ const columns: AdminTableColumn<AdminApi>[] = [
     dataIndex: 'description',
     sortable: true,
     sorter: true,
-    title: '描述',
+    title: $t('page.api.description'),
     width: 220,
   },
   {
     dataIndex: 'path',
     sortable: true,
     sorter: true,
-    title: '路径',
+    title: $t('page.api.path'),
     width: 260,
   },
   {
@@ -119,26 +120,26 @@ const columns: AdminTableColumn<AdminApi>[] = [
     key: 'method',
     sortable: true,
     sorter: true,
-    title: '方法',
+    title: $t('page.api.method'),
     width: 90,
   },
   {
     dataIndex: 'module',
     sortable: true,
     sorter: true,
-    title: '模块',
+    title: $t('page.api.module'),
     width: 150,
   },
   {
     dataIndex: 'moduleDescription',
-    title: '模块描述',
+    title: $t('page.api.moduleDescription'),
     width: 180,
   },
   {
     dataIndex: 'operation',
     sortable: true,
     sorter: true,
-    title: '操作',
+    title: $t('page.api.operation'),
     width: 220,
   },
   {
@@ -146,7 +147,7 @@ const columns: AdminTableColumn<AdminApi>[] = [
     key: 'scope',
     sortable: true,
     sorter: true,
-    title: '范围',
+    title: $t('page.api.scope'),
     width: 110,
   },
   {
@@ -154,7 +155,7 @@ const columns: AdminTableColumn<AdminApi>[] = [
     key: 'status',
     sortable: true,
     sorter: true,
-    title: '状态',
+    title: $t('page.api.status'),
     width: 90,
   },
   {
@@ -163,13 +164,13 @@ const columns: AdminTableColumn<AdminApi>[] = [
     sortField: 'created_at',
     sortable: true,
     sorter: true,
-    title: '创建时间',
+    title: $t('page.api.createdAt'),
     width: 170,
   },
   {
     fixed: 'right',
     key: 'action',
-    title: '操作',
+    title: $t('ui.table.action'),
     width: 130,
   },
 ];
@@ -208,7 +209,9 @@ const formModel = reactive<AdminApiFormModel>({
   status: 'ON',
 });
 
-const modalTitle = computed(() => (editingId.value ? '编辑API' : '新增API'));
+const modalTitle = computed(() =>
+  editingId.value ? $t('page.api.editTitle') : $t('page.api.createTitle'),
+);
 const displayColumns = computed<TableColumnsType<AdminApi>>(() =>
   filterVisibleAdminTableColumns(
     applyAdminTableSorting(columns, sorting.value),
@@ -216,17 +219,17 @@ const displayColumns = computed<TableColumnsType<AdminApi>>(() =>
   ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
-  method: [{ message: '请选择请求方法', required: true }],
-  path: [{ message: '请输入接口路径', required: true }],
-  scope: [{ message: '请选择作用范围', required: true }],
-  status: [{ message: '请选择状态', required: true }],
+  method: [{ message: $t('ui.formRules.selectRequired', [$t('page.api.method')]), required: true }],
+  path: [{ message: $t('ui.formRules.required', [$t('page.api.path')]), required: true }],
+  scope: [{ message: $t('ui.formRules.selectRequired', [$t('page.api.scope')]), required: true }],
+  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.api.status')]), required: true }],
 }));
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
   current: pager.page,
   pageSize: pager.pageSize,
   showSizeChanger: true,
-  showTotal: (total) => `共 ${total} 条`,
+  showTotal: (total) => `${$t('page.api.total')} ${total}`,
   total: pager.total,
 }));
 
@@ -298,7 +301,7 @@ async function loadApis() {
     apis.value = response.items;
     pager.total = response.total;
   } catch (error) {
-    message.error((error as Error).message || '加载API列表失败');
+    message.error((error as Error).message || $t('page.api.loadFailed'));
   } finally {
     loading.value = false;
   }
@@ -340,7 +343,7 @@ async function openCreate() {
 async function openEdit(record: AdminApiTableRecord) {
   const api = toAdminApi(record);
   if (!api.id) {
-    message.warning('缺少API ID');
+    message.warning($t('page.api.missingId'));
     return;
   }
 
@@ -367,10 +370,10 @@ async function submitApi() {
   try {
     if (editingId.value) {
       await updateAdminApiApi(editingId.value, formModel);
-      message.success('API已更新');
+      message.success($t('page.api.updateSuccess'));
     } else {
       await createAdminApiApi(formModel);
-      message.success('API已创建');
+      message.success($t('page.api.createSuccess'));
     }
     modalOpen.value = false;
     await loadApis();
@@ -382,12 +385,12 @@ async function submitApi() {
 async function handleDelete(record: AdminApiTableRecord) {
   const api = toAdminApi(record);
   if (!api.id) {
-    message.warning('缺少API ID');
+    message.warning($t('page.api.missingId'));
     return;
   }
 
   await deleteAdminApiApi(api.id);
-  message.success('API已删除');
+  message.success($t('page.api.deleteSuccess'));
   await loadApis();
 }
 
@@ -395,7 +398,7 @@ async function handleSync() {
   syncing.value = true;
   try {
     await syncAdminApisApi();
-    message.success('API同步完成');
+    message.success($t('page.api.syncSuccess'));
     pager.page = 1;
     await loadApis();
   } finally {
@@ -409,31 +412,31 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page auto-content-height title="API管理">
+  <Page auto-content-height :title="$t('menu.system.api')">
     <div ref="tableSurfaceRef" class="admin-api-surface">
       <div class="admin-api-toolbar">
         <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item label="方法" name="method">
+          <Form.Item :label="$t('page.api.method')" name="method">
             <Select
               v-model:value="searchForm.method"
               allow-clear
               :options="methodOptions"
-              placeholder="选择方法"
+              :placeholder="$t('page.api.selectMethod')"
               style="width: 120px"
             />
           </Form.Item>
-          <Form.Item label="模块" name="module">
+          <Form.Item :label="$t('page.api.module')" name="module">
             <Input
               v-model:value="searchForm.module"
               allow-clear
-              placeholder="输入模块"
+              :placeholder="$t('page.api.searchModule')"
             />
           </Form.Item>
-          <Form.Item label="路径" name="path">
+          <Form.Item :label="$t('page.api.path')" name="path">
             <Input
               v-model:value="searchForm.path"
               allow-clear
-              placeholder="输入路径"
+              :placeholder="$t('page.api.searchPath')"
             />
           </Form.Item>
           <Form.Item>
@@ -442,13 +445,13 @@ onMounted(() => {
                 <template #icon>
                   <IconifyIcon icon="lucide:search" />
                 </template>
-                查询
+                {{ $t('common.query') }}
               </Button>
               <Button @click="handleReset">
                 <template #icon>
                   <IconifyIcon icon="lucide:rotate-ccw" />
                 </template>
-                重置
+                {{ $t('common.reset') }}
               </Button>
             </Space>
           </Form.Item>
@@ -466,14 +469,14 @@ onMounted(() => {
             storage-key="system-api-list"
           />
           <Popconfirm
-            title="确认从OpenAPI文档同步API资源？"
+            :title="$t('page.api.syncConfirm')"
             @confirm="handleSync"
           >
             <Button v-access:code="API_ACCESS.sync" :loading="syncing">
               <template #icon>
                 <IconifyIcon icon="lucide:refresh-cw" />
               </template>
-              同步API
+              {{ $t('page.api.syncButton') }}
             </Button>
           </Popconfirm>
           <Button
@@ -484,7 +487,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-            新增API
+            {{ $t('page.api.createTitle') }}
           </Button>
         </Space>
       </div>
@@ -531,10 +534,10 @@ onMounted(() => {
                 <template #icon>
                   <IconifyIcon icon="lucide:pencil" />
                 </template>
-                编辑
+                {{ $t('common.edit') }}
               </Button>
               <Popconfirm
-                title="确认删除该API？"
+                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.api.moduleName')])"
                 @confirm="handleDelete(record)"
               >
                 <Button
@@ -546,7 +549,7 @@ onMounted(() => {
                   <template #icon>
                     <IconifyIcon icon="lucide:trash-2" />
                   </template>
-                  删除
+                  {{ $t('common.delete') }}
                 </Button>
               </Popconfirm>
             </Space>
@@ -568,34 +571,34 @@ onMounted(() => {
         :rules="formRules"
         layout="vertical"
       >
-        <Form.Item label="路径" name="path">
-          <Input v-model:value="formModel.path" placeholder="/admin/v1/apis" />
+        <Form.Item :label="$t('page.api.path')" name="path">
+          <Input v-model:value="formModel.path" :placeholder="$t('page.api.placeholderPath')" />
         </Form.Item>
-        <Form.Item label="方法" name="method">
+        <Form.Item :label="$t('page.api.method')" name="method">
           <Select v-model:value="formModel.method" :options="methodOptions" />
         </Form.Item>
-        <Form.Item label="描述" name="description">
-          <Input v-model:value="formModel.description" placeholder="接口描述" />
+        <Form.Item :label="$t('page.api.description')" name="description">
+          <Input v-model:value="formModel.description" :placeholder="$t('page.api.placeholderDescription')" />
         </Form.Item>
-        <Form.Item label="模块" name="module">
-          <Input v-model:value="formModel.module" placeholder="模块标识" />
+        <Form.Item :label="$t('page.api.module')" name="module">
+          <Input v-model:value="formModel.module" :placeholder="$t('page.api.placeholderModule')" />
         </Form.Item>
-        <Form.Item label="模块描述" name="moduleDescription">
+        <Form.Item :label="$t('page.api.moduleDescription')" name="moduleDescription">
           <Input
             v-model:value="formModel.moduleDescription"
-            placeholder="模块描述"
+            :placeholder="$t('page.api.placeholderModuleDescription')"
           />
         </Form.Item>
-        <Form.Item label="操作" name="operation">
+        <Form.Item :label="$t('page.api.operation')" name="operation">
           <Input
             v-model:value="formModel.operation"
-            placeholder="Operation ID"
+            :placeholder="$t('page.api.placeholderOperation')"
           />
         </Form.Item>
-        <Form.Item label="范围" name="scope">
+        <Form.Item :label="$t('page.api.scope')" name="scope">
           <Select v-model:value="formModel.scope" :options="scopeOptions" />
         </Form.Item>
-        <Form.Item label="状态" name="status">
+        <Form.Item :label="$t('page.api.status')" name="status">
           <Select v-model:value="formModel.status" :options="statusOptions" />
         </Form.Item>
       </Form>

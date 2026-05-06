@@ -56,6 +56,7 @@ import {
   getDefaultVisibleColumnKeys,
   toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
+import { $t } from '#/locales';
 
 interface AdminUserFormModel extends AdminUserSaveInput {
   address: string;
@@ -85,27 +86,27 @@ const USER_ACCESS = {
 } as const;
 
 const statusOptions = [
-  { label: '正常', value: 'NORMAL' },
-  { label: '禁用', value: 'DISABLED' },
-  { label: '待激活', value: 'PENDING' },
-  { label: '锁定', value: 'LOCKED' },
-  { label: '过期', value: 'EXPIRED' },
-  { label: '关闭', value: 'CLOSED' },
+  { label: $t('enum.user.status.NORMAL'), value: 'NORMAL' },
+  { label: $t('enum.user.status.DISABLED'), value: 'DISABLED' },
+  { label: $t('enum.user.status.PENDING'), value: 'PENDING' },
+  { label: $t('enum.user.status.LOCKED'), value: 'LOCKED' },
+  { label: $t('enum.user.status.EXPIRED'), value: 'EXPIRED' },
+  { label: $t('enum.user.status.CLOSED'), value: 'CLOSED' },
 ];
 
 const genderOptions = [
-  { label: '保密', value: 'SECRET' },
-  { label: '男', value: 'MALE' },
-  { label: '女', value: 'FEMALE' },
+  { label: $t('enum.user.gender.SECRET'), value: 'SECRET' },
+  { label: $t('enum.user.gender.MALE'), value: 'MALE' },
+  { label: $t('enum.user.gender.FEMALE'), value: 'FEMALE' },
 ];
 
 const statusTextMap: Record<AdminUserStatus, string> = {
-  CLOSED: '关闭',
-  DISABLED: '禁用',
-  EXPIRED: '过期',
-  LOCKED: '锁定',
-  NORMAL: '正常',
-  PENDING: '待激活',
+  CLOSED: $t('enum.user.status.CLOSED'),
+  DISABLED: $t('enum.user.status.DISABLED'),
+  EXPIRED: $t('enum.user.status.EXPIRED'),
+  LOCKED: $t('enum.user.status.LOCKED'),
+  NORMAL: $t('enum.user.status.NORMAL'),
+  PENDING: $t('enum.user.status.PENDING'),
 };
 
 const columns: AdminTableColumn<AdminUser>[] = [
@@ -114,7 +115,7 @@ const columns: AdminTableColumn<AdminUser>[] = [
     sortField: 'id',
     sortable: true,
     sorter: true,
-    title: 'ID',
+    title: $t('page.user.id'),
     width: 80,
   },
   {
@@ -122,7 +123,7 @@ const columns: AdminTableColumn<AdminUser>[] = [
     sortField: 'username',
     sortable: true,
     sorter: true,
-    title: '用户',
+    title: $t('page.user.identity'),
     width: 220,
   },
   {
@@ -130,7 +131,7 @@ const columns: AdminTableColumn<AdminUser>[] = [
     key: 'mobile',
     sortable: true,
     sorter: true,
-    title: '手机',
+    title: $t('page.user.mobile'),
     width: 140,
   },
   {
@@ -138,22 +139,22 @@ const columns: AdminTableColumn<AdminUser>[] = [
     key: 'telephone',
     sortable: true,
     sorter: true,
-    title: '电话',
+    title: $t('page.user.telephone'),
     width: 140,
   },
   {
     key: 'orgUnits',
-    title: '组织',
+    title: $t('page.user.orgUnits'),
     width: 220,
   },
   {
     key: 'positions',
-    title: '岗位',
+    title: $t('page.user.positions'),
     width: 220,
   },
   {
     key: 'roles',
-    title: '角色',
+    title: $t('page.user.roles'),
     width: 220,
   },
   {
@@ -161,7 +162,7 @@ const columns: AdminTableColumn<AdminUser>[] = [
     key: 'status',
     sortable: true,
     sorter: true,
-    title: '状态',
+    title: $t('page.user.status'),
     width: 100,
   },
   {
@@ -170,7 +171,7 @@ const columns: AdminTableColumn<AdminUser>[] = [
     sortField: 'last_login_at',
     sortable: true,
     sorter: true,
-    title: '最后登录',
+    title: $t('page.user.lastLoginAt'),
     width: 170,
   },
   {
@@ -179,13 +180,13 @@ const columns: AdminTableColumn<AdminUser>[] = [
     sortField: 'created_at',
     sortable: true,
     sorter: true,
-    title: '创建时间',
+    title: $t('page.user.createdAt'),
     width: 170,
   },
   {
     fixed: 'right',
     key: 'action',
-    title: '操作',
+    title: $t('ui.table.action'),
     width: 150,
   },
 ];
@@ -241,7 +242,9 @@ const formModel = reactive<AdminUserFormModel>({
   username: '',
 });
 
-const modalTitle = computed(() => (editingId.value ? '编辑用户' : '新增用户'));
+const modalTitle = computed(() =>
+  editingId.value ? $t('page.user.editTitle') : $t('page.user.createTitle'),
+);
 const displayColumns = computed<TableColumnsType<AdminUser>>(() =>
   filterVisibleAdminTableColumns(
     applyAdminTableSorting(columns, sorting.value),
@@ -249,12 +252,12 @@ const displayColumns = computed<TableColumnsType<AdminUser>>(() =>
   ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
-  email: [{ message: '请输入有效邮箱', type: 'email' }],
+  email: [{ message: $t('ui.formRules.required', [$t('page.user.email')]), type: 'email' }],
   password: editingId.value
     ? []
-    : [{ message: '请输入初始密码', required: true }],
-  status: [{ message: '请选择状态', required: true }],
-  username: [{ message: '请输入用户名', required: true }],
+    : [{ message: $t('ui.formRules.required', [$t('page.user.password')]), required: true }],
+  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.user.status')]), required: true }],
+  username: [{ message: $t('ui.formRules.required', [$t('page.user.username')]), required: true }],
 }));
 
 const orgSelectOptions = computed(() =>
@@ -280,7 +283,7 @@ const tablePagination = computed<TablePaginationConfig>(() => ({
   current: pager.page,
   pageSize: pager.pageSize,
   showSizeChanger: true,
-  showTotal: (total) => `共 ${total} 条`,
+  showTotal: (total) => `${$t('page.loginAuditLog.total')} ${total}`,
   total: pager.total,
 }));
 
@@ -382,7 +385,7 @@ async function loadUsers() {
     users.value = response.items;
     pager.total = response.total;
   } catch (error) {
-    message.error((error as Error).message || '加载用户列表失败');
+    message.error((error as Error).message || $t('page.user.loadFailed'));
   } finally {
     loading.value = false;
   }
@@ -429,7 +432,7 @@ async function openCreate() {
 async function openEdit(record: AdminUserTableRecord) {
   const user = toAdminUser(record);
   if (!user.id) {
-    message.warning('缺少用户 ID');
+    message.warning($t('page.user.missingId'));
     return;
   }
 
@@ -460,7 +463,7 @@ async function openEdit(record: AdminUserTableRecord) {
     await nextTick();
     formRef.value?.clearValidate();
   } catch (error) {
-    message.error((error as Error).message || '加载用户详情失败');
+    message.error((error as Error).message || $t('page.user.loadDetailFailed'));
   } finally {
     optionLoading.value = false;
   }
@@ -473,7 +476,7 @@ async function submitUser() {
     if ((error as { errorFields?: unknown[] })?.errorFields) {
       return;
     }
-    message.error((error as Error).message || '表单校验失败');
+    message.error((error as Error).message || $t('page.user.validateFailed'));
     return;
   }
 
@@ -500,15 +503,15 @@ async function submitUser() {
     };
     if (editingId.value) {
       await updateAdminUserApi(editingId.value, payload);
-      message.success('用户已更新');
+      message.success($t('page.user.updateSuccess'));
     } else {
       await createAdminUserApi(payload);
-      message.success('用户已创建');
+      message.success($t('page.user.createSuccess'));
     }
     modalOpen.value = false;
     await loadUsers();
   } catch (error) {
-    message.error((error as Error).message || '保存用户失败');
+    message.error((error as Error).message || $t('page.user.saveFailed'));
   } finally {
     submitting.value = false;
   }
@@ -517,12 +520,12 @@ async function submitUser() {
 async function handleDelete(record: AdminUserTableRecord) {
   const user = toAdminUser(record);
   if (!user.id) {
-    message.warning('缺少用户 ID');
+    message.warning($t('page.user.missingId'));
     return;
   }
 
   await deleteAdminUserApi(user.id);
-  message.success('用户已删除');
+  message.success($t('page.user.deleteSuccess'));
   await loadUsers();
 }
 
@@ -532,7 +535,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Page auto-content-height title="用户管理">
+  <Page auto-content-height :title="$t('menu.system.user')">
     <div ref="tableSurfaceRef" class="admin-user-surface">
       <div class="admin-user-toolbar">
         <Form
@@ -543,47 +546,47 @@ onMounted(async () => {
         >
           <Form.Item
             class="admin-user-search__item"
-            label="用户名"
+            :label="$t('page.user.username')"
             name="username"
           >
             <Input
               v-model:value="searchForm.username"
               allow-clear
-              placeholder="输入用户名"
+              :placeholder="$t('page.user.searchUsername')"
             />
           </Form.Item>
           <Form.Item
             class="admin-user-search__item"
-            label="姓名"
+            :label="$t('page.user.realname')"
             name="realname"
           >
             <Input
               v-model:value="searchForm.realname"
               allow-clear
-              placeholder="输入姓名"
+              :placeholder="$t('page.user.searchRealname')"
             />
           </Form.Item>
-          <Form.Item class="admin-user-search__item" label="手机" name="mobile">
+          <Form.Item class="admin-user-search__item" :label="$t('page.user.mobile')" name="mobile">
             <Input
               v-model:value="searchForm.mobile"
               allow-clear
-              placeholder="输入手机号"
+              :placeholder="$t('page.user.searchMobile')"
             />
           </Form.Item>
           <Form.Item
             class="admin-user-search__item"
-            label="电话"
+            :label="$t('page.user.telephone')"
             name="telephone"
           >
             <Input
               v-model:value="searchForm.telephone"
               allow-clear
-              placeholder="输入电话"
+              :placeholder="$t('page.user.searchTelephone')"
             />
           </Form.Item>
           <Form.Item
             class="admin-user-search__item"
-            label="组织"
+            :label="$t('page.user.orgUnits')"
             name="orgUnitId"
           >
             <Select
@@ -591,13 +594,13 @@ onMounted(async () => {
               allow-clear
               :loading="optionLoading"
               :options="orgSelectOptions"
-              placeholder="选择组织"
+              :placeholder="$t('page.user.selectOrgUnit')"
               show-search
             />
           </Form.Item>
           <Form.Item
             class="admin-user-search__item"
-            label="岗位"
+            :label="$t('page.user.positions')"
             name="positionId"
           >
             <Select
@@ -605,26 +608,26 @@ onMounted(async () => {
               allow-clear
               :loading="optionLoading"
               :options="positionSelectOptions"
-              placeholder="选择岗位"
+              :placeholder="$t('page.user.selectPosition')"
               show-search
             />
           </Form.Item>
-          <Form.Item class="admin-user-search__item" label="角色" name="roleId">
+          <Form.Item class="admin-user-search__item" :label="$t('page.user.roles')" name="roleId">
             <Select
               v-model:value="searchForm.roleId"
               allow-clear
               :loading="optionLoading"
               :options="roleSelectOptions"
-              placeholder="选择角色"
+              :placeholder="$t('page.user.selectRole')"
               show-search
             />
           </Form.Item>
-          <Form.Item class="admin-user-search__item" label="状态" name="status">
+          <Form.Item class="admin-user-search__item" :label="$t('page.user.status')" name="status">
             <Select
               v-model:value="searchForm.status"
               allow-clear
               :options="statusOptions"
-              placeholder="选择状态"
+              :placeholder="$t('page.user.selectStatus')"
             />
           </Form.Item>
           <Form.Item class="admin-user-search__actions">
@@ -633,13 +636,13 @@ onMounted(async () => {
                 <template #icon>
                   <IconifyIcon icon="lucide:search" />
                 </template>
-                查询
+                {{ $t('common.query') }}
               </Button>
               <Button @click="handleReset">
                 <template #icon>
                   <IconifyIcon icon="lucide:rotate-ccw" />
                 </template>
-                重置
+                {{ $t('common.reset') }}
               </Button>
             </Space>
           </Form.Item>
@@ -664,7 +667,7 @@ onMounted(async () => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-            新增用户
+            {{ $t('page.user.createTitle') }}
           </Button>
         </Space>
       </div>
@@ -743,10 +746,10 @@ onMounted(async () => {
                 <template #icon>
                   <IconifyIcon icon="lucide:pencil" />
                 </template>
-                编辑
+                {{ $t('common.edit') }}
               </Button>
               <Popconfirm
-                title="确认删除该用户？"
+                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.user.moduleName')])"
                 @confirm="handleDelete(record)"
               >
                 <Button
@@ -758,7 +761,7 @@ onMounted(async () => {
                   <template #icon>
                     <IconifyIcon icon="lucide:trash-2" />
                   </template>
-                  删除
+                  {{ $t('common.delete') }}
                 </Button>
               </Popconfirm>
             </Space>
@@ -797,53 +800,53 @@ onMounted(async () => {
           type="password"
         />
         <div class="admin-user-form-grid">
-          <Form.Item label="用户名" name="username">
+          <Form.Item :label="$t('page.user.username')" name="username">
             <Input
               v-model:value="formModel.username"
               :disabled="Boolean(editingId)"
               autocomplete="off"
               name="admin-user-username"
-              placeholder="请输入用户名"
+              :placeholder="$t('page.user.placeholderUsername')"
             />
           </Form.Item>
-          <Form.Item label="昵称" name="nickname">
+          <Form.Item :label="$t('page.user.nickname')" name="nickname">
             <Input
               v-model:value="formModel.nickname"
-              placeholder="请输入昵称"
+              :placeholder="$t('page.user.placeholderNickname')"
             />
           </Form.Item>
-          <Form.Item label="真实姓名" name="realname">
+          <Form.Item :label="$t('page.user.realname')" name="realname">
             <Input
               v-model:value="formModel.realname"
-              placeholder="请输入真实姓名"
+              :placeholder="$t('page.user.placeholderRealname')"
             />
           </Form.Item>
-          <Form.Item label="状态" name="status">
+          <Form.Item :label="$t('page.user.status')" name="status">
             <Select v-model:value="formModel.status" :options="statusOptions" />
           </Form.Item>
-          <Form.Item label="性别" name="gender">
+          <Form.Item :label="$t('page.user.gender')" name="gender">
             <Select
               v-model:value="formModel.gender"
               allow-clear
               :options="genderOptions"
-              placeholder="选择性别"
+              :placeholder="$t('page.user.selectGender')"
             />
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
-            label="密码"
+            :label="$t('page.user.password')"
             name="password"
           >
             <Input.Password
               v-model:value="formModel.password"
               :autocomplete="editingId ? 'new-password' : 'new-password'"
               name="admin-user-password"
-              :placeholder="editingId ? '留空则不修改密码' : '请输入初始密码'"
+              :placeholder="editingId ? $t('page.user.placeholderPasswordKeepEmpty') : $t('page.user.placeholderPassword')"
             />
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
-            label="归属组织"
+            :label="$t('page.user.orgUnitIds')"
             name="orgUnitIds"
           >
             <Select
@@ -851,13 +854,13 @@ onMounted(async () => {
               mode="multiple"
               :loading="optionLoading"
               :options="orgSelectOptions"
-              placeholder="选择组织"
+              :placeholder="$t('page.user.selectOrgUnit')"
               show-search
             />
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
-            label="岗位"
+            :label="$t('page.user.positionIds')"
             name="positionIds"
           >
             <Select
@@ -865,13 +868,13 @@ onMounted(async () => {
               mode="multiple"
               :loading="optionLoading"
               :options="positionSelectOptions"
-              placeholder="选择岗位"
+              :placeholder="$t('page.user.selectPosition')"
               show-search
             />
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
-            label="角色"
+            :label="$t('page.user.roleIds')"
             name="roleIds"
           >
             <Select
@@ -879,90 +882,90 @@ onMounted(async () => {
               mode="multiple"
               :loading="optionLoading"
               :options="roleSelectOptions"
-              placeholder="选择角色"
+              :placeholder="$t('page.user.selectRole')"
               show-search
             />
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
-            label="头像"
+            :label="$t('page.user.avatar')"
             name="avatar"
           >
             <Input
               v-model:value="formModel.avatar"
               autocomplete="off"
               name="admin-user-avatar"
-              placeholder="请输入头像地址"
+              :placeholder="$t('page.user.placeholderAvatar')"
             />
           </Form.Item>
-          <Form.Item label="邮箱" name="email">
+          <Form.Item :label="$t('page.user.email')" name="email">
             <Input
               v-model:value="formModel.email"
               autocomplete="off"
               name="admin-user-email"
-              placeholder="请输入邮箱"
+              :placeholder="$t('page.user.placeholderEmail')"
             />
           </Form.Item>
-          <Form.Item label="手机" name="mobile">
+          <Form.Item :label="$t('page.user.mobile')" name="mobile">
             <Input
               v-model:value="formModel.mobile"
               autocomplete="off"
               name="admin-user-mobile"
-              placeholder="请输入手机号"
+              :placeholder="$t('page.user.placeholderMobile')"
             />
           </Form.Item>
-          <Form.Item label="电话" name="telephone">
+          <Form.Item :label="$t('page.user.telephone')" name="telephone">
             <Input
               v-model:value="formModel.telephone"
               autocomplete="off"
               name="admin-user-telephone"
-              placeholder="请输入电话"
+              :placeholder="$t('page.user.placeholderTelephone')"
             />
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
-            label="地址"
+            :label="$t('page.user.address')"
             name="address"
           >
             <Input
               v-model:value="formModel.address"
               autocomplete="off"
               name="admin-user-address"
-              placeholder="请输入地址"
+              :placeholder="$t('page.user.placeholderAddress')"
             />
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
-            label="地区"
+            :label="$t('page.user.region')"
             name="region"
           >
             <Input
               v-model:value="formModel.region"
               autocomplete="off"
               name="admin-user-region"
-              placeholder="请输入地区"
+              :placeholder="$t('page.user.placeholderRegion')"
             />
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
-            label="描述"
+            :label="$t('page.user.description')"
             name="description"
           >
             <Input.TextArea
               v-model:value="formModel.description"
               :auto-size="{ minRows: 3, maxRows: 5 }"
-              placeholder="请输入描述"
+              :placeholder="$t('page.user.placeholderDescription')"
             />
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
-            label="备注"
+            :label="$t('page.user.remark')"
             name="remark"
           >
             <Input.TextArea
               v-model:value="formModel.remark"
               :auto-size="{ minRows: 2, maxRows: 4 }"
-              placeholder="请输入备注"
+              :placeholder="$t('page.user.placeholderRemark')"
             />
           </Form.Item>
         </div>

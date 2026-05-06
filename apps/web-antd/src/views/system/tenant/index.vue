@@ -50,6 +50,7 @@ import {
   getDefaultVisibleColumnKeys,
   toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
+import { $t } from '#/locales';
 
 interface AdminTenantFormModel extends AdminTenantSaveInput {
   auditStatus: AdminTenantAuditStatus;
@@ -72,47 +73,47 @@ const TENANT_ACCESS = {
 } as const;
 
 const statusOptions = [
-  { label: '启用', value: 'ON' },
-  { label: '禁用', value: 'OFF' },
-  { label: '过期', value: 'EXPIRED' },
-  { label: '冻结', value: 'FREEZE' },
+  { label: $t('enum.tenant.status.ON'), value: 'ON' },
+  { label: $t('enum.tenant.status.OFF'), value: 'OFF' },
+  { label: $t('enum.tenant.status.EXPIRED'), value: 'EXPIRED' },
+  { label: $t('enum.tenant.status.FREEZE'), value: 'FREEZE' },
 ];
 
 const auditStatusOptions = [
-  { label: '待审核', value: 'PENDING' },
-  { label: '通过', value: 'APPROVED' },
-  { label: '拒绝', value: 'REJECTED' },
+  { label: $t('enum.tenant.auditStatus.PENDING'), value: 'PENDING' },
+  { label: $t('enum.tenant.auditStatus.APPROVED'), value: 'APPROVED' },
+  { label: $t('enum.tenant.auditStatus.REJECTED'), value: 'REJECTED' },
 ];
 
 const typeOptions = [
-  { label: '试用', value: 'TRIAL' },
-  { label: '付费', value: 'PAID' },
-  { label: '内部', value: 'INTERNAL' },
-  { label: '伙伴', value: 'PARTNER' },
-  { label: '自定义', value: 'CUSTOM' },
+  { label: $t('enum.tenant.type.TRIAL'), value: 'TRIAL' },
+  { label: $t('enum.tenant.type.PAID'), value: 'PAID' },
+  { label: $t('enum.tenant.type.INTERNAL'), value: 'INTERNAL' },
+  { label: $t('enum.tenant.type.PARTNER'), value: 'PARTNER' },
+  { label: $t('enum.tenant.type.CUSTOM'), value: 'CUSTOM' },
 ];
 
 const statusTextMap: Record<AdminTenantStatus, string> = {
-  EXPIRED: '过期',
-  FREEZE: '冻结',
-  OFF: '禁用',
-  ON: '启用',
+  EXPIRED: $t('enum.tenant.status.EXPIRED'),
+  FREEZE: $t('enum.tenant.status.FREEZE'),
+  OFF: $t('enum.tenant.status.OFF'),
+  ON: $t('enum.tenant.status.ON'),
 };
 
 const auditStatusTextMap: Record<AdminTenantAuditStatus, string> = {
-  APPROVED: '通过',
-  PENDING: '待审核',
-  REJECTED: '拒绝',
-  TENANT_AUDIT_STATUS_UNSPECIFIED: '未指定',
+  APPROVED: $t('enum.tenant.auditStatus.APPROVED'),
+  PENDING: $t('enum.tenant.auditStatus.PENDING'),
+  REJECTED: $t('enum.tenant.auditStatus.REJECTED'),
+  TENANT_AUDIT_STATUS_UNSPECIFIED: $t('enum.tenant.auditStatus.TENANT_AUDIT_STATUS_UNSPECIFIED'),
 };
 
 const typeTextMap: Record<AdminTenantType, string> = {
-  CUSTOM: '自定义',
-  INTERNAL: '内部',
-  PAID: '付费',
-  PARTNER: '伙伴',
-  TENANT_TYPE_UNSPECIFIED: '未指定',
-  TRIAL: '试用',
+  CUSTOM: $t('enum.tenant.type.CUSTOM'),
+  INTERNAL: $t('enum.tenant.type.INTERNAL'),
+  PAID: $t('enum.tenant.type.PAID'),
+  PARTNER: $t('enum.tenant.type.PARTNER'),
+  TENANT_TYPE_UNSPECIFIED: $t('enum.tenant.type.TENANT_TYPE_UNSPECIFIED'),
+  TRIAL: $t('enum.tenant.type.TRIAL'),
 };
 
 const columns: AdminTableColumn<AdminTenant>[] = [
@@ -121,7 +122,7 @@ const columns: AdminTableColumn<AdminTenant>[] = [
     sortField: 'id',
     sortable: true,
     sorter: true,
-    title: 'ID',
+    title: $t('page.tenant.id'),
     width: 80,
   },
   {
@@ -129,14 +130,14 @@ const columns: AdminTableColumn<AdminTenant>[] = [
     sortField: 'name',
     sortable: true,
     sorter: true,
-    title: '租户',
+    title: $t('page.tenant.tenant'),
     width: 260,
   },
   {
     dataIndex: 'domain',
     sortable: true,
     sorter: true,
-    title: '域名',
+    title: $t('page.tenant.domain'),
     width: 180,
   },
   {
@@ -144,7 +145,7 @@ const columns: AdminTableColumn<AdminTenant>[] = [
     key: 'type',
     sortable: true,
     sorter: true,
-    title: '类型',
+    title: $t('page.tenant.type'),
     width: 120,
   },
   {
@@ -152,7 +153,7 @@ const columns: AdminTableColumn<AdminTenant>[] = [
     key: 'status',
     sortable: true,
     sorter: true,
-    title: '状态',
+    title: $t('page.tenant.status'),
     width: 100,
   },
   {
@@ -161,20 +162,20 @@ const columns: AdminTableColumn<AdminTenant>[] = [
     sortField: 'audit_status',
     sortable: true,
     sorter: true,
-    title: '审核',
+    title: $t('page.tenant.auditStatus'),
     width: 100,
   },
-  { dataIndex: 'memberCount', title: '成员数', width: 100 },
+  { dataIndex: 'memberCount', title: $t('page.tenant.memberCount'), width: 100 },
   {
     dataIndex: 'createdAt',
     key: 'createdAt',
     sortField: 'created_at',
     sortable: true,
     sorter: true,
-    title: '创建时间',
+    title: $t('page.tenant.createdAt'),
     width: 170,
   },
-  { fixed: 'right', key: 'action', title: '操作', width: 150 },
+  { fixed: 'right', key: 'action', title: $t('ui.table.action'), width: 150 },
 ];
 
 const loading = ref(false);
@@ -211,7 +212,9 @@ const formModel = reactive<AdminTenantFormModel>({
   type: 'TRIAL',
 });
 
-const modalTitle = computed(() => (editingId.value ? '编辑租户' : '新增租户'));
+const modalTitle = computed(() =>
+  editingId.value ? $t('page.tenant.editTitle') : $t('page.tenant.createTitle'),
+);
 const displayColumns = computed<TableColumnsType<AdminTenant>>(() =>
   filterVisibleAdminTableColumns(
     applyAdminTableSorting(columns, sorting.value),
@@ -219,17 +222,17 @@ const displayColumns = computed<TableColumnsType<AdminTenant>>(() =>
   ),
 );
 const formRules: Record<string, Rule[]> = {
-  code: [{ message: '请输入租户编码', required: true }],
-  name: [{ message: '请输入租户名称', required: true }],
-  status: [{ message: '请选择状态', required: true }],
-  type: [{ message: '请选择类型', required: true }],
+  code: [{ message: $t('ui.formRules.required', [$t('page.tenant.code')]), required: true }],
+  name: [{ message: $t('ui.formRules.required', [$t('page.tenant.name')]), required: true }],
+  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.tenant.status')]), required: true }],
+  type: [{ message: $t('ui.formRules.selectRequired', [$t('page.tenant.type')]), required: true }],
 };
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
   current: pager.page,
   pageSize: pager.pageSize,
   showSizeChanger: true,
-  showTotal: (total) => `共 ${total} 条`,
+  showTotal: (total) => `${$t('page.loginAuditLog.total')} ${total}`,
   total: pager.total,
 }));
 
@@ -341,10 +344,10 @@ async function handleSubmit() {
   try {
     if (editingId.value) {
       await updateAdminTenantApi(editingId.value, formModel);
-      message.success('租户已更新');
+      message.success($t('page.tenant.updateSuccess'));
     } else {
       await createAdminTenantApi(formModel);
-      message.success('租户已创建');
+      message.success($t('page.tenant.createSuccess'));
     }
     modalOpen.value = false;
     await loadTenants();
@@ -359,7 +362,7 @@ async function handleDelete(record: AdminTenantTableRecord) {
     return;
   }
   await deleteAdminTenantApi(tenant.id);
-  message.success('租户已删除');
+  message.success($t('page.tenant.deleteSuccess'));
   await loadTenants();
 }
 
@@ -369,21 +372,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page auto-content-height>
+  <Page auto-content-height :title="$t('menu.system.tenant')">
     <div ref="tableSurfaceRef" class="admin-tenant-surface">
       <div class="admin-tenant-toolbar">
         <Space wrap>
           <Input
             v-model:value="searchForm.name"
             allow-clear
-            placeholder="租户名称"
+            :placeholder="$t('page.tenant.searchName')"
             style="width: 180px"
             @press-enter="handleSearch"
           />
           <Input
             v-model:value="searchForm.code"
             allow-clear
-            placeholder="租户编码"
+            :placeholder="$t('page.tenant.searchCode')"
             style="width: 180px"
             @press-enter="handleSearch"
           />
@@ -391,13 +394,13 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:search" />
             </template>
-            查询
+            {{ $t('common.query') }}
           </Button>
           <Button @click="handleReset">
             <template #icon>
               <IconifyIcon icon="lucide:rotate-ccw" />
             </template>
-            重置
+            {{ $t('common.reset') }}
           </Button>
         </Space>
         <Space>
@@ -419,7 +422,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-            新增租户
+            {{ $t('page.tenant.createTitle') }}
           </Button>
         </Space>
       </div>
@@ -472,14 +475,14 @@ onMounted(() => {
                 type="link"
                 @click="openEditModal(record)"
               >
-                编辑
+                {{ $t('common.edit') }}
               </Button>
               <Popconfirm
                 v-access:code="TENANT_ACCESS.delete"
-                title="确认删除该租户？"
+                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.tenant.moduleName')])"
                 @confirm="handleDelete(record)"
               >
-                <Button danger size="small" type="link">删除</Button>
+                <Button danger size="small" type="link">{{ $t('common.delete') }}</Button>
               </Popconfirm>
             </Space>
           </template>
@@ -501,47 +504,47 @@ onMounted(() => {
         :model="formModel"
         :rules="formRules"
       >
-        <Form.Item label="租户名称" name="name">
-          <Input v-model:value="formModel.name" placeholder="请输入租户名称" />
+        <Form.Item :label="$t('page.tenant.name')" name="name">
+          <Input v-model:value="formModel.name" :placeholder="$t('page.tenant.placeholderName')" />
         </Form.Item>
-        <Form.Item label="租户编码" name="code">
-          <Input v-model:value="formModel.code" placeholder="请输入租户编码" />
+        <Form.Item :label="$t('page.tenant.code')" name="code">
+          <Input v-model:value="formModel.code" :placeholder="$t('page.tenant.placeholderCode')" />
         </Form.Item>
-        <Form.Item label="域名" name="domain">
-          <Input v-model:value="formModel.domain" placeholder="请输入域名" />
+        <Form.Item :label="$t('page.tenant.domain')" name="domain">
+          <Input v-model:value="formModel.domain" :placeholder="$t('page.tenant.placeholderDomain')" />
         </Form.Item>
-        <Form.Item label="Logo URL" name="logoUrl">
+        <Form.Item :label="$t('page.tenant.logoUrl')" name="logoUrl">
           <Input
             v-model:value="formModel.logoUrl"
-            placeholder="请输入 Logo URL"
+            :placeholder="$t('page.tenant.placeholderLogoUrl')"
           />
         </Form.Item>
-        <Form.Item label="行业" name="industry">
-          <Input v-model:value="formModel.industry" placeholder="请输入行业" />
+        <Form.Item :label="$t('page.tenant.industry')" name="industry">
+          <Input v-model:value="formModel.industry" :placeholder="$t('page.tenant.placeholderIndustry')" />
         </Form.Item>
-        <Form.Item label="类型" name="type">
+        <Form.Item :label="$t('page.tenant.type')" name="type">
           <Select v-model:value="formModel.type" :options="typeOptions" />
         </Form.Item>
-        <Form.Item label="状态" name="status">
+        <Form.Item :label="$t('page.tenant.status')" name="status">
           <Select v-model:value="formModel.status" :options="statusOptions" />
         </Form.Item>
-        <Form.Item label="审核状态" name="auditStatus">
+        <Form.Item :label="$t('page.tenant.auditStatus')" name="auditStatus">
           <Select
             v-model:value="formModel.auditStatus"
             :options="auditStatusOptions"
           />
         </Form.Item>
-        <Form.Item label="订阅计划" name="subscriptionPlan">
+        <Form.Item :label="$t('page.tenant.subscriptionPlan')" name="subscriptionPlan">
           <Input
             v-model:value="formModel.subscriptionPlan"
-            placeholder="请输入订阅计划"
+            :placeholder="$t('page.tenant.placeholderSubscriptionPlan')"
           />
         </Form.Item>
-        <Form.Item label="备注" name="remark">
+        <Form.Item :label="$t('page.tenant.remark')" name="remark">
           <Input.TextArea
             v-model:value="formModel.remark"
             :rows="3"
-            placeholder="请输入备注"
+            :placeholder="$t('page.tenant.placeholderRemark')"
           />
         </Form.Item>
       </Form>

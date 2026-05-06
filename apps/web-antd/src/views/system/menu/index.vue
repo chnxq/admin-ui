@@ -83,29 +83,29 @@ const MENU_ACCESS = {
 } as const;
 
 const statusOptions = [
-  { label: '启用', value: 'ON' },
-  { label: '禁用', value: 'OFF' },
+  { label: $t('enum.status.ON'), value: 'ON' },
+  { label: $t('enum.status.OFF'), value: 'OFF' },
 ];
 
 const typeOptions = [
-  { label: '目录', value: 'CATALOG' },
-  { label: '菜单', value: 'MENU' },
-  { label: '按钮', value: 'BUTTON' },
-  { label: '内嵌页', value: 'EMBEDDED' },
-  { label: '外链', value: 'LINK' },
+  { label: $t('enum.menu.type.CATALOG'), value: 'CATALOG' },
+  { label: $t('enum.menu.type.MENU'), value: 'MENU' },
+  { label: $t('enum.menu.type.BUTTON'), value: 'BUTTON' },
+  { label: $t('enum.menu.type.EMBEDDED'), value: 'EMBEDDED' },
+  { label: $t('enum.menu.type.LINK'), value: 'LINK' },
 ];
 
 const statusTextMap: Record<AdminMenuStatus, string> = {
-  OFF: '禁用',
-  ON: '启用',
+  OFF: $t('enum.status.OFF'),
+  ON: $t('enum.status.ON'),
 };
 
 const typeTextMap: Record<AdminMenuType, string> = {
-  BUTTON: '按钮',
-  CATALOG: '目录',
-  EMBEDDED: '内嵌页',
-  LINK: '外链',
-  MENU: '菜单',
+  BUTTON: $t('enum.menu.type.BUTTON'),
+  CATALOG: $t('enum.menu.type.CATALOG'),
+  EMBEDDED: $t('enum.menu.type.EMBEDDED'),
+  LINK: $t('enum.menu.type.LINK'),
+  MENU: $t('enum.menu.type.MENU'),
 };
 
 const columns: AdminTableColumn<AdminMenu>[] = [
@@ -114,19 +114,19 @@ const columns: AdminTableColumn<AdminMenu>[] = [
     sortField: 'name',
     sortable: true,
     sorter: true,
-    title: '菜单',
+    title: $t('page.menu.menu'),
     width: 260,
   },
   {
     dataIndex: 'path',
     sortable: true,
     sorter: true,
-    title: '路径',
+    title: $t('page.menu.path'),
     width: 180,
   },
   {
     dataIndex: 'component',
-    title: '组件',
+    title: $t('page.menu.component'),
     width: 240,
   },
   {
@@ -134,7 +134,7 @@ const columns: AdminTableColumn<AdminMenu>[] = [
     key: 'type',
     sortable: true,
     sorter: true,
-    title: '类型',
+    title: $t('page.menu.type'),
     width: 100,
   },
   {
@@ -142,7 +142,7 @@ const columns: AdminTableColumn<AdminMenu>[] = [
     key: 'status',
     sortable: true,
     sorter: true,
-    title: '状态',
+    title: $t('page.menu.status'),
     width: 100,
   },
   {
@@ -151,13 +151,13 @@ const columns: AdminTableColumn<AdminMenu>[] = [
     sortField: 'created_at',
     sortable: true,
     sorter: true,
-    title: '创建时间',
+    title: $t('page.menu.createdAt'),
     width: 170,
   },
   {
     fixed: 'right',
     key: 'action',
-    title: '操作',
+    title: $t('ui.table.action'),
     width: 150,
   },
 ];
@@ -194,7 +194,9 @@ const formModel = reactive<AdminMenuFormModel>({
   type: 'MENU',
 });
 
-const modalTitle = computed(() => (editingId.value ? '编辑菜单' : '新增菜单'));
+const modalTitle = computed(() =>
+  editingId.value ? $t('page.menu.editTitle') : $t('page.menu.createTitle'),
+);
 const displayColumns = computed<TableColumnsType<AdminMenu>>(() =>
   filterVisibleAdminTableColumns(
     applyAdminTableSorting(columns, sorting.value),
@@ -202,11 +204,11 @@ const displayColumns = computed<TableColumnsType<AdminMenu>>(() =>
   ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
-  name: [{ message: '请输入菜单名称', required: true }],
-  path: [{ message: '请输入路径', required: true }],
-  status: [{ message: '请选择状态', required: true }],
-  title: [{ message: '请输入菜单标题', required: true }],
-  type: [{ message: '请选择类型', required: true }],
+  name: [{ message: $t('ui.formRules.required', [$t('page.menu.name')]), required: true }],
+  path: [{ message: $t('ui.formRules.required', [$t('page.menu.path')]), required: true }],
+  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.menu.status')]), required: true }],
+  title: [{ message: $t('ui.formRules.required', [$t('page.menu.title')]), required: true }],
+  type: [{ message: $t('ui.formRules.selectRequired', [$t('page.menu.type')]), required: true }],
 }));
 
 const parentOptions = computed(() =>
@@ -275,7 +277,7 @@ async function loadMenus() {
     menuItems.value = response.items;
     menuTree.value = response.tree;
   } catch (error) {
-    message.error((error as Error).message || '加载菜单列表失败');
+    message.error((error as Error).message || $t('page.menu.loadFailed'));
   } finally {
     loading.value = false;
   }
@@ -316,7 +318,7 @@ async function openCreate(parent?: AdminMenuTableRecord) {
 async function openEdit(record: AdminMenuTableRecord) {
   const menu = toAdminMenu(record);
   if (!menu.id) {
-    message.warning('缺少菜单 ID');
+    message.warning($t('page.menu.missingId'));
     return;
   }
 
@@ -358,10 +360,10 @@ async function submitMenu() {
     };
     if (editingId.value) {
       await updateAdminMenuApi(editingId.value, payload);
-      message.success('菜单已更新');
+      message.success($t('page.menu.updateSuccess'));
     } else {
       await createAdminMenuApi(payload);
-      message.success('菜单已创建');
+      message.success($t('page.menu.createSuccess'));
     }
     modalOpen.value = false;
     await loadMenus();
@@ -373,12 +375,12 @@ async function submitMenu() {
 async function handleDelete(record: AdminMenuTableRecord) {
   const menu = toAdminMenu(record);
   if (!menu.id) {
-    message.warning('缺少菜单 ID');
+    message.warning($t('page.menu.missingId'));
     return;
   }
 
   await deleteAdminMenuApi(menu.id);
-  message.success('菜单已删除');
+  message.success($t('page.menu.deleteSuccess'));
   await loadMenus();
 }
 
@@ -386,7 +388,7 @@ async function handleSync() {
   syncing.value = true;
   try {
     await syncAdminMenusApi();
-    message.success('菜单同步完成');
+    message.success($t('page.menu.syncSuccess'));
     await loadMenus();
   } finally {
     syncing.value = false;
@@ -399,22 +401,22 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page auto-content-height title="菜单管理">
+  <Page auto-content-height :title="$t('menu.system.menu')">
     <div ref="tableSurfaceRef" class="admin-menu-surface">
       <div class="admin-menu-toolbar">
         <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item label="菜单名称" name="name">
+          <Form.Item :label="$t('page.menu.name')" name="name">
             <Input
               v-model:value="searchForm.name"
               allow-clear
-              placeholder="输入菜单名称"
+              :placeholder="$t('page.menu.placeholderSearchName')"
             />
           </Form.Item>
-          <Form.Item label="路径" name="path">
+          <Form.Item :label="$t('page.menu.path')" name="path">
             <Input
               v-model:value="searchForm.path"
               allow-clear
-              placeholder="输入路径"
+              :placeholder="$t('page.menu.placeholderSearchPath')"
             />
           </Form.Item>
           <Form.Item>
@@ -423,13 +425,13 @@ onMounted(() => {
                 <template #icon>
                   <IconifyIcon icon="lucide:search" />
                 </template>
-                查询
+                {{ $t('common.query') }}
               </Button>
               <Button @click="handleReset">
                 <template #icon>
                   <IconifyIcon icon="lucide:rotate-ccw" />
                 </template>
-                重置
+                {{ $t('common.reset') }}
               </Button>
             </Space>
           </Form.Item>
@@ -447,14 +449,14 @@ onMounted(() => {
             storage-key="system-menu-list"
           />
           <Popconfirm
-            title="确认从默认导航定义同步菜单？"
+            :title="$t('page.menu.syncConfirm')"
             @confirm="handleSync"
           >
             <Button v-access:code="MENU_ACCESS.sync" :loading="syncing">
               <template #icon>
                 <IconifyIcon icon="lucide:refresh-cw" />
               </template>
-              同步菜单
+              {{ $t('page.menu.syncButton') }}
             </Button>
           </Popconfirm>
           <Button
@@ -465,7 +467,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-            新增菜单
+            {{ $t('page.menu.createTitle') }}
           </Button>
         </Space>
       </div>
@@ -517,7 +519,7 @@ onMounted(() => {
                 <template #icon>
                   <IconifyIcon icon="lucide:plus" />
                 </template>
-                子菜单
+                {{ $t('page.menu.childMenu') }}
               </Button>
               <Button
                 v-access:code="MENU_ACCESS.edit"
@@ -528,10 +530,10 @@ onMounted(() => {
                 <template #icon>
                   <IconifyIcon icon="lucide:pencil" />
                 </template>
-                编辑
+                {{ $t('common.edit') }}
               </Button>
               <Popconfirm
-                title="确认删除该菜单？"
+                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.menu.moduleName')])"
                 @confirm="handleDelete(record)"
               >
                 <Button
@@ -543,7 +545,7 @@ onMounted(() => {
                   <template #icon>
                     <IconifyIcon icon="lucide:trash-2" />
                   </template>
-                  删除
+                  {{ $t('common.delete') }}
                 </Button>
               </Popconfirm>
             </Space>
@@ -565,69 +567,72 @@ onMounted(() => {
         :rules="formRules"
         layout="vertical"
       >
-        <Form.Item label="上级菜单" name="parentId">
+        <Form.Item :label="$t('page.menu.parent')" name="parentId">
           <Select
             v-model:value="formModel.parentId"
             allow-clear
             :options="parentOptions"
-            placeholder="根级菜单"
+            :placeholder="$t('page.menu.placeholderRootParent')"
           />
         </Form.Item>
-        <Form.Item label="菜单标题" name="title">
-          <Input v-model:value="formModel.title" placeholder="请输入菜单标题" />
+        <Form.Item :label="$t('page.menu.title')" name="title">
+          <Input v-model:value="formModel.title" :placeholder="$t('page.menu.placeholderTitle')" />
         </Form.Item>
-        <Form.Item label="菜单名称" name="name">
-          <Input v-model:value="formModel.name" placeholder="请输入菜单名称" />
+        <Form.Item :label="$t('page.menu.name')" name="name">
+          <Input v-model:value="formModel.name" :placeholder="$t('page.menu.placeholderName')" />
         </Form.Item>
-        <Form.Item label="路径" name="path">
-          <Input v-model:value="formModel.path" placeholder="请输入路径" />
+        <Form.Item :label="$t('page.menu.path')" name="path">
+          <Input v-model:value="formModel.path" :placeholder="$t('page.menu.placeholderPath')" />
         </Form.Item>
-        <Form.Item label="组件" name="component">
+        <Form.Item :label="$t('page.menu.component')" name="component">
           <Input
             v-model:value="formModel.component"
-            placeholder="例如 /system/user/index"
+            :placeholder="$t('page.menu.placeholderComponent')"
           />
         </Form.Item>
-        <Form.Item label="重定向" name="redirect">
+        <Form.Item :label="$t('page.menu.redirect')" name="redirect">
           <Input
             v-model:value="formModel.redirect"
-            placeholder="请输入重定向路径"
+            :placeholder="$t('page.menu.placeholderRedirect')"
           />
         </Form.Item>
-        <Form.Item label="图标" name="icon">
+        <Form.Item :label="$t('page.menu.icon')" name="icon">
           <Input
             v-model:value="formModel.icon"
-            placeholder="例如 lucide:settings"
+            :placeholder="$t('page.menu.placeholderIcon')"
           />
         </Form.Item>
-        <Form.Item label="权限标识" name="authority">
+        <Form.Item :label="$t('page.menu.authority')" name="authority">
           <Input
             v-model:value="formModel.authority"
-            placeholder="多个值用逗号分隔"
+            :placeholder="$t('page.menu.placeholderAuthority')"
           />
         </Form.Item>
-        <Form.Item label="类型" name="type">
+        <Form.Item :label="$t('page.menu.type')" name="type">
           <Select v-model:value="formModel.type" :options="typeOptions" />
         </Form.Item>
-        <Form.Item label="忽略访问控制" name="ignoreAccess">
+        <Form.Item :label="$t('page.menu.ignoreAccess')" name="ignoreAccess">
           <Select
             v-model:value="formModel.ignoreAccess"
             :options="[
-              { label: '否', value: 'false' },
-              { label: '是', value: 'true' },
+              { label: $t('page.menu.no'), value: 'false' },
+              { label: $t('page.menu.yes'), value: 'true' },
             ]"
           />
         </Form.Item>
-        <Form.Item label="无权限时仍显示菜单" name="menuVisibleWithForbidden">
+        <Form.Item
+          :label="$t('page.menu.menuVisibleWithForbidden')"
+          name="menuVisibleWithForbidden"
+        >
           <Select
             v-model:value="formModel.menuVisibleWithForbidden"
             :options="[
-              { label: '否', value: 'false' },
-              { label: '是', value: 'true' },
+              { label: $t('page.menu.no'), value: 'false' },
+              { label: $t('page.menu.yes'), value: 'true' },
             ]"
           />
         </Form.Item>
-        <Form.Item label="状态" name="status">
+        <Form.Item :label="$t('page.menu.status')" name="status">
           <Select v-model:value="formModel.status" :options="statusOptions" />
         </Form.Item>
       </Form>

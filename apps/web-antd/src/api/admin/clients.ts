@@ -1,7 +1,9 @@
 import {
   createAdminPortalServiceClient,
+  createApiAuditLogServiceClient,
   createApiServiceClient,
   createAuthenticationServiceClient,
+  createLoginAuditLogServiceClient,
   createMenuServiceClient,
   createOrgUnitServiceClient,
   createPermissionGroupServiceClient,
@@ -18,10 +20,16 @@ import { adminRequestHandler } from './request-handler';
 export const adminPortalClient =
   createAdminPortalServiceClient(adminRequestHandler);
 
+export const apiAuditLogClient =
+  createApiAuditLogServiceClient(adminRequestHandler);
+
 export const apiClient = createApiServiceClient(adminRequestHandler);
 
 export const authenticationClient =
   createAuthenticationServiceClient(adminRequestHandler);
+
+export const loginAuditLogClient =
+  createLoginAuditLogServiceClient(adminRequestHandler);
 
 export const menuClient = createMenuServiceClient(adminRequestHandler);
 

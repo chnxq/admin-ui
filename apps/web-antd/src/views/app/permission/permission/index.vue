@@ -64,6 +64,7 @@ import {
   getDefaultVisibleColumnKeys,
   toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
+import { $t } from '#/locales';
 
 interface AdminPermissionFormModel extends AdminPermissionSaveInput {
   code: string;
@@ -95,13 +96,13 @@ const PERMISSION_ACCESS = {
 } as const;
 
 const statusOptions = [
-  { label: '启用', value: 'ON' },
-  { label: '禁用', value: 'OFF' },
+  { label: $t('enum.status.ON'), value: 'ON' },
+  { label: $t('enum.status.OFF'), value: 'OFF' },
 ];
 
 const statusTextMap: Record<AdminPermissionStatus, string> = {
-  OFF: '禁用',
-  ON: '启用',
+  OFF: $t('enum.status.OFF'),
+  ON: $t('enum.status.ON'),
 };
 
 const columns: AdminTableColumn<AdminPermission>[] = [
@@ -110,7 +111,7 @@ const columns: AdminTableColumn<AdminPermission>[] = [
     sortField: 'name',
     sortable: true,
     sorter: true,
-    title: '权限点',
+    title: $t('page.permission.permission'),
     width: 280,
   },
   {
@@ -119,7 +120,7 @@ const columns: AdminTableColumn<AdminPermission>[] = [
     sortField: 'group_id',
     sortable: true,
     sorter: true,
-    title: '权限组',
+    title: $t('page.permission.groupName'),
     width: 150,
   },
   {
@@ -127,12 +128,12 @@ const columns: AdminTableColumn<AdminPermission>[] = [
     key: 'status',
     sortable: true,
     sorter: true,
-    title: '状态',
+    title: $t('page.permission.status'),
     width: 100,
   },
   {
     key: 'resource',
-    title: '资源绑定',
+    title: $t('page.permission.resource'),
     width: 160,
   },
   {
@@ -141,13 +142,13 @@ const columns: AdminTableColumn<AdminPermission>[] = [
     sortField: 'created_at',
     sortable: true,
     sorter: true,
-    title: '创建时间',
+    title: $t('page.permission.createdAt'),
     width: 170,
   },
   {
     fixed: 'right',
     key: 'action',
-    title: '操作',
+    title: $t('ui.table.action'),
     width: 150,
   },
 ];
@@ -206,19 +207,19 @@ const groupFormModel = reactive<AdminPermissionGroupFormModel>({
 
 const selectedGroupName = computed(() => {
   if (!selectedGroupId.value) {
-    return '全部权限组';
+    return $t('page.permission.allGroups');
   }
   return (
     groups.value.find((item) => item.id === selectedGroupId.value)?.name ??
-    '当前权限组'
+    $t('page.permission.currentGroup')
   );
 });
 
 const modalTitle = computed(() =>
-  editingId.value ? '编辑权限点' : '新增权限点',
+  editingId.value ? $t('page.permission.editTitle') : $t('page.permission.createTitle'),
 );
 const groupModalTitle = computed(() =>
-  editingGroupId.value ? '编辑权限组' : '新增权限组',
+  editingGroupId.value ? $t('page.permission.groupEditTitle') : $t('page.permission.groupCreateTitle'),
 );
 
 const displayColumns = computed<TableColumnsType<AdminPermission>>(() =>
@@ -228,22 +229,22 @@ const displayColumns = computed<TableColumnsType<AdminPermission>>(() =>
   ),
 );
 const formRules = computed<Record<string, Rule[]>>(() => ({
-  code: [{ message: '请输入权限编码', required: true }],
-  name: [{ message: '请输入权限名称', required: true }],
-  status: [{ message: '请选择状态', required: true }],
+  code: [{ message: $t('ui.formRules.required', [$t('page.permission.code')]), required: true }],
+  name: [{ message: $t('ui.formRules.required', [$t('page.permission.name')]), required: true }],
+  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.permission.status')]), required: true }],
 }));
 
 const groupFormRules = computed<Record<string, Rule[]>>(() => ({
-  module: [{ message: '请输入模块标识', required: true }],
-  name: [{ message: '请输入权限组名称', required: true }],
-  status: [{ message: '请选择状态', required: true }],
+  module: [{ message: $t('ui.formRules.required', [$t('page.permission.groupModule')]), required: true }],
+  name: [{ message: $t('ui.formRules.required', [$t('page.permission.groupName')]), required: true }],
+  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.permission.status')]), required: true }],
 }));
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
   current: pager.page,
   pageSize: pager.pageSize,
   showSizeChanger: true,
-  showTotal: (total) => `共 ${total} 条`,
+  showTotal: (total) => `${$t('page.loginAuditLog.total')} ${total}`,
   total: pager.total,
 }));
 
@@ -266,7 +267,7 @@ const parentGroupOptions = computed(() =>
 const treeData = computed<TreeProps['treeData']>(() => [
   {
     key: 'all',
-    title: '全部权限组',
+    title: $t('page.permission.allGroups'),
     children: groupTree.value.map((group) => toTreeNode(group)),
   },
 ]);
@@ -358,7 +359,7 @@ async function loadResourceOptions() {
     menuOptions.value = menuResponse.items;
     apiOptions.value = apiResponse.items;
   } catch (error) {
-    message.error((error as Error).message || '鍔犺浇璧勬簮閰嶇疆澶辫触');
+    message.error((error as Error).message || $t('page.permission.loadResourceOptionsFailed'));
   } finally {
     resourceOptionLoading.value = false;
   }
@@ -410,7 +411,7 @@ async function loadGroups() {
     groups.value = response.items;
     groupTree.value = response.tree;
   } catch (error) {
-    message.error((error as Error).message || '加载权限组失败');
+    message.error((error as Error).message || $t('page.permission.loadGroupsFailed'));
   } finally {
     groupLoading.value = false;
   }
@@ -430,7 +431,7 @@ async function loadPermissions() {
     permissions.value = response.items;
     pager.total = response.total;
   } catch (error) {
-    message.error((error as Error).message || '加载权限点失败');
+    message.error((error as Error).message || $t('page.permission.loadPermissionsFailed'));
   } finally {
     loading.value = false;
   }
@@ -483,7 +484,7 @@ async function openCreate() {
 async function openEdit(record: PermissionRecord) {
   const permission = toPermission(record);
   if (!permission.id) {
-    message.warning('缺少权限点 ID');
+    message.warning($t('page.permission.missingId'));
     return;
   }
 
@@ -509,10 +510,10 @@ async function submitPermission() {
   try {
     if (editingId.value) {
       await updateAdminPermissionApi(editingId.value, formModel);
-      message.success('权限点已更新');
+      message.success($t('page.permission.updateSuccess'));
     } else {
       await createAdminPermissionApi(formModel);
-      message.success('权限点已创建');
+      message.success($t('page.permission.createSuccess'));
     }
     modalOpen.value = false;
     await loadPermissions();
@@ -524,12 +525,12 @@ async function submitPermission() {
 async function handleDelete(record: PermissionRecord) {
   const permission = toPermission(record);
   if (!permission.id) {
-    message.warning('缺少权限点 ID');
+    message.warning($t('page.permission.missingId'));
     return;
   }
 
   await deleteAdminPermissionApi(permission.id);
-  message.success('权限点已删除');
+  message.success($t('page.permission.deleteSuccess'));
   await loadPermissions();
 }
 
@@ -537,7 +538,7 @@ async function handleSync() {
   syncing.value = true;
   try {
     await syncAdminPermissionsApi();
-    message.success('权限点同步完成');
+    message.success($t('page.permission.syncSuccess'));
     await loadPermissions();
   } finally {
     syncing.value = false;
@@ -554,13 +555,13 @@ async function openCreateGroup() {
 
 async function openEditGroup() {
   if (!selectedGroupId.value) {
-    message.warning('请选择权限组');
+    message.warning($t('page.permission.selectGroupRequired'));
     return;
   }
 
   const group = groups.value.find((item) => item.id === selectedGroupId.value);
   if (!group) {
-    message.warning('权限组不存在');
+    message.warning($t('page.permission.groupNotFound'));
     return;
   }
 
@@ -585,10 +586,10 @@ async function submitGroup() {
   try {
     if (editingGroupId.value) {
       await updateAdminPermissionGroupApi(editingGroupId.value, groupFormModel);
-      message.success('权限组已更新');
+      message.success($t('page.permission.groupUpdateSuccess'));
     } else {
       await createAdminPermissionGroupApi(groupFormModel);
-      message.success('权限组已创建');
+      message.success($t('page.permission.groupCreateSuccess'));
     }
     groupModalOpen.value = false;
     await loadGroups();
@@ -599,12 +600,12 @@ async function submitGroup() {
 
 async function handleDeleteGroup() {
   if (!selectedGroupId.value) {
-    message.warning('请选择权限组');
+    message.warning($t('page.permission.selectGroupRequired'));
     return;
   }
 
   await deleteAdminPermissionGroupApi(selectedGroupId.value);
-  message.success('权限组已删除');
+  message.success($t('page.permission.groupDeleteSuccess'));
   selectedGroupId.value = undefined;
   pager.page = 1;
   await refreshAll();
@@ -616,11 +617,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page auto-content-height title="权限点管理">
+  <Page auto-content-height :title="$t('menu.permission.permission')">
     <div class="admin-permission-layout">
       <aside class="admin-permission-groups">
         <div class="group-header">
-          <span class="group-title">权限组</span>
+          <span class="group-title">{{ $t('page.permission.groupPanelTitle') }}</span>
           <Space>
             <Button
               v-access:code="PERMISSION_ACCESS.groupCreate"
@@ -643,7 +644,10 @@ onMounted(() => {
                 <IconifyIcon icon="lucide:pencil" />
               </template>
             </Button>
-            <Popconfirm title="确认删除该权限组？" @confirm="handleDeleteGroup">
+            <Popconfirm
+              :title="$t('ui.actionMessage.deleteConfirm', [$t('page.permission.groupName')])"
+              @confirm="handleDeleteGroup"
+            >
               <Button
                 v-access:code="PERMISSION_ACCESS.groupDelete"
                 danger
@@ -670,18 +674,18 @@ onMounted(() => {
       <section ref="tableSurfaceRef" class="admin-permission-surface">
         <div class="admin-permission-toolbar">
           <Form :model="searchForm" layout="inline" @finish="handleSearch">
-            <Form.Item label="权限名称" name="name">
+            <Form.Item :label="$t('page.permission.name')" name="name">
               <Input
                 v-model:value="searchForm.name"
                 allow-clear
-                placeholder="输入权限名称"
+                :placeholder="$t('page.permission.searchName')"
               />
             </Form.Item>
-            <Form.Item label="权限编码" name="code">
+            <Form.Item :label="$t('page.permission.code')" name="code">
               <Input
                 v-model:value="searchForm.code"
                 allow-clear
-                placeholder="输入权限编码"
+                :placeholder="$t('page.permission.searchCode')"
               />
             </Form.Item>
             <Form.Item>
@@ -690,13 +694,13 @@ onMounted(() => {
                   <template #icon>
                     <IconifyIcon icon="lucide:search" />
                   </template>
-                  查询
+                  {{ $t('common.query') }}
                 </Button>
                 <Button @click="handleReset">
                   <template #icon>
                     <IconifyIcon icon="lucide:rotate-ccw" />
                   </template>
-                  重置
+                  {{ $t('common.reset') }}
                 </Button>
               </Space>
             </Form.Item>
@@ -721,7 +725,7 @@ onMounted(() => {
               <template #icon>
                 <IconifyIcon icon="lucide:refresh-cw" />
               </template>
-              同步权限
+              {{ $t('page.permission.moduleName') }}
             </Button>
             <Button
               v-access:code="PERMISSION_ACCESS.create"
@@ -731,7 +735,7 @@ onMounted(() => {
               <template #icon>
                 <IconifyIcon icon="lucide:plus" />
               </template>
-              新增权限点
+              {{ $t('page.permission.createTitle') }}
             </Button>
           </Space>
         </div>
@@ -770,8 +774,8 @@ onMounted(() => {
 
             <template v-else-if="column.key === 'resource'">
               <Space :size="4">
-                <Tag>菜单 {{ record.menuIds?.length ?? 0 }}</Tag>
-                <Tag>API {{ record.apiIds?.length ?? 0 }}</Tag>
+                <Tag>{{ $t('page.permission.menuResourceCount', { count: record.menuIds?.length ?? 0 }) }}</Tag>
+                <Tag>{{ $t('page.permission.apiResourceCount', { count: record.apiIds?.length ?? 0 }) }}</Tag>
               </Space>
             </template>
 
@@ -790,10 +794,10 @@ onMounted(() => {
                   <template #icon>
                     <IconifyIcon icon="lucide:pencil" />
                   </template>
-                  编辑
+                  {{ $t('common.edit') }}
                 </Button>
                 <Popconfirm
-                  title="确认删除该权限点？"
+                  :title="$t('ui.actionMessage.deleteConfirm', [$t('page.permission.moduleName')])"
                   @confirm="handleDelete(record)"
                 >
                   <Button
@@ -805,7 +809,7 @@ onMounted(() => {
                     <template #icon>
                       <IconifyIcon icon="lucide:trash-2" />
                     </template>
-                    删除
+                    {{ $t('common.delete') }}
                   </Button>
                 </Popconfirm>
               </Space>
@@ -828,27 +832,27 @@ onMounted(() => {
         :rules="formRules"
         layout="vertical"
       >
-        <Form.Item label="权限名称" name="name">
-          <Input v-model:value="formModel.name" placeholder="请输入权限名称" />
+        <Form.Item :label="$t('page.permission.name')" name="name">
+          <Input v-model:value="formModel.name" :placeholder="$t('page.permission.placeholderName')" />
         </Form.Item>
-        <Form.Item label="权限编码" name="code">
+        <Form.Item :label="$t('page.permission.code')" name="code">
           <Input
             v-model:value="formModel.code"
-            placeholder="例如 sys:user:create"
+            :placeholder="$t('page.permission.placeholderCode')"
           />
         </Form.Item>
-        <Form.Item label="权限组" name="groupId">
+        <Form.Item :label="$t('page.permission.groupId')" name="groupId">
           <Select
             v-model:value="formModel.groupId"
             allow-clear
             :options="groupOptions"
-            placeholder="请选择权限组"
+            :placeholder="$t('page.permission.placeholderGroup')"
           />
         </Form.Item>
-        <Form.Item label="状态" name="status">
+        <Form.Item :label="$t('page.permission.status')" name="status">
           <Select v-model:value="formModel.status" :options="statusOptions" />
         </Form.Item>
-        <Form.Item label="菜单资源" name="menuIds">
+        <Form.Item :label="$t('page.permission.menuIds')" name="menuIds">
           <TreeSelect
             v-model:value="formModel.menuIds"
             allow-clear
@@ -860,7 +864,7 @@ onMounted(() => {
             }"
             :loading="resourceOptionLoading"
             multiple
-            placeholder="选择关联菜单"
+            :placeholder="$t('page.permission.placeholderMenu')"
             show-search
             :tree-checkable="true"
             :tree-data="menuTreeSelectData"
@@ -868,7 +872,7 @@ onMounted(() => {
             tree-node-filter-prop="title"
           />
         </Form.Item>
-        <Form.Item label="API资源" name="apiIds">
+        <Form.Item :label="$t('page.permission.apiIds')" name="apiIds">
           <TreeSelect
             v-model:value="formModel.apiIds"
             allow-clear
@@ -880,7 +884,7 @@ onMounted(() => {
             }"
             :loading="resourceOptionLoading"
             multiple
-            placeholder="选择关联API"
+            :placeholder="$t('page.permission.placeholderApi')"
             show-search
             :tree-checkable="true"
             :tree-data="apiTreeSelectData"
@@ -888,11 +892,11 @@ onMounted(() => {
             tree-node-filter-prop="title"
           />
         </Form.Item>
-        <Form.Item label="描述" name="description">
+        <Form.Item :label="$t('page.permission.description')" name="description">
           <Input.TextArea
             v-model:value="formModel.description"
             :auto-size="{ minRows: 3, maxRows: 5 }"
-            placeholder="请输入描述"
+            :placeholder="$t('page.permission.placeholderDescription')"
           />
         </Form.Item>
       </Form>
@@ -911,41 +915,41 @@ onMounted(() => {
         :rules="groupFormRules"
         layout="vertical"
       >
-        <Form.Item label="上级权限组" name="parentId">
+        <Form.Item :label="$t('page.permission.groupParentId')" name="parentId">
           <Select
             v-model:value="groupFormModel.parentId"
             allow-clear
             :options="parentGroupOptions"
-            placeholder="根级权限组"
+            :placeholder="$t('page.permission.placeholderGroupParent')"
           />
         </Form.Item>
-        <Form.Item label="权限组名称" name="name">
+        <Form.Item :label="$t('page.permission.groupName')" name="name">
           <Input
             v-model:value="groupFormModel.name"
-            placeholder="请输入权限组名称"
+            :placeholder="$t('page.permission.placeholderGroupName')"
           />
         </Form.Item>
-        <Form.Item label="模块标识" name="module">
-          <Input v-model:value="groupFormModel.module" placeholder="例如 sys" />
+        <Form.Item :label="$t('page.permission.groupModule')" name="module">
+          <Input v-model:value="groupFormModel.module" :placeholder="$t('page.permission.placeholderGroupModule')" />
         </Form.Item>
-        <Form.Item label="状态" name="status">
+        <Form.Item :label="$t('page.permission.status')" name="status">
           <Select
             v-model:value="groupFormModel.status"
             :options="statusOptions"
           />
         </Form.Item>
-        <Form.Item label="排序" name="sortOrder">
+        <Form.Item :label="$t('page.permission.groupSortOrder')" name="sortOrder">
           <InputNumber
             v-model:value="groupFormModel.sortOrder"
             class="full-width-control"
             :min="0"
           />
         </Form.Item>
-        <Form.Item label="描述" name="description">
+        <Form.Item :label="$t('page.permission.description')" name="description">
           <Input.TextArea
             v-model:value="groupFormModel.description"
             :auto-size="{ minRows: 3, maxRows: 5 }"
-            placeholder="请输入描述"
+            :placeholder="$t('page.permission.placeholderDescription')"
           />
         </Form.Item>
       </Form>

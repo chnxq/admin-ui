@@ -1,0 +1,22 @@
+{
+  "system": {
+    "moduleName": "System Management",
+    "user": "User Management",
+    "role": "Role Management",
+    "menu": "Menu Management",
+    "api": "API Management",
+    "tenant": "Tenant Management",
+    "orgUnit": "Organization Management",
+    "position": "Position Management"
+  },
+  "permission": {
+    "moduleName": "Permission Management",
+    "permission": "Permission Management",
+    "role": "Role Management"
+  },
+  "log": {
+    "moduleName": "Audit Logs",
+    "loginAuditLog": "Login Logs",
+    "apiAuditLog": "API Logs"
+  }
+}

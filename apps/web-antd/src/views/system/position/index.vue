@@ -51,6 +51,7 @@ import {
   getDefaultVisibleColumnKeys,
   toAdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
+import { $t } from '#/locales';
 
 interface AdminPositionFormModel extends AdminPositionSaveInput {
   code: string;
@@ -76,31 +77,31 @@ const POSITION_ACCESS = {
 } as const;
 
 const statusOptions = [
-  { label: '启用', value: 'ON' },
-  { label: '禁用', value: 'OFF' },
+  { label: $t('enum.status.ON'), value: 'ON' },
+  { label: $t('enum.status.OFF'), value: 'OFF' },
 ];
 
 const typeOptions = [
-  { label: '普通岗位', value: 'REGULAR' },
-  { label: '领导岗位', value: 'LEADER' },
-  { label: '管理岗位', value: 'MANAGER' },
-  { label: '实习岗位', value: 'INTERN' },
-  { label: '合同岗位', value: 'CONTRACT' },
-  { label: '其他', value: 'OTHER' },
+  { label: $t('enum.position.type.REGULAR'), value: 'REGULAR' },
+  { label: $t('enum.position.type.LEADER'), value: 'LEADER' },
+  { label: $t('enum.position.type.MANAGER'), value: 'MANAGER' },
+  { label: $t('enum.position.type.INTERN'), value: 'INTERN' },
+  { label: $t('enum.position.type.CONTRACT'), value: 'CONTRACT' },
+  { label: $t('enum.position.type.OTHER'), value: 'OTHER' },
 ];
 
 const statusTextMap: Record<AdminPositionStatus, string> = {
-  OFF: '禁用',
-  ON: '启用',
+  OFF: $t('enum.status.OFF'),
+  ON: $t('enum.status.ON'),
 };
 
 const typeTextMap: Record<AdminPositionType, string> = {
-  CONTRACT: '合同岗位',
-  INTERN: '实习岗位',
-  LEADER: '领导岗位',
-  MANAGER: '管理岗位',
-  OTHER: '其他',
-  REGULAR: '普通岗位',
+  CONTRACT: $t('enum.position.type.CONTRACT'),
+  INTERN: $t('enum.position.type.INTERN'),
+  LEADER: $t('enum.position.type.LEADER'),
+  MANAGER: $t('enum.position.type.MANAGER'),
+  OTHER: $t('enum.position.type.OTHER'),
+  REGULAR: $t('enum.position.type.REGULAR'),
 };
 
 const columns: AdminTableColumn<AdminPosition>[] = [
@@ -109,7 +110,7 @@ const columns: AdminTableColumn<AdminPosition>[] = [
     sortField: 'id',
     sortable: true,
     sorter: true,
-    title: 'ID',
+    title: $t('page.user.id'),
     width: 80,
   },
   {
@@ -117,30 +118,30 @@ const columns: AdminTableColumn<AdminPosition>[] = [
     sortField: 'name',
     sortable: true,
     sorter: true,
-    title: '职位',
+    title: $t('page.position.position'),
     width: 260,
   },
-  { dataIndex: 'orgUnitName', title: '组织', width: 180 },
+  { dataIndex: 'orgUnitName', title: $t('page.position.orgUnitName'), width: 180 },
   {
     dataIndex: 'type',
     key: 'type',
     sortable: true,
     sorter: true,
-    title: '类型',
+    title: $t('page.position.type'),
     width: 120,
   },
   {
     dataIndex: 'level',
     sortable: true,
     sorter: true,
-    title: '职级',
+    title: $t('page.position.level'),
     width: 90,
   },
   {
     dataIndex: 'headcount',
     sortable: true,
     sorter: true,
-    title: '编制',
+    title: $t('page.position.headcount'),
     width: 90,
   },
   {
@@ -148,7 +149,7 @@ const columns: AdminTableColumn<AdminPosition>[] = [
     key: 'status',
     sortable: true,
     sorter: true,
-    title: '状态',
+    title: $t('page.position.status'),
     width: 100,
   },
   {
@@ -157,10 +158,10 @@ const columns: AdminTableColumn<AdminPosition>[] = [
     sortField: 'created_at',
     sortable: true,
     sorter: true,
-    title: '创建时间',
+    title: $t('page.position.createdAt'),
     width: 170,
   },
-  { fixed: 'right', key: 'action', title: '操作', width: 150 },
+  { fixed: 'right', key: 'action', title: $t('ui.table.action'), width: 150 },
 ];
 
 const loading = ref(false);
@@ -201,7 +202,9 @@ const formModel = reactive<AdminPositionFormModel>({
   type: 'REGULAR',
 });
 
-const modalTitle = computed(() => (editingId.value ? '编辑职位' : '新增职位'));
+const modalTitle = computed(() =>
+  editingId.value ? $t('page.position.editTitle') : $t('page.position.createTitle'),
+);
 const displayColumns = computed<TableColumnsType<AdminPosition>>(() =>
   filterVisibleAdminTableColumns(
     applyAdminTableSorting(columns, sorting.value),
@@ -209,17 +212,17 @@ const displayColumns = computed<TableColumnsType<AdminPosition>>(() =>
   ),
 );
 const formRules: Record<string, Rule[]> = {
-  code: [{ message: '请输入职位编码', required: true }],
-  name: [{ message: '请输入职位名称', required: true }],
-  status: [{ message: '请选择状态', required: true }],
-  type: [{ message: '请选择类型', required: true }],
+  code: [{ message: $t('ui.formRules.required', [$t('page.position.code')]), required: true }],
+  name: [{ message: $t('ui.formRules.required', [$t('page.position.name')]), required: true }],
+  status: [{ message: $t('ui.formRules.selectRequired', [$t('page.position.status')]), required: true }],
+  type: [{ message: $t('ui.formRules.selectRequired', [$t('page.position.type')]), required: true }],
 };
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
   current: pager.page,
   pageSize: pager.pageSize,
   showSizeChanger: true,
-  showTotal: (total) => `共 ${total} 条`,
+  showTotal: (total) => `${$t('page.loginAuditLog.total')} ${total}`,
   total: pager.total,
 }));
 
@@ -333,10 +336,10 @@ async function handleSubmit() {
   try {
     if (editingId.value) {
       await updateAdminPositionApi(editingId.value, formModel);
-      message.success('职位已更新');
+      message.success($t('page.position.updateSuccess'));
     } else {
       await createAdminPositionApi(formModel);
-      message.success('职位已创建');
+      message.success($t('page.position.createSuccess'));
     }
     modalOpen.value = false;
     await loadPositions();
@@ -351,7 +354,7 @@ async function handleDelete(record: AdminPositionTableRecord) {
     return;
   }
   await deleteAdminPositionApi(position.id);
-  message.success('职位已删除');
+  message.success($t('page.position.deleteSuccess'));
   await loadPositions();
 }
 
@@ -361,21 +364,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page auto-content-height>
+  <Page auto-content-height :title="$t('menu.system.position')">
     <div ref="tableSurfaceRef" class="admin-position-surface">
       <div class="admin-position-toolbar">
         <Space wrap>
           <Input
             v-model:value="searchForm.name"
             allow-clear
-            placeholder="职位名称"
+            :placeholder="$t('page.position.searchName')"
             style="width: 180px"
             @press-enter="handleSearch"
           />
           <Input
             v-model:value="searchForm.code"
             allow-clear
-            placeholder="职位编码"
+            :placeholder="$t('page.position.searchCode')"
             style="width: 180px"
             @press-enter="handleSearch"
           />
@@ -383,13 +386,13 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:search" />
             </template>
-            查询
+            {{ $t('common.query') }}
           </Button>
           <Button @click="handleReset">
             <template #icon>
               <IconifyIcon icon="lucide:rotate-ccw" />
             </template>
-            重置
+            {{ $t('common.reset') }}
           </Button>
         </Space>
         <Space>
@@ -411,7 +414,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-            新增职位
+            {{ $t('page.position.createTitle') }}
           </Button>
         </Space>
       </div>
@@ -452,14 +455,14 @@ onMounted(() => {
                 type="link"
                 @click="openEditModal(record)"
               >
-                编辑
+                {{ $t('common.edit') }}
               </Button>
               <Popconfirm
                 v-access:code="POSITION_ACCESS.delete"
-                title="确认删除该职位？"
+                :title="$t('ui.actionMessage.deleteConfirm', [$t('page.position.moduleName')])"
                 @confirm="handleDelete(record)"
               >
-                <Button danger size="small" type="link">删除</Button>
+                <Button danger size="small" type="link">{{ $t('common.delete') }}</Button>
               </Popconfirm>
             </Space>
           </template>
@@ -481,54 +484,54 @@ onMounted(() => {
         :model="formModel"
         :rules="formRules"
       >
-        <Form.Item label="职位名称" name="name">
-          <Input v-model:value="formModel.name" placeholder="请输入职位名称" />
+        <Form.Item :label="$t('page.position.name')" name="name">
+          <Input v-model:value="formModel.name" :placeholder="$t('page.position.placeholderName')" />
         </Form.Item>
-        <Form.Item label="职位编码" name="code">
-          <Input v-model:value="formModel.code" placeholder="请输入职位编码" />
+        <Form.Item :label="$t('page.position.code')" name="code">
+          <Input v-model:value="formModel.code" :placeholder="$t('page.position.placeholderCode')" />
         </Form.Item>
-        <Form.Item label="类型" name="type">
+        <Form.Item :label="$t('page.position.type')" name="type">
           <Select v-model:value="formModel.type" :options="typeOptions" />
         </Form.Item>
-        <Form.Item label="状态" name="status">
+        <Form.Item :label="$t('page.position.status')" name="status">
           <Select v-model:value="formModel.status" :options="statusOptions" />
         </Form.Item>
-        <Form.Item label="排序" name="sortOrder">
+        <Form.Item :label="$t('page.position.sortOrder')" name="sortOrder">
           <InputNumber v-model:value="formModel.sortOrder" class="full-input" />
         </Form.Item>
-        <Form.Item label="职级" name="level">
+        <Form.Item :label="$t('page.position.level')" name="level">
           <InputNumber v-model:value="formModel.level" class="full-input" />
         </Form.Item>
-        <Form.Item label="编制" name="headcount">
+        <Form.Item :label="$t('page.position.headcount')" name="headcount">
           <InputNumber v-model:value="formModel.headcount" class="full-input" />
         </Form.Item>
-        <Form.Item label="岗位族" name="jobFamily">
+        <Form.Item :label="$t('page.position.jobFamily')" name="jobFamily">
           <Input
             v-model:value="formModel.jobFamily"
-            placeholder="请输入岗位族"
+            :placeholder="$t('page.position.placeholderJobFamily')"
           />
         </Form.Item>
-        <Form.Item label="岗位等级" name="jobGrade">
+        <Form.Item :label="$t('page.position.jobGrade')" name="jobGrade">
           <Input
             v-model:value="formModel.jobGrade"
-            placeholder="请输入岗位等级"
+            :placeholder="$t('page.position.placeholderJobGrade')"
           />
         </Form.Item>
-        <Form.Item label="关键岗位" name="isKeyPosition">
+        <Form.Item :label="$t('page.position.isKeyPosition')" name="isKeyPosition">
           <Checkbox v-model:checked="formModel.isKeyPosition" />
         </Form.Item>
-        <Form.Item label="描述" name="description">
+        <Form.Item :label="$t('page.position.description')" name="description">
           <Input.TextArea
             v-model:value="formModel.description"
             :rows="3"
-            placeholder="请输入描述"
+            :placeholder="$t('page.position.placeholderDescription')"
           />
         </Form.Item>
-        <Form.Item label="备注" name="remark">
+        <Form.Item :label="$t('page.position.remark')" name="remark">
           <Input.TextArea
             v-model:value="formModel.remark"
             :rows="2"
-            placeholder="请输入备注"
+            :placeholder="$t('page.position.placeholderRemark')"
           />
         </Form.Item>
       </Form>
