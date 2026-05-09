@@ -5,102 +5,102 @@
 // 后台错误定义
 export type AdminErrorReason =
   // 400
-  | 'BAD_REQUEST'
-  | 'INVALID_GRANT_TYPE'
-  | 'INVALID_USERID'
-  | 'INVALID_TOKEN'
-  | 'INVALID_PASSWORD'
+  | "BAD_REQUEST"
+  | "INVALID_GRANT_TYPE"
+  | "INVALID_USERID"
+  | "INVALID_TOKEN"
+  | "INVALID_PASSWORD"
   // 401
-  | 'UNAUTHORIZED'
-  | 'USER_FREEZE'
-  | 'INCORRECT_PASSWORD'
-  | 'INCORRECT_APP_SECRET'
-  | 'INCORRECT_ACCESS_TOKEN'
-  | 'INCORRECT_REFRESH_TOKEN'
-  | 'TOKEN_EXPIRED'
-  | 'TOKEN_NOT_EXIST'
+  | "UNAUTHORIZED"
+  | "USER_FREEZE"
+  | "INCORRECT_PASSWORD"
+  | "INCORRECT_APP_SECRET"
+  | "INCORRECT_ACCESS_TOKEN"
+  | "INCORRECT_REFRESH_TOKEN"
+  | "TOKEN_EXPIRED"
+  | "TOKEN_NOT_EXIST"
   // 402
-  | 'PAYMENT_REQUIRED'
+  | "PAYMENT_REQUIRED"
   // 403
-  | 'FORBIDDEN'
+  | "FORBIDDEN"
   // 404
-  | 'NOT_FOUND'
-  | 'USER_NOT_FOUND'
+  | "NOT_FOUND"
+  | "USER_NOT_FOUND"
   // 405
-  | 'METHOD_NOT_ALLOWED'
+  | "METHOD_NOT_ALLOWED"
   // 406
-  | 'NOT_ACCEPTABLE'
+  | "NOT_ACCEPTABLE"
   // 407
-  | 'PROXY_AUTHENTICATION_REQUIRED'
+  | "PROXY_AUTHENTICATION_REQUIRED"
   // 408
-  | 'REQUEST_TIMEOUT'
+  | "REQUEST_TIMEOUT"
   // 409
-  | 'CONFLICT'
+  | "CONFLICT"
   // 410
-  | 'GONE'
+  | "GONE"
   // 411
-  | 'LENGTH_REQUIRED'
+  | "LENGTH_REQUIRED"
   // 412
-  | 'PRECONDITION_FAILED'
+  | "PRECONDITION_FAILED"
   // 413
-  | 'PAYLOAD_TOO_LARGE'
+  | "PAYLOAD_TOO_LARGE"
   // 414
-  | 'URI_TOO_LONG'
+  | "URI_TOO_LONG"
   // 415
-  | 'UNSUPPORTED_MEDIA_TYPE'
+  | "UNSUPPORTED_MEDIA_TYPE"
   // 416
-  | 'RANGE_NOT_SATISFIABLE'
+  | "RANGE_NOT_SATISFIABLE"
   // 417
-  | 'EXPECTATION_FAILED'
+  | "EXPECTATION_FAILED"
   // 418
-  | 'IM_A_TEAPOT'
+  | "IM_A_TEAPOT"
   // 421
-  | 'MISDIRECTED_REQUEST'
+  | "MISDIRECTED_REQUEST"
   // 422
-  | 'UNPROCESSABLE_ENTITY'
+  | "UNPROCESSABLE_ENTITY"
   // 423
-  | 'LOCKED'
+  | "LOCKED"
   // 424
-  | 'FAILED_DEPENDENCY'
+  | "FAILED_DEPENDENCY"
   // 425
-  | 'TOO_EARLY'
+  | "TOO_EARLY"
   // 426
-  | 'UPGRADE_REQUIRED'
+  | "UPGRADE_REQUIRED"
   // 428
-  | 'PRECONDITION_REQUIRED'
+  | "PRECONDITION_REQUIRED"
   // 429
-  | 'TOO_MANY_REQUESTS'
+  | "TOO_MANY_REQUESTS"
   // 431
-  | 'REQUEST_HEADER_FIELDS_TOO_LARGE'
+  | "REQUEST_HEADER_FIELDS_TOO_LARGE"
   // 451
-  | 'UNAVAILABLE_FOR_LEGAL_REASONS'
+  | "UNAVAILABLE_FOR_LEGAL_REASONS"
   // 500
-  | 'INTERNAL_SERVER_ERROR'
+  | "INTERNAL_SERVER_ERROR"
   // 501
-  | 'NOT_IMPLEMENTED'
+  | "NOT_IMPLEMENTED"
   // 502
-  | 'BAD_GATEWAY'
+  | "BAD_GATEWAY"
   // 503
-  | 'SERVICE_UNAVAILABLE'
+  | "SERVICE_UNAVAILABLE"
   // 504
-  | 'GATEWAY_TIMEOUT'
+  | "GATEWAY_TIMEOUT"
   // 505
-  | 'HTTP_VERSION_NOT_SUPPORTED'
+  | "HTTP_VERSION_NOT_SUPPORTED"
   // 506
-  | 'VARIANT_ALSO_NEGOTIATES'
+  | "VARIANT_ALSO_NEGOTIATES"
   // 507
-  | 'INSUFFICIENT_STORAGE'
+  | "INSUFFICIENT_STORAGE"
   // 508
-  | 'LOOP_DETECTED'
+  | "LOOP_DETECTED"
   // 510
-  | 'NOT_EXTENDED'
+  | "NOT_EXTENDED"
   // 511
-  | 'NETWORK_AUTHENTICATION_REQUIRED'
+  | "NETWORK_AUTHENTICATION_REQUIRED"
   // 598
-  | 'NETWORK_READ_TIMEOUT_ERROR'
+  | "NETWORK_READ_TIMEOUT_ERROR"
   // 599
-  | 'NETWORK_CONNECT_TIMEOUT_ERROR';
-// 查询路由列表 - 回应
+  | "NETWORK_CONNECT_TIMEOUT_ERROR";
+// 查询路由列表 - 响应
 export type ListRouteResponse = {
   items: resourceservicev1_MenuRouteItem[] | undefined;
 };
@@ -201,7 +201,7 @@ export type resourceservicev1_MenuMeta = {
   title?: string;
 };
 
-// 查询权限码列表 - 回应
+// 查询权限码列表 - 响应
 export type ListPermissionCodeResponse = {
   codes: string[] | undefined;
 };
@@ -211,16 +211,52 @@ export type InitialContextResponse = {
   permissions: string[] | undefined;
 };
 
+export type AnalyticsDashboardResponse = {
+  overview: AnalyticsOverview | undefined;
+  trend: AnalyticsTrend | undefined;
+  visits: AnalyticsVisit | undefined;
+  sourceDistributions: AnalyticsNamedValue[] | undefined;
+  businessDistributions: AnalyticsNamedValue[] | undefined;
+  platformDistributions: AnalyticsNamedValue[] | undefined;
+};
+
+export type AnalyticsOverview = {
+  totalUsers: number | undefined;
+  currentUsers: number | undefined;
+  totalAccesses: number | undefined;
+  currentAccesses: number | undefined;
+  totalDownloads: number | undefined;
+  currentDownloads: number | undefined;
+  totalUsages: number | undefined;
+  currentUsages: number | undefined;
+};
+
+export type AnalyticsTrend = {
+  labels: string[] | undefined;
+  accesses: number[] | undefined;
+  actives: number[] | undefined;
+};
+
+export type AnalyticsVisit = {
+  labels: string[] | undefined;
+  accesses: number[] | undefined;
+};
+
+export type AnalyticsNamedValue = {
+  name: string | undefined;
+  value: number | undefined;
+};
+
 // 后台前端初始化数据与配置服务
 export interface AdminPortalService {
   // 查询前端路由表
   GetNavigation(request: wellKnownEmpty): Promise<ListRouteResponse>;
   // 查询权限码列表
-  GetMyPermissionCode(
-    request: wellKnownEmpty,
-  ): Promise<ListPermissionCodeResponse>;
+  GetMyPermissionCode(request: wellKnownEmpty): Promise<ListPermissionCodeResponse>;
   // 一次性获取进入后台所需的所有上下文
   GetInitialContext(request: wellKnownEmpty): Promise<InitialContextResponse>;
+  // 查询分析页聚合数据（按系统实时日志聚合）
+  GetAnalyticsDashboard(request: wellKnownEmpty): Promise<AnalyticsDashboardResponse>;
 }
 
 type RequestType = {
@@ -229,77 +265,79 @@ type RequestType = {
   body: string | null;
 };
 
-type RequestHandler = (
-  request: RequestType,
-  meta: { service: string; method: string },
-) => Promise<unknown>;
+type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
 
 export function createAdminPortalServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): AdminPortalService {
   return {
-    GetNavigation(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    GetNavigation(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/routes`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'AdminPortalService',
-          method: 'GetNavigation',
-        },
-      ) as Promise<ListRouteResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "AdminPortalService",
+        method: "GetNavigation",
+      }) as Promise<ListRouteResponse>;
     },
-    GetMyPermissionCode(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    GetMyPermissionCode(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/perm-codes`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'AdminPortalService',
-          method: 'GetMyPermissionCode',
-        },
-      ) as Promise<ListPermissionCodeResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "AdminPortalService",
+        method: "GetMyPermissionCode",
+      }) as Promise<ListPermissionCodeResponse>;
     },
-    GetInitialContext(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    GetInitialContext(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/initial-context`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'AdminPortalService',
-          method: 'GetInitialContext',
-        },
-      ) as Promise<InitialContextResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "AdminPortalService",
+        method: "GetInitialContext",
+      }) as Promise<InitialContextResponse>;
+    },
+    GetAnalyticsDashboard(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/dashboard/analytics`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "AdminPortalService",
+        method: "GetAnalyticsDashboard",
+      }) as Promise<AnalyticsDashboardResponse>;
     },
   };
 }
@@ -309,9 +347,7 @@ type wellKnownEmpty = Record<never, never>;
 // API资源管理服务
 export interface ApiService {
   // 查询API资源列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<resourceservicev1_ListApiResponse>;
+  List(request: pagination_PagingRequest): Promise<resourceservicev1_ListApiResponse>;
   // 查询API资源详情
   Get(request: resourceservicev1_GetApiRequest): Promise<resourceservicev1_Api>;
   // 创建API资源
@@ -323,273 +359,205 @@ export interface ApiService {
   // 同步API资源
   SyncApis(request: wellKnownEmpty): Promise<wellKnownEmpty>;
   // 查询路由数据
-  GetWalkRouteData(
-    request: wellKnownEmpty,
-  ): Promise<resourceservicev1_ListApiResponse>;
+  GetWalkRouteData(request: wellKnownEmpty): Promise<resourceservicev1_ListApiResponse>;
 }
 
-export function createApiServiceClient(handler: RequestHandler): ApiService {
+export function createApiServiceClient(
+  handler: RequestHandler
+): ApiService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/apis`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'ApiService',
-          method: 'List',
-        },
-      ) as Promise<resourceservicev1_ListApiResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "ApiService",
+        method: "List",
+      }) as Promise<resourceservicev1_ListApiResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/apis/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'ApiService',
-          method: 'Get',
-        },
-      ) as Promise<resourceservicev1_Api>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "ApiService",
+        method: "Get",
+      }) as Promise<resourceservicev1_Api>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/apis`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'ApiService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "ApiService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/apis/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'ApiService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "ApiService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/apis/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'ApiService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "ApiService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
-    SyncApis(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    SyncApis(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/apis/sync`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'ApiService',
-          method: 'SyncApis',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "ApiService",
+        method: "SyncApis",
+      }) as Promise<wellKnownEmpty>;
     },
-    GetWalkRouteData(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    GetWalkRouteData(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/apis/walk-route`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'ApiService',
-          method: 'GetWalkRouteData',
-        },
-      ) as Promise<resourceservicev1_ListApiResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "ApiService",
+        method: "GetWalkRouteData",
+      }) as Promise<resourceservicev1_ListApiResponse>;
     },
   };
 }
@@ -634,7 +602,10 @@ export type pagination_FilterExpr = {
 };
 
 // 过滤表达式类型
-export type pagination_ExprType = 'EXPR_TYPE_UNSPECIFIED' | 'AND' | 'OR';
+export type pagination_ExprType =
+  | "EXPR_TYPE_UNSPECIFIED"
+  | "AND"
+  | "OR";
 // 过滤条件
 export type pagination_FilterCondition = {
   // 过滤字段名
@@ -658,61 +629,61 @@ export type pagination_FilterCondition = {
 // 操作符枚举
 export type pagination_Operator =
   // 未指定
-  | 'OPERATOR_UNSPECIFIED'
+  | "OPERATOR_UNSPECIFIED"
   // 基本比较
-  | 'EQ'
-  | 'NEQ'
-  | 'GT'
-  | 'GTE'
-  | 'LT'
-  | 'LTE'
+  | "EQ"
+  | "NEQ"
+  | "GT"
+  | "GTE"
+  | "LT"
+  | "LTE"
   // 模糊 / 大小写不敏感模糊 / 非模糊
-  | 'LIKE'
-  | 'ILIKE'
-  | 'NOT_LIKE'
+  | "LIKE"
+  | "ILIKE"
+  | "NOT_LIKE"
   // 集合操作
-  | 'IN'
-  | 'NIN'
+  | "IN"
+  | "NIN"
   // 空值判断
-  | 'IS_NULL'
-  | 'IS_NOT_NULL'
+  | "IS_NULL"
+  | "IS_NOT_NULL"
   // 范围与正则
-  | 'BETWEEN'
-  | 'REGEXP'
-  | 'IREGEXP'
+  | "BETWEEN"
+  | "REGEXP"
+  | "IREGEXP"
   // 语义化的字符串操作
-  | 'CONTAINS'
-  | 'STARTS_WITH'
-  | 'ENDS_WITH'
-  | 'ICONTAINS'
-  | 'ISTARTS_WITH'
-  | 'IENDS_WITH'
+  | "CONTAINS"
+  | "STARTS_WITH"
+  | "ENDS_WITH"
+  | "ICONTAINS"
+  | "ISTARTS_WITH"
+  | "IENDS_WITH"
   // JSON / 数组 / 集合相关（按需在服务端映射为具体 DB 运算）
-  | 'JSON_CONTAINS'
-  | 'ARRAY_CONTAINS'
-  | 'EXISTS'
-  | 'SEARCH'
-  | 'EXACT'
-  | 'IEXACT';
+  | "JSON_CONTAINS"
+  | "ARRAY_CONTAINS"
+  | "EXISTS"
+  | "SEARCH"
+  | "EXACT"
+  | "IEXACT";
 type wellKnownValue = unknown;
 
 // 日期时间部分枚举
 export type pagination_DatePart =
-  | 'DATE_PART_UNSPECIFIED'
-  | 'DATE'
-  | 'YEAR'
-  | 'ISO_YEAR'
-  | 'QUARTER'
-  | 'MONTH'
-  | 'WEEK'
-  | 'WEEK_DAY'
-  | 'ISO_WEEK_DAY'
-  | 'DAY'
-  | 'TIME'
-  | 'HOUR'
-  | 'MINUTE'
-  | 'SECOND'
-  | 'MICROSECOND';
+  | "DATE_PART_UNSPECIFIED"
+  | "DATE"
+  | "YEAR"
+  | "ISO_YEAR"
+  | "QUARTER"
+  | "MONTH"
+  | "WEEK"
+  | "WEEK_DAY"
+  | "ISO_WEEK_DAY"
+  | "DAY"
+  | "TIME"
+  | "HOUR"
+  | "MINUTE"
+  | "SECOND"
+  | "MICROSECOND";
 // 排序规则（分页场景通常需配合排序保证结果稳定）
 export type pagination_Sorting = {
   // 排序字段（如"id"、"create_time"）
@@ -722,7 +693,9 @@ export type pagination_Sorting = {
 };
 
 // 排序方向（ASC/DESC，默认ASC）
-export type pagination_Sorting_Direction = 'ASC' | 'DESC';
+export type pagination_Sorting_Direction =
+  | "ASC"
+  | "DESC";
 // In JSON, a field mask is encoded as a single string where paths are
 // separated by a comma. Fields name in each path are converted
 // to/from lower-camel naming conventions.
@@ -777,9 +750,14 @@ export type resourceservicev1_Api = {
 };
 
 // API作用域
-export type resourceservicev1_Api_Scope = 'API_SCOPE_INVALID' | 'ADMIN' | 'APP';
+export type resourceservicev1_Api_Scope =
+  | "API_SCOPE_INVALID"
+  | "ADMIN"
+  | "APP";
 // 权限状态
-export type resourceservicev1_Api_Status = 'OFF' | 'ON';
+export type resourceservicev1_Api_Status =
+  | "OFF"
+  | "ON";
 // Encoded using RFC 3339, where generated output will always be Z-normalized
 // and uses 0, 3, 6 or 9 fractional digits.
 // Offsets other than "Z" are also accepted.
@@ -812,168 +790,116 @@ export type resourceservicev1_DeleteApiRequest = {
 // API审计日志管理服务
 export interface ApiAuditLogService {
   // 查询API审计日志列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<auditservicev1_ListApiAuditLogResponse>;
+  List(request: pagination_PagingRequest): Promise<auditservicev1_ListApiAuditLogResponse>;
   // 查询API审计日志详情
-  Get(
-    request: auditservicev1_GetApiAuditLogRequest,
-  ): Promise<auditservicev1_ApiAuditLog>;
+  Get(request: auditservicev1_GetApiAuditLogRequest): Promise<auditservicev1_ApiAuditLog>;
 }
 
 export function createApiAuditLogServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): ApiAuditLogService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/api-audit-logs`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'ApiAuditLogService',
-          method: 'List',
-        },
-      ) as Promise<auditservicev1_ListApiAuditLogResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "ApiAuditLogService",
+        method: "List",
+      }) as Promise<auditservicev1_ListApiAuditLogResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/api-audit-logs/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'ApiAuditLogService',
-          method: 'Get',
-        },
-      ) as Promise<auditservicev1_ApiAuditLog>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "ApiAuditLogService",
+        method: "Get",
+      }) as Promise<auditservicev1_ApiAuditLog>;
     },
   };
 }
@@ -1057,12 +983,12 @@ export type auditservicev1_DeviceInfo = {
 
 // 设备类型枚举
 export type auditservicev1_DeviceInfo_DeviceType =
-  | 'DEVICE_TYPE_UNSPECIFIED'
-  | 'DESKTOP'
-  | 'MOBILE'
-  | 'TABLET'
-  | 'BOT'
-  | 'OTHER';
+  | "DEVICE_TYPE_UNSPECIFIED"
+  | "DESKTOP"
+  | "MOBILE"
+  | "TABLET"
+  | "BOT"
+  | "OTHER";
 // 查询API审计日志详情 - 请求
 export type auditservicev1_GetApiAuditLogRequest = {
   id?: number;
@@ -1072,83 +998,67 @@ export type auditservicev1_GetApiAuditLogRequest = {
 // 用户后台登录认证服务
 export interface AuthenticationService {
   // 登录
-  Login(
-    request: authenticationservicev1_LoginRequest,
-  ): Promise<authenticationservicev1_LoginResponse>;
+  Login(request: authenticationservicev1_LoginRequest): Promise<authenticationservicev1_LoginResponse>;
   // 登出
   Logout(request: wellKnownEmpty): Promise<wellKnownEmpty>;
   // 刷新认证令牌
-  RefreshToken(
-    request: authenticationservicev1_LoginRequest,
-  ): Promise<authenticationservicev1_LoginResponse>;
+  RefreshToken(request: authenticationservicev1_LoginRequest): Promise<authenticationservicev1_LoginResponse>;
 }
 
 export function createAuthenticationServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): AuthenticationService {
   return {
-    Login(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Login(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/login`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'AuthenticationService',
-          method: 'Login',
-        },
-      ) as Promise<authenticationservicev1_LoginResponse>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "AuthenticationService",
+        method: "Login",
+      }) as Promise<authenticationservicev1_LoginResponse>;
     },
-    Logout(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Logout(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/logout`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'AuthenticationService',
-          method: 'Logout',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "AuthenticationService",
+        method: "Logout",
+      }) as Promise<wellKnownEmpty>;
     },
-    RefreshToken(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    RefreshToken(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/refresh-token`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'AuthenticationService',
-          method: 'RefreshToken',
-        },
-      ) as Promise<authenticationservicev1_LoginResponse>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "AuthenticationService",
+        method: "RefreshToken",
+      }) as Promise<authenticationservicev1_LoginResponse>;
     },
   };
 }
@@ -1175,13 +1085,15 @@ export type authenticationservicev1_LoginRequest = {
 
 // 授权类型
 export type authenticationservicev1_GrantType =
-  | 'password'
-  | 'client_credentials'
-  | 'authorization_code'
-  | 'refresh_token'
-  | 'implicit';
+  | "password"
+  | "client_credentials"
+  | "authorization_code"
+  | "refresh_token"
+  | "implicit";
 // 客户端类型
-export type authenticationservicev1_ClientType = 'admin' | 'app';
+export type authenticationservicev1_ClientType =
+  | "admin"
+  | "app";
 // 用户后台登录 - 回应
 export type authenticationservicev1_LoginResponse = {
   token_type: authenticationservicev1_TokenType | undefined;
@@ -1194,172 +1106,122 @@ export type authenticationservicev1_LoginResponse = {
 };
 
 // 令牌类型
-export type authenticationservicev1_TokenType = 'bearer' | 'mac';
+export type authenticationservicev1_TokenType =
+  | "bearer"
+  | "mac";
 // 数据访问审计日志管理服务
 export interface DataAccessAuditLogService {
   // 查询数据访问审计日志列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<auditservicev1_ListDataAccessAuditLogResponse>;
+  List(request: pagination_PagingRequest): Promise<auditservicev1_ListDataAccessAuditLogResponse>;
   // 查询数据访问审计日志详情
-  Get(
-    request: auditservicev1_GetDataAccessAuditLogRequest,
-  ): Promise<auditservicev1_DataAccessAuditLog>;
+  Get(request: auditservicev1_GetDataAccessAuditLogRequest): Promise<auditservicev1_DataAccessAuditLog>;
 }
 
 export function createDataAccessAuditLogServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): DataAccessAuditLogService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/data-access-audit-logs`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'DataAccessAuditLogService',
-          method: 'List',
-        },
-      ) as Promise<auditservicev1_ListDataAccessAuditLogResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "DataAccessAuditLogService",
+        method: "List",
+      }) as Promise<auditservicev1_ListDataAccessAuditLogResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/data-access-audit-logs/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'DataAccessAuditLogService',
-          method: 'Get',
-        },
-      ) as Promise<auditservicev1_DataAccessAuditLog>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "DataAccessAuditLogService",
+        method: "Get",
+      }) as Promise<auditservicev1_DataAccessAuditLog>;
     },
   };
 }
@@ -1400,32 +1262,32 @@ export type auditservicev1_DataAccessAuditLog = {
 
 // 数据访问类型
 export type auditservicev1_DataAccessAuditLog_AccessType =
-  | 'ACCESS_TYPE_UNSPECIFIED'
-  | 'SELECT'
-  | 'INSERT'
-  | 'UPDATE'
-  | 'DELETE'
-  | 'VIEW'
-  | 'BULK_READ'
-  | 'EXPORT'
-  | 'IMPORT'
-  | 'DDL_CREATE'
-  | 'DDL_ALTER'
-  | 'DDL_DROP'
+  | "ACCESS_TYPE_UNSPECIFIED"
+  | "SELECT"
+  | "INSERT"
+  | "UPDATE"
+  | "DELETE"
+  | "VIEW"
+  | "BULK_READ"
+  | "EXPORT"
+  | "IMPORT"
+  | "DDL_CREATE"
+  | "DDL_ALTER"
+  | "DDL_DROP"
   // 元数据 / 描述类操作（DESCRIBE/SHOW 等）
-  | 'METADATA_READ'
+  | "METADATA_READ"
   // 扫描/流式读取（例如 Redis SCAN、Elasticsearch scroll/scan）
-  | 'SCAN'
+  | "SCAN"
   // 管理类操作（权限/角色/审计设置变更等）
-  | 'ADMIN_OPERATION'
-  | 'OTHER';
+  | "ADMIN_OPERATION"
+  | "OTHER";
 // 敏感级别
 export type auditservicev1_SensitiveLevel =
-  | 'SENSITIVE_LEVEL_UNSPECIFIED'
-  | 'PUBLIC'
-  | 'INTERNAL'
-  | 'CONFIDENTIAL'
-  | 'SECRET';
+  | "SENSITIVE_LEVEL_UNSPECIFIED"
+  | "PUBLIC"
+  | "INTERNAL"
+  | "CONFIDENTIAL"
+  | "SECRET";
 // 查询数据访问审计日志详情 - 请求
 export type auditservicev1_GetDataAccessAuditLogRequest = {
   id?: number;
@@ -1435,253 +1297,181 @@ export type auditservicev1_GetDataAccessAuditLogRequest = {
 // 数据字典条目管理服务
 export interface DictEntryService {
   // 分页查询字典条目列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<dictservicev1_ListDictEntryResponse>;
+  List(request: pagination_PagingRequest): Promise<dictservicev1_ListDictEntryResponse>;
   // 创建字典条目
-  Create(
-    request: dictservicev1_CreateDictEntryRequest,
-  ): Promise<wellKnownEmpty>;
+  Create(request: dictservicev1_CreateDictEntryRequest): Promise<wellKnownEmpty>;
   // 更新字典条目
-  Update(
-    request: dictservicev1_UpdateDictEntryRequest,
-  ): Promise<wellKnownEmpty>;
+  Update(request: dictservicev1_UpdateDictEntryRequest): Promise<wellKnownEmpty>;
   // 删除字典条目
-  Delete(
-    request: dictservicev1_DeleteDictEntryRequest,
-  ): Promise<wellKnownEmpty>;
+  Delete(request: dictservicev1_DeleteDictEntryRequest): Promise<wellKnownEmpty>;
   // 查询启用的字典条目
-  ListByTypeCode(
-    request: dictservicev1_ListDictEntryByTypeCodeRequest,
-  ): Promise<dictservicev1_ListDictEntryByTypeCodeResponse>;
+  ListByTypeCode(request: dictservicev1_ListDictEntryByTypeCodeRequest): Promise<dictservicev1_ListDictEntryByTypeCodeResponse>;
 }
 
 export function createDictEntryServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): DictEntryService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/dict/entries`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'DictEntryService',
-          method: 'List',
-        },
-      ) as Promise<dictservicev1_ListDictEntryResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "DictEntryService",
+        method: "List",
+      }) as Promise<dictservicev1_ListDictEntryResponse>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/dict/entries`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'DictEntryService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "DictEntryService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/dict/entries/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'DictEntryService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "DictEntryService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/dict/entries`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.ids) {
         request.ids.forEach((x) => {
-          queryParams.push(`ids=${encodeURIComponent(x.toString())}`);
-        });
+          queryParams.push(`ids=${encodeURIComponent(x.toString())}`)
+        })
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'DictEntryService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "DictEntryService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
-    ListByTypeCode(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    ListByTypeCode(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/dict/entries/by-type-code`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.typeCode) {
-        queryParams.push(
-          `typeCode=${encodeURIComponent(request.typeCode.toString())}`,
-        );
+        queryParams.push(`typeCode=${encodeURIComponent(request.typeCode.toString())}`)
       }
       if (request.local) {
-        queryParams.push(
-          `local=${encodeURIComponent(request.local.toString())}`,
-        );
+        queryParams.push(`local=${encodeURIComponent(request.local.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'DictEntryService',
-          method: 'ListByTypeCode',
-        },
-      ) as Promise<dictservicev1_ListDictEntryByTypeCodeResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "DictEntryService",
+        method: "ListByTypeCode",
+      }) as Promise<dictservicev1_ListDictEntryByTypeCodeResponse>;
     },
   };
 }
@@ -1749,13 +1539,9 @@ export type dictservicev1_ListDictEntryByTypeCodeResponse = {
 // 数据字典分类管理服务
 export interface DictTypeService {
   // 分页查询字典类型列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<dictservicev1_ListDictTypeResponse>;
+  List(request: pagination_PagingRequest): Promise<dictservicev1_ListDictTypeResponse>;
   // 查询字典类型详情
-  Get(
-    request: dictservicev1_GetDictTypeRequest,
-  ): Promise<dictservicev1_DictType>;
+  Get(request: dictservicev1_GetDictTypeRequest): Promise<dictservicev1_DictType>;
   // 创建字典类型
   Create(request: dictservicev1_CreateDictTypeRequest): Promise<wellKnownEmpty>;
   // 更新字典类型
@@ -1765,232 +1551,172 @@ export interface DictTypeService {
 }
 
 export function createDictTypeServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): DictTypeService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/dict/types`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'DictTypeService',
-          method: 'List',
-        },
-      ) as Promise<dictservicev1_ListDictTypeResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "DictTypeService",
+        method: "List",
+      }) as Promise<dictservicev1_ListDictTypeResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/dict/types/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.code) {
-        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`);
+        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`)
       }
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'DictTypeService',
-          method: 'Get',
-        },
-      ) as Promise<dictservicev1_DictType>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "DictTypeService",
+        method: "Get",
+      }) as Promise<dictservicev1_DictType>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/dict/types`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'DictTypeService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "DictTypeService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/dict/types/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'DictTypeService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "DictTypeService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/dict/types`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.ids) {
         request.ids.forEach((x) => {
-          queryParams.push(`ids=${encodeURIComponent(x.toString())}`);
-        });
+          queryParams.push(`ids=${encodeURIComponent(x.toString())}`)
+        })
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'DictTypeService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "DictTypeService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -2045,9 +1771,7 @@ export type dictservicev1_DeleteDictTypeRequest = {
 // 文件管理服务
 export interface FileService {
   // 查询文件列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<storageservicev1_ListFileResponse>;
+  List(request: pagination_PagingRequest): Promise<storageservicev1_ListFileResponse>;
   // 查询文件详情
   Get(request: storageservicev1_GetFileRequest): Promise<storageservicev1_File>;
   // 创建文件
@@ -2058,226 +1782,168 @@ export interface FileService {
   Delete(request: storageservicev1_DeleteFileRequest): Promise<wellKnownEmpty>;
 }
 
-export function createFileServiceClient(handler: RequestHandler): FileService {
+export function createFileServiceClient(
+  handler: RequestHandler
+): FileService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/files`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'FileService',
-          method: 'List',
-        },
-      ) as Promise<storageservicev1_ListFileResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "FileService",
+        method: "List",
+      }) as Promise<storageservicev1_ListFileResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/files/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'FileService',
-          method: 'Get',
-        },
-      ) as Promise<storageservicev1_File>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "FileService",
+        method: "Get",
+      }) as Promise<storageservicev1_File>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/files`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'FileService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "FileService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/files/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'FileService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "FileService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/files/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'FileService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "FileService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -2315,16 +1981,16 @@ export type storageservicev1_File = {
 
 // OSS供应商
 export type storageservicev1_OSSProvider =
-  | 'MINIO'
-  | 'ALIYUN'
-  | 'AWS'
-  | 'AZURE'
-  | 'BAIDU'
-  | 'QINIU'
-  | 'TENCENT'
-  | 'GOOGLE'
-  | 'HUAWEI'
-  | 'LOCAL';
+  | "MINIO"
+  | "ALIYUN"
+  | "AWS"
+  | "AZURE"
+  | "BAIDU"
+  | "QINIU"
+  | "TENCENT"
+  | "GOOGLE"
+  | "HUAWEI"
+  | "LOCAL";
 // 查询 - 请求
 export type storageservicev1_GetFileRequest = {
   id?: number;
@@ -2352,140 +2018,100 @@ export type storageservicev1_DeleteFileRequest = {
 // 文件传输服务
 export interface FileTransferService {
   // 下载文件
-  DownloadFile(
-    request: storageservicev1_DownloadFileRequest,
-  ): Promise<storageservicev1_DownloadFileResponse>;
+  DownloadFile(request: storageservicev1_DownloadFileRequest): Promise<storageservicev1_DownloadFileResponse>;
   // 上传文件 PUT 方式
-  PutUploadFile(
-    request: storageservicev1_UploadFileRequest,
-  ): Promise<storageservicev1_UploadFileResponse>;
+  PutUploadFile(request: storageservicev1_UploadFileRequest): Promise<storageservicev1_UploadFileResponse>;
   // 上传文件 POST 方式
-  PostUploadFile(
-    request: storageservicev1_UploadFileRequest,
-  ): Promise<storageservicev1_UploadFileResponse>;
+  PostUploadFile(request: storageservicev1_UploadFileRequest): Promise<storageservicev1_UploadFileResponse>;
 }
 
 export function createFileTransferServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): FileTransferService {
   return {
-    DownloadFile(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    DownloadFile(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/file/download`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.fileId) {
-        queryParams.push(
-          `fileId=${encodeURIComponent(request.fileId.toString())}`,
-        );
+        queryParams.push(`fileId=${encodeURIComponent(request.fileId.toString())}`)
       }
       if (request.storageObject?.bucketName) {
-        queryParams.push(
-          `storageObject.bucketName=${encodeURIComponent(request.storageObject.bucketName.toString())}`,
-        );
+        queryParams.push(`storageObject.bucketName=${encodeURIComponent(request.storageObject.bucketName.toString())}`)
       }
       if (request.storageObject?.fileDirectory) {
-        queryParams.push(
-          `storageObject.fileDirectory=${encodeURIComponent(request.storageObject.fileDirectory.toString())}`,
-        );
+        queryParams.push(`storageObject.fileDirectory=${encodeURIComponent(request.storageObject.fileDirectory.toString())}`)
       }
       if (request.storageObject?.objectName) {
-        queryParams.push(
-          `storageObject.objectName=${encodeURIComponent(request.storageObject.objectName.toString())}`,
-        );
+        queryParams.push(`storageObject.objectName=${encodeURIComponent(request.storageObject.objectName.toString())}`)
       }
       if (request.downloadUrl) {
-        queryParams.push(
-          `downloadUrl=${encodeURIComponent(request.downloadUrl.toString())}`,
-        );
+        queryParams.push(`downloadUrl=${encodeURIComponent(request.downloadUrl.toString())}`)
       }
       if (request.rangeStart) {
-        queryParams.push(
-          `rangeStart=${encodeURIComponent(request.rangeStart.toString())}`,
-        );
+        queryParams.push(`rangeStart=${encodeURIComponent(request.rangeStart.toString())}`)
       }
       if (request.rangeEnd) {
-        queryParams.push(
-          `rangeEnd=${encodeURIComponent(request.rangeEnd.toString())}`,
-        );
+        queryParams.push(`rangeEnd=${encodeURIComponent(request.rangeEnd.toString())}`)
       }
       if (request.preferPresignedUrl) {
-        queryParams.push(
-          `preferPresignedUrl=${encodeURIComponent(request.preferPresignedUrl.toString())}`,
-        );
+        queryParams.push(`preferPresignedUrl=${encodeURIComponent(request.preferPresignedUrl.toString())}`)
       }
       if (request.presignExpireSeconds) {
-        queryParams.push(
-          `presignExpireSeconds=${encodeURIComponent(request.presignExpireSeconds.toString())}`,
-        );
+        queryParams.push(`presignExpireSeconds=${encodeURIComponent(request.presignExpireSeconds.toString())}`)
       }
       if (request.disposition) {
-        queryParams.push(
-          `disposition=${encodeURIComponent(request.disposition.toString())}`,
-        );
+        queryParams.push(`disposition=${encodeURIComponent(request.disposition.toString())}`)
       }
       if (request.acceptMime) {
-        queryParams.push(
-          `acceptMime=${encodeURIComponent(request.acceptMime.toString())}`,
-        );
+        queryParams.push(`acceptMime=${encodeURIComponent(request.acceptMime.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'FileTransferService',
-          method: 'DownloadFile',
-        },
-      ) as Promise<storageservicev1_DownloadFileResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "FileTransferService",
+        method: "DownloadFile",
+      }) as Promise<storageservicev1_DownloadFileResponse>;
     },
-    PutUploadFile(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    PutUploadFile(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/file/upload`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'FileTransferService',
-          method: 'PutUploadFile',
-        },
-      ) as Promise<storageservicev1_UploadFileResponse>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "FileTransferService",
+        method: "PutUploadFile",
+      }) as Promise<storageservicev1_UploadFileResponse>;
     },
-    PostUploadFile(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    PostUploadFile(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/file/upload`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'FileTransferService',
-          method: 'PostUploadFile',
-        },
-      ) as Promise<storageservicev1_UploadFileResponse>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "FileTransferService",
+        method: "PostUploadFile",
+      }) as Promise<storageservicev1_UploadFileResponse>;
     },
   };
 }
@@ -2546,274 +2172,198 @@ export type storageservicev1_UploadFileResponse = {
 // 站内信消息管理服务
 export interface InternalMessageService {
   // 查询站内信消息列表
-  ListMessage(
-    request: pagination_PagingRequest,
-  ): Promise<internal_messageservicev1_ListInternalMessageResponse>;
+  ListMessage(request: pagination_PagingRequest): Promise<internal_messageservicev1_ListInternalMessageResponse>;
   // 查询站内信消息详情
-  GetMessage(
-    request: internal_messageservicev1_GetInternalMessageRequest,
-  ): Promise<internal_messageservicev1_InternalMessage>;
+  GetMessage(request: internal_messageservicev1_GetInternalMessageRequest): Promise<internal_messageservicev1_InternalMessage>;
   // 更新站内信消息
-  UpdateMessage(
-    request: internal_messageservicev1_UpdateInternalMessageRequest,
-  ): Promise<wellKnownEmpty>;
+  UpdateMessage(request: internal_messageservicev1_UpdateInternalMessageRequest): Promise<wellKnownEmpty>;
   // 删除站内信消息
-  DeleteMessage(
-    request: internal_messageservicev1_DeleteInternalMessageRequest,
-  ): Promise<wellKnownEmpty>;
+  DeleteMessage(request: internal_messageservicev1_DeleteInternalMessageRequest): Promise<wellKnownEmpty>;
   // 发送消息
-  SendMessage(
-    request: internal_messageservicev1_SendMessageRequest,
-  ): Promise<internal_messageservicev1_SendMessageResponse>;
+  SendMessage(request: internal_messageservicev1_SendMessageRequest): Promise<internal_messageservicev1_SendMessageResponse>;
   // 撤销某条消息
-  RevokeMessage(
-    request: internal_messageservicev1_RevokeMessageRequest,
-  ): Promise<wellKnownEmpty>;
+  RevokeMessage(request: internal_messageservicev1_RevokeMessageRequest): Promise<wellKnownEmpty>;
 }
 
 export function createInternalMessageServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): InternalMessageService {
   return {
-    ListMessage(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    ListMessage(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/internal-message/messages`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'InternalMessageService',
-          method: 'ListMessage',
-        },
-      ) as Promise<internal_messageservicev1_ListInternalMessageResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "InternalMessageService",
+        method: "ListMessage",
+      }) as Promise<internal_messageservicev1_ListInternalMessageResponse>;
     },
-    GetMessage(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    GetMessage(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/internal-message/messages/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'InternalMessageService',
-          method: 'GetMessage',
-        },
-      ) as Promise<internal_messageservicev1_InternalMessage>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "InternalMessageService",
+        method: "GetMessage",
+      }) as Promise<internal_messageservicev1_InternalMessage>;
     },
-    UpdateMessage(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    UpdateMessage(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/internal-message/messages/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'InternalMessageService',
-          method: 'UpdateMessage',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "InternalMessageService",
+        method: "UpdateMessage",
+      }) as Promise<wellKnownEmpty>;
     },
-    DeleteMessage(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    DeleteMessage(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/internal-message/messages/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'InternalMessageService',
-          method: 'DeleteMessage',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "InternalMessageService",
+        method: "DeleteMessage",
+      }) as Promise<wellKnownEmpty>;
     },
-    SendMessage(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    SendMessage(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/internal-message/send`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'InternalMessageService',
-          method: 'SendMessage',
-        },
-      ) as Promise<internal_messageservicev1_SendMessageResponse>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "InternalMessageService",
+        method: "SendMessage",
+      }) as Promise<internal_messageservicev1_SendMessageResponse>;
     },
-    RevokeMessage(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    RevokeMessage(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/internal-message/revoke`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'InternalMessageService',
-          method: 'RevokeMessage',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "InternalMessageService",
+        method: "RevokeMessage",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -2848,17 +2398,17 @@ export type internal_messageservicev1_InternalMessage = {
 
 // 消息状态
 export type internal_messageservicev1_InternalMessage_Status =
-  | 'DRAFT'
-  | 'PUBLISHED'
-  | 'SCHEDULED'
-  | 'REVOKED'
-  | 'ARCHIVED'
-  | 'DELETED';
+  | "DRAFT"
+  | "PUBLISHED"
+  | "SCHEDULED"
+  | "REVOKED"
+  | "ARCHIVED"
+  | "DELETED";
 // 消息类型
 export type internal_messageservicev1_InternalMessage_Type =
-  | 'NOTIFICATION'
-  | 'PRIVATE'
-  | 'GROUP';
+  | "NOTIFICATION"
+  | "PRIVATE"
+  | "GROUP";
 // 查询站内信消息详情 - 请求
 export type internal_messageservicev1_GetInternalMessageRequest = {
   id?: number;
@@ -2901,249 +2451,179 @@ export type internal_messageservicev1_RevokeMessageRequest = {
 // 站内信消息分类管理服务
 export interface InternalMessageCategoryService {
   // 查询站内信消息分类列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<internal_messageservicev1_ListInternalMessageCategoryResponse>;
+  List(request: pagination_PagingRequest): Promise<internal_messageservicev1_ListInternalMessageCategoryResponse>;
   // 查询站内信消息分类详情
-  Get(
-    request: internal_messageservicev1_GetInternalMessageCategoryRequest,
-  ): Promise<internal_messageservicev1_InternalMessageCategory>;
+  Get(request: internal_messageservicev1_GetInternalMessageCategoryRequest): Promise<internal_messageservicev1_InternalMessageCategory>;
   // 创建站内信消息分类
-  Create(
-    request: internal_messageservicev1_CreateInternalMessageCategoryRequest,
-  ): Promise<wellKnownEmpty>;
+  Create(request: internal_messageservicev1_CreateInternalMessageCategoryRequest): Promise<wellKnownEmpty>;
   // 更新站内信消息分类
-  Update(
-    request: internal_messageservicev1_UpdateInternalMessageCategoryRequest,
-  ): Promise<wellKnownEmpty>;
+  Update(request: internal_messageservicev1_UpdateInternalMessageCategoryRequest): Promise<wellKnownEmpty>;
   // 删除站内信消息分类
-  Delete(
-    request: internal_messageservicev1_DeleteInternalMessageCategoryRequest,
-  ): Promise<wellKnownEmpty>;
+  Delete(request: internal_messageservicev1_DeleteInternalMessageCategoryRequest): Promise<wellKnownEmpty>;
 }
 
 export function createInternalMessageCategoryServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): InternalMessageCategoryService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/internal-message/categories`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'InternalMessageCategoryService',
-          method: 'List',
-        },
-      ) as Promise<internal_messageservicev1_ListInternalMessageCategoryResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "InternalMessageCategoryService",
+        method: "List",
+      }) as Promise<internal_messageservicev1_ListInternalMessageCategoryResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/internal-message/categories/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'InternalMessageCategoryService',
-          method: 'Get',
-        },
-      ) as Promise<internal_messageservicev1_InternalMessageCategory>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "InternalMessageCategoryService",
+        method: "Get",
+      }) as Promise<internal_messageservicev1_InternalMessageCategory>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/internal-message/categories`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'InternalMessageCategoryService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "InternalMessageCategoryService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/internal-message/categories/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'InternalMessageCategoryService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "InternalMessageCategoryService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/internal-message/categories/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'InternalMessageCategoryService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "InternalMessageCategoryService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -3198,185 +2678,129 @@ export type internal_messageservicev1_DeleteInternalMessageCategoryRequest = {
 // 站内信消息管理服务
 export interface InternalMessageRecipientService {
   // 获取用户的收件箱列表 (通知类)
-  ListUserInbox(
-    request: pagination_PagingRequest,
-  ): Promise<internal_messageservicev1_ListUserInboxResponse>;
+  ListUserInbox(request: pagination_PagingRequest): Promise<internal_messageservicev1_ListUserInboxResponse>;
   // 删除用户收件箱中的通知记录
-  DeleteNotificationFromInbox(
-    request: internal_messageservicev1_DeleteNotificationFromInboxRequest,
-  ): Promise<wellKnownEmpty>;
+  DeleteNotificationFromInbox(request: internal_messageservicev1_DeleteNotificationFromInboxRequest): Promise<wellKnownEmpty>;
   // 将通知标记为已读
-  MarkNotificationAsRead(
-    request: internal_messageservicev1_MarkNotificationAsReadRequest,
-  ): Promise<wellKnownEmpty>;
+  MarkNotificationAsRead(request: internal_messageservicev1_MarkNotificationAsReadRequest): Promise<wellKnownEmpty>;
 }
 
 export function createInternalMessageRecipientServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): InternalMessageRecipientService {
   return {
-    ListUserInbox(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    ListUserInbox(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/internal-message/inbox`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'InternalMessageRecipientService',
-          method: 'ListUserInbox',
-        },
-      ) as Promise<internal_messageservicev1_ListUserInboxResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "InternalMessageRecipientService",
+        method: "ListUserInbox",
+      }) as Promise<internal_messageservicev1_ListUserInboxResponse>;
     },
-    DeleteNotificationFromInbox(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    DeleteNotificationFromInbox(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/internal-message/inbox/delete`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'InternalMessageRecipientService',
-          method: 'DeleteNotificationFromInbox',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "InternalMessageRecipientService",
+        method: "DeleteNotificationFromInbox",
+      }) as Promise<wellKnownEmpty>;
     },
-    MarkNotificationAsRead(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    MarkNotificationAsRead(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/internal-message/read`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'InternalMessageRecipientService',
-          method: 'MarkNotificationAsRead',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "InternalMessageRecipientService",
+        method: "MarkNotificationAsRead",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -3407,11 +2831,11 @@ export type internal_messageservicev1_InternalMessageRecipient = {
 
 // 消息状态
 export type internal_messageservicev1_InternalMessageRecipient_Status =
-  | 'SENT'
-  | 'RECEIVED'
-  | 'READ'
-  | 'REVOKED'
-  | 'DELETED';
+  | "SENT"
+  | "RECEIVED"
+  | "READ"
+  | "REVOKED"
+  | "DELETED";
 export type internal_messageservicev1_DeleteNotificationFromInboxRequest = {
   userId: number | undefined;
   recipientIds: number[] | undefined;
@@ -3425,13 +2849,9 @@ export type internal_messageservicev1_MarkNotificationAsReadRequest = {
 // 语言管理服务
 export interface LanguageService {
   // 分页查询语言列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<dictservicev1_ListLanguageResponse>;
+  List(request: pagination_PagingRequest): Promise<dictservicev1_ListLanguageResponse>;
   // 查询语言详情
-  Get(
-    request: dictservicev1_GetLanguageRequest,
-  ): Promise<dictservicev1_Language>;
+  Get(request: dictservicev1_GetLanguageRequest): Promise<dictservicev1_Language>;
   // 创建语言
   Create(request: dictservicev1_CreateLanguageRequest): Promise<wellKnownEmpty>;
   // 更新语言
@@ -3439,257 +2859,191 @@ export interface LanguageService {
   // 删除语言
   Delete(request: dictservicev1_DeleteLanguageRequest): Promise<wellKnownEmpty>;
   // 批量创建语言
-  BatchCreate(
-    request: dictservicev1_BatchCreateLanguagesRequest,
-  ): Promise<wellKnownEmpty>;
+  BatchCreate(request: dictservicev1_BatchCreateLanguagesRequest): Promise<wellKnownEmpty>;
 }
 
 export function createLanguageServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): LanguageService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/dict/langs`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'LanguageService',
-          method: 'List',
-        },
-      ) as Promise<dictservicev1_ListLanguageResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "LanguageService",
+        method: "List",
+      }) as Promise<dictservicev1_ListLanguageResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/dict/langs/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.code) {
-        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`);
+        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`)
       }
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'LanguageService',
-          method: 'Get',
-        },
-      ) as Promise<dictservicev1_Language>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "LanguageService",
+        method: "Get",
+      }) as Promise<dictservicev1_Language>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/dict/langs`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'LanguageService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "LanguageService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/dict/langs/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'LanguageService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "LanguageService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/dict/langs`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.id) {
-        queryParams.push(`id=${encodeURIComponent(request.id.toString())}`);
+        queryParams.push(`id=${encodeURIComponent(request.id.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'LanguageService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "LanguageService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
-    BatchCreate(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    BatchCreate(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/dict/langs/batch`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'LanguageService',
-          method: 'BatchCreate',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "LanguageService",
+        method: "BatchCreate",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -3748,168 +3102,116 @@ export type dictservicev1_BatchCreateLanguagesRequest = {
 // 登录审计日志管理服务
 export interface LoginAuditLogService {
   // 查询登录审计日志列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<auditservicev1_ListLoginAuditLogResponse>;
+  List(request: pagination_PagingRequest): Promise<auditservicev1_ListLoginAuditLogResponse>;
   // 查询登录审计日志详情
-  Get(
-    request: auditservicev1_GetLoginAuditLogRequest,
-  ): Promise<auditservicev1_LoginAuditLog>;
+  Get(request: auditservicev1_GetLoginAuditLogRequest): Promise<auditservicev1_LoginAuditLog>;
 }
 
 export function createLoginAuditLogServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): LoginAuditLogService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/login-audit-logs`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'LoginAuditLogService',
-          method: 'List',
-        },
-      ) as Promise<auditservicev1_ListLoginAuditLogResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "LoginAuditLogService",
+        method: "List",
+      }) as Promise<auditservicev1_ListLoginAuditLogResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/login-audit-logs/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'LoginAuditLogService',
-          method: 'Get',
-        },
-      ) as Promise<auditservicev1_LoginAuditLog>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "LoginAuditLogService",
+        method: "Get",
+      }) as Promise<auditservicev1_LoginAuditLog>;
     },
   };
 }
@@ -3947,34 +3249,34 @@ export type auditservicev1_LoginAuditLog = {
 
 // 事件动作
 export type auditservicev1_LoginAuditLog_ActionType =
-  | 'ACTION_TYPE_UNSPECIFIED'
-  | 'LOGIN'
-  | 'LOGOUT'
-  | 'SESSION_EXPIRED'
-  | 'KICKED_OUT'
-  | 'PASSWORD_RESET';
+  | "ACTION_TYPE_UNSPECIFIED"
+  | "LOGIN"
+  | "LOGOUT"
+  | "SESSION_EXPIRED"
+  | "KICKED_OUT"
+  | "PASSWORD_RESET";
 // 操作状态
 export type auditservicev1_LoginAuditLog_Status =
-  | 'STATUS_UNSPECIFIED'
-  | 'SUCCESS'
-  | 'FAILED'
-  | 'PARTIAL'
-  | 'LOCKED';
+  | "STATUS_UNSPECIFIED"
+  | "SUCCESS"
+  | "FAILED"
+  | "PARTIAL"
+  | "LOCKED";
 // 登录方式
 export type auditservicev1_LoginAuditLog_LoginMethod =
-  | 'LOGIN_METHOD_UNSPECIFIED'
-  | 'PASSWORD'
-  | 'SMS_CODE'
-  | 'QR_CODE'
-  | 'OIDC_SOCIAL'
-  | 'BIOMETRIC'
-  | 'FIDO2';
+  | "LOGIN_METHOD_UNSPECIFIED"
+  | "PASSWORD"
+  | "SMS_CODE"
+  | "QR_CODE"
+  | "OIDC_SOCIAL"
+  | "BIOMETRIC"
+  | "FIDO2";
 // 风险等级
 export type auditservicev1_LoginAuditLog_RiskLevel =
-  | 'RISK_LEVEL_UNSPECIFIED'
-  | 'LOW'
-  | 'MEDIUM'
-  | 'HIGH';
+  | "RISK_LEVEL_UNSPECIFIED"
+  | "LOW"
+  | "MEDIUM"
+  | "HIGH";
 // 查询登录审计日志详情 - 请求
 export type auditservicev1_GetLoginAuditLogRequest = {
   id?: number;
@@ -3984,249 +3286,179 @@ export type auditservicev1_GetLoginAuditLogRequest = {
 // 登录策略管理服务
 export interface LoginPolicyService {
   // 查询登录策略列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<authenticationservicev1_ListLoginPolicyResponse>;
+  List(request: pagination_PagingRequest): Promise<authenticationservicev1_ListLoginPolicyResponse>;
   // 查询登录策略详情
-  Get(
-    request: authenticationservicev1_GetLoginPolicyRequest,
-  ): Promise<authenticationservicev1_LoginPolicy>;
+  Get(request: authenticationservicev1_GetLoginPolicyRequest): Promise<authenticationservicev1_LoginPolicy>;
   // 创建登录策略
-  Create(
-    request: authenticationservicev1_CreateLoginPolicyRequest,
-  ): Promise<wellKnownEmpty>;
+  Create(request: authenticationservicev1_CreateLoginPolicyRequest): Promise<wellKnownEmpty>;
   // 更新登录策略
-  Update(
-    request: authenticationservicev1_UpdateLoginPolicyRequest,
-  ): Promise<wellKnownEmpty>;
+  Update(request: authenticationservicev1_UpdateLoginPolicyRequest): Promise<wellKnownEmpty>;
   // 删除登录策略
-  Delete(
-    request: authenticationservicev1_DeleteLoginPolicyRequest,
-  ): Promise<wellKnownEmpty>;
+  Delete(request: authenticationservicev1_DeleteLoginPolicyRequest): Promise<wellKnownEmpty>;
 }
 
 export function createLoginPolicyServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): LoginPolicyService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/login-policies`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'LoginPolicyService',
-          method: 'List',
-        },
-      ) as Promise<authenticationservicev1_ListLoginPolicyResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "LoginPolicyService",
+        method: "List",
+      }) as Promise<authenticationservicev1_ListLoginPolicyResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/login-policies/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'LoginPolicyService',
-          method: 'Get',
-        },
-      ) as Promise<authenticationservicev1_LoginPolicy>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "LoginPolicyService",
+        method: "Get",
+      }) as Promise<authenticationservicev1_LoginPolicy>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/login-policies`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'LoginPolicyService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "LoginPolicyService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/login-policies/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'LoginPolicyService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "LoginPolicyService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/login-policies/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'LoginPolicyService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "LoginPolicyService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -4258,17 +3490,17 @@ export type authenticationservicev1_LoginPolicy = {
 
 // 登录策略类型
 export type authenticationservicev1_LoginPolicy_Type =
-  | 'LOGIN_RESTRICTION_TYPE_UNSPECIFIED'
-  | 'BLACKLIST'
-  | 'WHITELIST';
+  | "LOGIN_RESTRICTION_TYPE_UNSPECIFIED"
+  | "BLACKLIST"
+  | "WHITELIST";
 // 登录策略方式
 export type authenticationservicev1_LoginPolicy_Method =
-  | 'LOGIN_RESTRICTION_METHOD_UNSPECIFIED'
-  | 'IP'
-  | 'MAC'
-  | 'REGION'
-  | 'TIME'
-  | 'DEVICE';
+  | "LOGIN_RESTRICTION_METHOD_UNSPECIFIED"
+  | "IP"
+  | "MAC"
+  | "REGION"
+  | "TIME"
+  | "DEVICE";
 // 查询登录策略详情 - 请求
 export type authenticationservicev1_GetLoginPolicyRequest = {
   id?: number;
@@ -4296,13 +3528,9 @@ export type authenticationservicev1_DeleteLoginPolicyRequest = {
 // 后台菜单管理服务
 export interface MenuService {
   // 查询菜单列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<resourceservicev1_ListMenuResponse>;
+  List(request: pagination_PagingRequest): Promise<resourceservicev1_ListMenuResponse>;
   // 查询菜单详情
-  Get(
-    request: resourceservicev1_GetMenuRequest,
-  ): Promise<resourceservicev1_Menu>;
+  Get(request: resourceservicev1_GetMenuRequest): Promise<resourceservicev1_Menu>;
   // 创建菜单
   Create(request: resourceservicev1_CreateMenuRequest): Promise<wellKnownEmpty>;
   // 更新菜单
@@ -4311,231 +3539,171 @@ export interface MenuService {
   Delete(request: resourceservicev1_DeleteMenuRequest): Promise<wellKnownEmpty>;
 }
 
-export function createMenuServiceClient(handler: RequestHandler): MenuService {
+export function createMenuServiceClient(
+  handler: RequestHandler
+): MenuService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/menus`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'MenuService',
-          method: 'List',
-        },
-      ) as Promise<resourceservicev1_ListMenuResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "MenuService",
+        method: "List",
+      }) as Promise<resourceservicev1_ListMenuResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/menus/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'MenuService',
-          method: 'Get',
-        },
-      ) as Promise<resourceservicev1_Menu>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "MenuService",
+        method: "Get",
+      }) as Promise<resourceservicev1_Menu>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/menus`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'MenuService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "MenuService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/menus/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'MenuService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "MenuService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/menus/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.operatorId) {
-        queryParams.push(
-          `operatorId=${encodeURIComponent(request.operatorId.toString())}`,
-        );
+        queryParams.push(`operatorId=${encodeURIComponent(request.operatorId.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'MenuService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "MenuService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -4581,14 +3749,16 @@ export type resourceservicev1_Menu = {
 };
 
 // 菜单状态
-export type resourceservicev1_Menu_Status = 'OFF' | 'ON';
+export type resourceservicev1_Menu_Status =
+  | "OFF"
+  | "ON";
 // 菜单类型
 export type resourceservicev1_Menu_Type =
-  | 'CATALOG'
-  | 'MENU'
-  | 'BUTTON'
-  | 'EMBEDDED'
-  | 'LINK';
+  | "CATALOG"
+  | "MENU"
+  | "BUTTON"
+  | "EMBEDDED"
+  | "LINK";
 // 查询菜单详情 - 请求
 export type resourceservicev1_GetMenuRequest = {
   id?: number;
@@ -4617,168 +3787,116 @@ export type resourceservicev1_DeleteMenuRequest = {
 // 操作审计日志管理服务
 export interface OperationAuditLogService {
   // 查询操作审计日志列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<auditservicev1_ListOperationAuditLogResponse>;
+  List(request: pagination_PagingRequest): Promise<auditservicev1_ListOperationAuditLogResponse>;
   // 查询操作审计日志详情
-  Get(
-    request: auditservicev1_GetOperationAuditLogRequest,
-  ): Promise<auditservicev1_OperationAuditLog>;
+  Get(request: auditservicev1_GetOperationAuditLogRequest): Promise<auditservicev1_OperationAuditLog>;
 }
 
 export function createOperationAuditLogServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): OperationAuditLogService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/operation-audit-logs`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'OperationAuditLogService',
-          method: 'List',
-        },
-      ) as Promise<auditservicev1_ListOperationAuditLogResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "OperationAuditLogService",
+        method: "List",
+      }) as Promise<auditservicev1_ListOperationAuditLogResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/operation-audit-logs/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'OperationAuditLogService',
-          method: 'Get',
-        },
-      ) as Promise<auditservicev1_OperationAuditLog>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "OperationAuditLogService",
+        method: "Get",
+      }) as Promise<auditservicev1_OperationAuditLog>;
     },
   };
 }
@@ -4814,16 +3932,16 @@ export type auditservicev1_OperationAuditLog = {
 
 // 动作类型
 export type auditservicev1_OperationAuditLog_ActionType =
-  | 'ACTION_TYPE_UNSPECIFIED'
-  | 'CREATE'
-  | 'UPDATE'
-  | 'DELETE'
-  | 'READ'
-  | 'ASSIGN'
-  | 'UNASSIGN'
-  | 'EXPORT'
-  | 'IMPORT'
-  | 'OTHER';
+  | "ACTION_TYPE_UNSPECIFIED"
+  | "CREATE"
+  | "UPDATE"
+  | "DELETE"
+  | "READ"
+  | "ASSIGN"
+  | "UNASSIGN"
+  | "EXPORT"
+  | "IMPORT"
+  | "OTHER";
 // 查询操作审计日志详情 - 请求
 export type auditservicev1_GetOperationAuditLogRequest = {
   id?: number;
@@ -4833,249 +3951,179 @@ export type auditservicev1_GetOperationAuditLogRequest = {
 // 组织单元服务
 export interface OrgUnitService {
   // 查询组织单元列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<identityservicev1_ListOrgUnitResponse>;
+  List(request: pagination_PagingRequest): Promise<identityservicev1_ListOrgUnitResponse>;
   // 查询组织单元详情
-  Get(
-    request: identityservicev1_GetOrgUnitRequest,
-  ): Promise<identityservicev1_OrgUnit>;
+  Get(request: identityservicev1_GetOrgUnitRequest): Promise<identityservicev1_OrgUnit>;
   // 创建组织单元
-  Create(
-    request: identityservicev1_CreateOrgUnitRequest,
-  ): Promise<wellKnownEmpty>;
+  Create(request: identityservicev1_CreateOrgUnitRequest): Promise<wellKnownEmpty>;
   // 更新组织单元
-  Update(
-    request: identityservicev1_UpdateOrgUnitRequest,
-  ): Promise<wellKnownEmpty>;
+  Update(request: identityservicev1_UpdateOrgUnitRequest): Promise<wellKnownEmpty>;
   // 删除组织单元
-  Delete(
-    request: identityservicev1_DeleteOrgUnitRequest,
-  ): Promise<wellKnownEmpty>;
+  Delete(request: identityservicev1_DeleteOrgUnitRequest): Promise<wellKnownEmpty>;
 }
 
 export function createOrgUnitServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): OrgUnitService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/org-units`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'OrgUnitService',
-          method: 'List',
-        },
-      ) as Promise<identityservicev1_ListOrgUnitResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "OrgUnitService",
+        method: "List",
+      }) as Promise<identityservicev1_ListOrgUnitResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/org-units/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'OrgUnitService',
-          method: 'Get',
-        },
-      ) as Promise<identityservicev1_OrgUnit>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "OrgUnitService",
+        method: "Get",
+      }) as Promise<identityservicev1_OrgUnit>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/org-units`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'OrgUnitService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "OrgUnitService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/org-units/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'OrgUnitService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "OrgUnitService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/org-units/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'OrgUnitService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "OrgUnitService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -5131,18 +4179,20 @@ export type identityservicev1_OrgUnit = {
 
 // 组织单元类型
 export type identityservicev1_OrgUnit_Type =
-  | 'COMPANY'
-  | 'DIVISION'
-  | 'DEPARTMENT'
-  | 'TEAM'
-  | 'PROJECT'
-  | 'COMMITTEE'
-  | 'REGION'
-  | 'SUBSIDIARY'
-  | 'BRANCH'
-  | 'OTHER';
+  | "COMPANY"
+  | "DIVISION"
+  | "DEPARTMENT"
+  | "TEAM"
+  | "PROJECT"
+  | "COMMITTEE"
+  | "REGION"
+  | "SUBSIDIARY"
+  | "BRANCH"
+  | "OTHER";
 // 组织单元状态
-export type identityservicev1_OrgUnit_Status = 'OFF' | 'ON';
+export type identityservicev1_OrgUnit_Status =
+  | "OFF"
+  | "ON";
 // 获取组织单元数据 - 请求
 export type identityservicev1_GetOrgUnitRequest = {
   id?: number;
@@ -5170,283 +4220,207 @@ export type identityservicev1_DeleteOrgUnitRequest = {
 // 权限点管理服务
 export interface PermissionService {
   // 查询权限点列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<permissionservicev1_ListPermissionResponse>;
+  List(request: pagination_PagingRequest): Promise<permissionservicev1_ListPermissionResponse>;
   // 查询权限点详情
-  Get(
-    request: permissionservicev1_GetPermissionRequest,
-  ): Promise<permissionservicev1_Permission>;
+  Get(request: permissionservicev1_GetPermissionRequest): Promise<permissionservicev1_Permission>;
   // 创建权限点
-  Create(
-    request: permissionservicev1_CreatePermissionRequest,
-  ): Promise<wellKnownEmpty>;
+  Create(request: permissionservicev1_CreatePermissionRequest): Promise<wellKnownEmpty>;
   // 更新权限点
-  Update(
-    request: permissionservicev1_UpdatePermissionRequest,
-  ): Promise<wellKnownEmpty>;
+  Update(request: permissionservicev1_UpdatePermissionRequest): Promise<wellKnownEmpty>;
   // 删除权限点
-  Delete(
-    request: permissionservicev1_DeletePermissionRequest,
-  ): Promise<wellKnownEmpty>;
+  Delete(request: permissionservicev1_DeletePermissionRequest): Promise<wellKnownEmpty>;
   // 同步权限点
   SyncPermissions(request: wellKnownEmpty): Promise<wellKnownEmpty>;
 }
 
 export function createPermissionServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): PermissionService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/permissions`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'PermissionService',
-          method: 'List',
-        },
-      ) as Promise<permissionservicev1_ListPermissionResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PermissionService",
+        method: "List",
+      }) as Promise<permissionservicev1_ListPermissionResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/permissions/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.code) {
-        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`);
+        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`)
       }
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'PermissionService',
-          method: 'Get',
-        },
-      ) as Promise<permissionservicev1_Permission>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PermissionService",
+        method: "Get",
+      }) as Promise<permissionservicev1_Permission>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/permissions`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'PermissionService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "PermissionService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/permissions/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'PermissionService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "PermissionService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/permissions/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.code) {
-        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`);
+        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`)
       }
       if (request.groupId) {
-        queryParams.push(
-          `groupId=${encodeURIComponent(request.groupId.toString())}`,
-        );
+        queryParams.push(`groupId=${encodeURIComponent(request.groupId.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'PermissionService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "PermissionService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
-    SyncPermissions(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    SyncPermissions(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/permissions/sync:perms`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'PermissionService',
-          method: 'SyncPermissions',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "PermissionService",
+        method: "SyncPermissions",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -5476,7 +4450,9 @@ export type permissionservicev1_Permission = {
 };
 
 // 权限点状态
-export type permissionservicev1_Permission_Status = 'OFF' | 'ON';
+export type permissionservicev1_Permission_Status =
+  | "OFF"
+  | "ON";
 // 查询 - 请求
 export type permissionservicev1_GetPermissionRequest = {
   id?: number;
@@ -5507,168 +4483,116 @@ export type permissionservicev1_DeletePermissionRequest = {
 // 权限变更审计日志服务
 export interface PermissionAuditLogService {
   // 查询权限变更审计日志列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<auditservicev1_ListPermissionAuditLogResponse>;
+  List(request: pagination_PagingRequest): Promise<auditservicev1_ListPermissionAuditLogResponse>;
   // 查询权限变更审计日志详情
-  Get(
-    request: auditservicev1_GetPermissionAuditLogRequest,
-  ): Promise<auditservicev1_PermissionAuditLog>;
+  Get(request: auditservicev1_GetPermissionAuditLogRequest): Promise<auditservicev1_PermissionAuditLog>;
 }
 
 export function createPermissionAuditLogServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): PermissionAuditLogService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/permission-audit-logs`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'PermissionAuditLogService',
-          method: 'List',
-        },
-      ) as Promise<auditservicev1_ListPermissionAuditLogResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PermissionAuditLogService",
+        method: "List",
+      }) as Promise<auditservicev1_ListPermissionAuditLogResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/permission-audit-logs/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'PermissionAuditLogService',
-          method: 'Get',
-        },
-      ) as Promise<auditservicev1_PermissionAuditLog>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PermissionAuditLogService",
+        method: "Get",
+      }) as Promise<auditservicev1_PermissionAuditLog>;
     },
   };
 }
@@ -5700,22 +4624,22 @@ export type auditservicev1_PermissionAuditLog = {
 
 // 变更动作
 export type auditservicev1_PermissionAuditLog_ActionType =
-  | 'ACTION_TYPE_UNSPECIFIED'
-  | 'GRANT'
-  | 'REVOKE'
-  | 'UPDATE'
-  | 'RESET'
-  | 'CREATE'
-  | 'DELETE'
-  | 'ASSIGN'
-  | 'UNASSIGN'
-  | 'BULK_GRANT'
-  | 'BULK_REVOKE'
-  | 'EXPIRE'
-  | 'SUSPEND'
-  | 'RESUME'
-  | 'ROLLBACK'
-  | 'OTHER';
+  | "ACTION_TYPE_UNSPECIFIED"
+  | "GRANT"
+  | "REVOKE"
+  | "UPDATE"
+  | "RESET"
+  | "CREATE"
+  | "DELETE"
+  | "ASSIGN"
+  | "UNASSIGN"
+  | "BULK_GRANT"
+  | "BULK_REVOKE"
+  | "EXPIRE"
+  | "SUSPEND"
+  | "RESUME"
+  | "ROLLBACK"
+  | "OTHER";
 // 查询权限变更审计日志详情 - 请求
 export type auditservicev1_GetPermissionAuditLogRequest = {
   id?: number;
@@ -5725,249 +4649,179 @@ export type auditservicev1_GetPermissionAuditLogRequest = {
 // 权限组管理服务
 export interface PermissionGroupService {
   // 查询权限组列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<permissionservicev1_ListPermissionGroupResponse>;
+  List(request: pagination_PagingRequest): Promise<permissionservicev1_ListPermissionGroupResponse>;
   // 查询权限组详情
-  Get(
-    request: permissionservicev1_GetPermissionGroupRequest,
-  ): Promise<permissionservicev1_PermissionGroup>;
+  Get(request: permissionservicev1_GetPermissionGroupRequest): Promise<permissionservicev1_PermissionGroup>;
   // 创建权限组
-  Create(
-    request: permissionservicev1_CreatePermissionGroupRequest,
-  ): Promise<wellKnownEmpty>;
+  Create(request: permissionservicev1_CreatePermissionGroupRequest): Promise<wellKnownEmpty>;
   // 更新权限组
-  Update(
-    request: permissionservicev1_UpdatePermissionGroupRequest,
-  ): Promise<wellKnownEmpty>;
+  Update(request: permissionservicev1_UpdatePermissionGroupRequest): Promise<wellKnownEmpty>;
   // 删除权限组
-  Delete(
-    request: permissionservicev1_DeletePermissionGroupRequest,
-  ): Promise<wellKnownEmpty>;
+  Delete(request: permissionservicev1_DeletePermissionGroupRequest): Promise<wellKnownEmpty>;
 }
 
 export function createPermissionGroupServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): PermissionGroupService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/permission-groups`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'PermissionGroupService',
-          method: 'List',
-        },
-      ) as Promise<permissionservicev1_ListPermissionGroupResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PermissionGroupService",
+        method: "List",
+      }) as Promise<permissionservicev1_ListPermissionGroupResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/permission-groups/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'PermissionGroupService',
-          method: 'Get',
-        },
-      ) as Promise<permissionservicev1_PermissionGroup>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PermissionGroupService",
+        method: "Get",
+      }) as Promise<permissionservicev1_PermissionGroup>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/permission-groups`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'PermissionGroupService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "PermissionGroupService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/permission-groups/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'PermissionGroupService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "PermissionGroupService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/permission-groups/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'PermissionGroupService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "PermissionGroupService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -5997,7 +4851,9 @@ export type permissionservicev1_PermissionGroup = {
 };
 
 // 状态
-export type permissionservicev1_PermissionGroup_Status = 'OFF' | 'ON';
+export type permissionservicev1_PermissionGroup_Status =
+  | "OFF"
+  | "ON";
 // 查询 - 请求
 export type permissionservicev1_GetPermissionGroupRequest = {
   id?: number;
@@ -6025,168 +4881,116 @@ export type permissionservicev1_DeletePermissionGroupRequest = {
 // 策略评估日志服务
 export interface PolicyEvaluationLogService {
   // 查询策略评估日志列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<permissionservicev1_ListPolicyEvaluationLogResponse>;
+  List(request: pagination_PagingRequest): Promise<permissionservicev1_ListPolicyEvaluationLogResponse>;
   // 查询策略评估日志详情
-  Get(
-    request: permissionservicev1_GetPolicyEvaluationLogRequest,
-  ): Promise<permissionservicev1_PolicyEvaluationLog>;
+  Get(request: permissionservicev1_GetPolicyEvaluationLogRequest): Promise<permissionservicev1_PolicyEvaluationLog>;
 }
 
 export function createPolicyEvaluationLogServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): PolicyEvaluationLogService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/policy-evaluation-logs`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'PolicyEvaluationLogService',
-          method: 'List',
-        },
-      ) as Promise<permissionservicev1_ListPolicyEvaluationLogResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PolicyEvaluationLogService",
+        method: "List",
+      }) as Promise<permissionservicev1_ListPolicyEvaluationLogResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/policy-evaluation-logs/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'PolicyEvaluationLogService',
-          method: 'Get',
-        },
-      ) as Promise<permissionservicev1_PolicyEvaluationLog>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PolicyEvaluationLogService",
+        method: "Get",
+      }) as Promise<permissionservicev1_PolicyEvaluationLog>;
     },
   };
 }
@@ -6226,255 +5030,185 @@ export type permissionservicev1_GetPolicyEvaluationLogRequest = {
 // 职位管理服务
 export interface PositionService {
   // 查询职位列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<identityservicev1_ListPositionResponse>;
+  List(request: pagination_PagingRequest): Promise<identityservicev1_ListPositionResponse>;
   // 查询职位详情
-  Get(
-    request: identityservicev1_GetPositionRequest,
-  ): Promise<identityservicev1_Position>;
+  Get(request: identityservicev1_GetPositionRequest): Promise<identityservicev1_Position>;
   // 创建职位
-  Create(
-    request: identityservicev1_CreatePositionRequest,
-  ): Promise<wellKnownEmpty>;
+  Create(request: identityservicev1_CreatePositionRequest): Promise<wellKnownEmpty>;
   // 更新职位
-  Update(
-    request: identityservicev1_UpdatePositionRequest,
-  ): Promise<wellKnownEmpty>;
+  Update(request: identityservicev1_UpdatePositionRequest): Promise<wellKnownEmpty>;
   // 删除职位
-  Delete(
-    request: identityservicev1_DeletePositionRequest,
-  ): Promise<wellKnownEmpty>;
+  Delete(request: identityservicev1_DeletePositionRequest): Promise<wellKnownEmpty>;
 }
 
 export function createPositionServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): PositionService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/positions`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'PositionService',
-          method: 'List',
-        },
-      ) as Promise<identityservicev1_ListPositionResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PositionService",
+        method: "List",
+      }) as Promise<identityservicev1_ListPositionResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/positions/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.name) {
-        queryParams.push(`name=${encodeURIComponent(request.name.toString())}`);
+        queryParams.push(`name=${encodeURIComponent(request.name.toString())}`)
       }
       if (request.code) {
-        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`);
+        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`)
       }
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'PositionService',
-          method: 'Get',
-        },
-      ) as Promise<identityservicev1_Position>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PositionService",
+        method: "Get",
+      }) as Promise<identityservicev1_Position>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/positions`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'PositionService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "PositionService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/positions/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'PositionService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "PositionService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/positions/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'PositionService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "PositionService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -6516,15 +5250,17 @@ export type identityservicev1_Position = {
 };
 
 // 职位状态
-export type identityservicev1_Position_Status = 'OFF' | 'ON';
+export type identityservicev1_Position_Status =
+  | "OFF"
+  | "ON";
 // 职位类型
 export type identityservicev1_Position_Type =
-  | 'REGULAR'
-  | 'LEADER'
-  | 'MANAGER'
-  | 'INTERN'
-  | 'CONTRACT'
-  | 'OTHER';
+  | "REGULAR"
+  | "LEADER"
+  | "MANAGER"
+  | "INTERN"
+  | "CONTRACT"
+  | "OTHER";
 // 获取职位数据 - 请求
 export type identityservicev1_GetPositionRequest = {
   id?: number;
@@ -6554,253 +5290,185 @@ export type identityservicev1_DeletePositionRequest = {
 // 角色管理服务
 export interface RoleService {
   // 查询角色列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<permissionservicev1_ListRoleResponse>;
+  List(request: pagination_PagingRequest): Promise<permissionservicev1_ListRoleResponse>;
   // 查询角色详情
-  Get(
-    request: permissionservicev1_GetRoleRequest,
-  ): Promise<permissionservicev1_Role>;
+  Get(request: permissionservicev1_GetRoleRequest): Promise<permissionservicev1_Role>;
   // 创建角色
-  Create(
-    request: permissionservicev1_CreateRoleRequest,
-  ): Promise<wellKnownEmpty>;
+  Create(request: permissionservicev1_CreateRoleRequest): Promise<wellKnownEmpty>;
   // 更新角色
-  Update(
-    request: permissionservicev1_UpdateRoleRequest,
-  ): Promise<wellKnownEmpty>;
+  Update(request: permissionservicev1_UpdateRoleRequest): Promise<wellKnownEmpty>;
   // 删除角色
-  Delete(
-    request: permissionservicev1_DeleteRoleRequest,
-  ): Promise<wellKnownEmpty>;
+  Delete(request: permissionservicev1_DeleteRoleRequest): Promise<wellKnownEmpty>;
 }
 
-export function createRoleServiceClient(handler: RequestHandler): RoleService {
+export function createRoleServiceClient(
+  handler: RequestHandler
+): RoleService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/roles`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'RoleService',
-          method: 'List',
-        },
-      ) as Promise<permissionservicev1_ListRoleResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "RoleService",
+        method: "List",
+      }) as Promise<permissionservicev1_ListRoleResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/roles/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.name) {
-        queryParams.push(`name=${encodeURIComponent(request.name.toString())}`);
+        queryParams.push(`name=${encodeURIComponent(request.name.toString())}`)
       }
       if (request.code) {
-        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`);
+        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`)
       }
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'RoleService',
-          method: 'Get',
-        },
-      ) as Promise<permissionservicev1_Role>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "RoleService",
+        method: "Get",
+      }) as Promise<permissionservicev1_Role>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/roles`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'RoleService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "RoleService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/roles/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'RoleService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "RoleService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/roles/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'RoleService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "RoleService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -6832,9 +5500,14 @@ export type permissionservicev1_Role = {
 };
 
 // 角色状态
-export type permissionservicev1_Role_Status = 'OFF' | 'ON';
+export type permissionservicev1_Role_Status =
+  | "OFF"
+  | "ON";
 // 角色类型
-export type permissionservicev1_Role_Type = 'SYSTEM' | 'TEMPLATE' | 'TENANT';
+export type permissionservicev1_Role_Type =
+  | "SYSTEM"
+  | "TEMPLATE"
+  | "TENANT";
 // 角色数据 - 请求
 export type permissionservicev1_GetRoleRequest = {
   id?: number;
@@ -6864,9 +5537,7 @@ export type permissionservicev1_DeleteRoleRequest = {
 // 调度任务管理服务
 export interface TaskService {
   // 查询调度任务列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<taskservicev1_ListTaskResponse>;
+  List(request: pagination_PagingRequest): Promise<taskservicev1_ListTaskResponse>;
   // 查询调度任务详情
   Get(request: taskservicev1_GetTaskRequest): Promise<taskservicev1_Task>;
   // 创建调度任务
@@ -6876,353 +5547,267 @@ export interface TaskService {
   // 删除调度任务
   Delete(request: taskservicev1_DeleteTaskRequest): Promise<wellKnownEmpty>;
   // 任务类型名称列表
-  ListTaskTypeName(
-    request: wellKnownEmpty,
-  ): Promise<taskservicev1_ListTaskTypeNameResponse>;
+  ListTaskTypeName(request: wellKnownEmpty): Promise<taskservicev1_ListTaskTypeNameResponse>;
   // 重启所有的调度任务
-  RestartAllTask(
-    request: wellKnownEmpty,
-  ): Promise<taskservicev1_RestartAllTaskResponse>;
+  RestartAllTask(request: wellKnownEmpty): Promise<taskservicev1_RestartAllTaskResponse>;
   // 启动所有的调度任务
   StartAllTask(request: wellKnownEmpty): Promise<wellKnownEmpty>;
   // 停止所有的调度任务
   StopAllTask(request: wellKnownEmpty): Promise<wellKnownEmpty>;
   // 控制调度任务
-  ControlTask(
-    request: taskservicev1_ControlTaskRequest,
-  ): Promise<wellKnownEmpty>;
+  ControlTask(request: taskservicev1_ControlTaskRequest): Promise<wellKnownEmpty>;
 }
 
-export function createTaskServiceClient(handler: RequestHandler): TaskService {
+export function createTaskServiceClient(
+  handler: RequestHandler
+): TaskService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/tasks`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'TaskService',
-          method: 'List',
-        },
-      ) as Promise<taskservicev1_ListTaskResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "TaskService",
+        method: "List",
+      }) as Promise<taskservicev1_ListTaskResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/tasks/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.typeName) {
-        queryParams.push(
-          `typeName=${encodeURIComponent(request.typeName.toString())}`,
-        );
+        queryParams.push(`typeName=${encodeURIComponent(request.typeName.toString())}`)
       }
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'TaskService',
-          method: 'Get',
-        },
-      ) as Promise<taskservicev1_Task>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "TaskService",
+        method: "Get",
+      }) as Promise<taskservicev1_Task>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/tasks`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'TaskService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "TaskService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/tasks/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'TaskService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "TaskService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/tasks/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'TaskService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "TaskService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
-    ListTaskTypeName(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    ListTaskTypeName(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/tasks:type-names`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'TaskService',
-          method: 'ListTaskTypeName',
-        },
-      ) as Promise<taskservicev1_ListTaskTypeNameResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "TaskService",
+        method: "ListTaskTypeName",
+      }) as Promise<taskservicev1_ListTaskTypeNameResponse>;
     },
-    RestartAllTask(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    RestartAllTask(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/tasks:restart`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'TaskService',
-          method: 'RestartAllTask',
-        },
-      ) as Promise<taskservicev1_RestartAllTaskResponse>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "TaskService",
+        method: "RestartAllTask",
+      }) as Promise<taskservicev1_RestartAllTaskResponse>;
     },
-    StartAllTask(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    StartAllTask(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/tasks:start`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'TaskService',
-          method: 'StartAllTask',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "TaskService",
+        method: "StartAllTask",
+      }) as Promise<wellKnownEmpty>;
     },
-    StopAllTask(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    StopAllTask(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/tasks:stop`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'TaskService',
-          method: 'StopAllTask',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "TaskService",
+        method: "StopAllTask",
+      }) as Promise<wellKnownEmpty>;
     },
-    ControlTask(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    ControlTask(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/tasks:control`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'TaskService',
-          method: 'ControlTask',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "TaskService",
+        method: "ControlTask",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -7264,7 +5849,10 @@ export type taskservicev1_Task = {
 };
 
 // 调度任务类型
-export type taskservicev1_Task_Type = 'PERIODIC' | 'DELAY' | 'WAIT_RESULT';
+export type taskservicev1_Task_Type =
+  | "PERIODIC"
+  | "DELAY"
+  | "WAIT_RESULT";
 // 任务选项
 export type taskservicev1_TaskOption = {
   //
@@ -7349,317 +5937,235 @@ export type taskservicev1_ControlTaskRequest = {
 
 // 调度任务控制类型
 export type taskservicev1_ControlTaskRequest_ControlType =
-  | 'Start'
-  | 'Stop'
-  | 'Restart';
+  | "Start"
+  | "Stop"
+  | "Restart";
 // 租户管理服务
 export interface TenantService {
   // 获取租户列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<identityservicev1_ListTenantResponse>;
+  List(request: pagination_PagingRequest): Promise<identityservicev1_ListTenantResponse>;
   // 获取租户数据
-  Get(
-    request: identityservicev1_GetTenantRequest,
-  ): Promise<identityservicev1_Tenant>;
+  Get(request: identityservicev1_GetTenantRequest): Promise<identityservicev1_Tenant>;
   // 创建租户
-  Create(
-    request: identityservicev1_CreateTenantRequest,
-  ): Promise<wellKnownEmpty>;
+  Create(request: identityservicev1_CreateTenantRequest): Promise<wellKnownEmpty>;
   // 更新租户
-  Update(
-    request: identityservicev1_UpdateTenantRequest,
-  ): Promise<wellKnownEmpty>;
+  Update(request: identityservicev1_UpdateTenantRequest): Promise<wellKnownEmpty>;
   // 删除租户
-  Delete(
-    request: identityservicev1_DeleteTenantRequest,
-  ): Promise<wellKnownEmpty>;
+  Delete(request: identityservicev1_DeleteTenantRequest): Promise<wellKnownEmpty>;
   // 创建租户及管理员用户
-  CreateTenantWithAdminUser(
-    request: identityservicev1_CreateTenantWithAdminUserRequest,
-  ): Promise<wellKnownEmpty>;
+  CreateTenantWithAdminUser(request: identityservicev1_CreateTenantWithAdminUserRequest): Promise<wellKnownEmpty>;
   // 租户是否存在
-  TenantExists(
-    request: identityservicev1_TenantExistsRequest,
-  ): Promise<identityservicev1_TenantExistsResponse>;
+  TenantExists(request: identityservicev1_TenantExistsRequest): Promise<identityservicev1_TenantExistsResponse>;
 }
 
 export function createTenantServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): TenantService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/tenants`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'TenantService',
-          method: 'List',
-        },
-      ) as Promise<identityservicev1_ListTenantResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "TenantService",
+        method: "List",
+      }) as Promise<identityservicev1_ListTenantResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/tenants/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.code) {
-        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`);
+        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`)
       }
       if (request.name) {
-        queryParams.push(`name=${encodeURIComponent(request.name.toString())}`);
+        queryParams.push(`name=${encodeURIComponent(request.name.toString())}`)
       }
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'TenantService',
-          method: 'Get',
-        },
-      ) as Promise<identityservicev1_Tenant>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "TenantService",
+        method: "Get",
+      }) as Promise<identityservicev1_Tenant>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/tenants`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'TenantService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "TenantService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/tenants/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'TenantService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "TenantService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/tenants/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'TenantService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "TenantService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
-    CreateTenantWithAdminUser(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    CreateTenantWithAdminUser(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/tenants:with-admin`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'TenantService',
-          method: 'CreateTenantWithAdminUser',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "TenantService",
+        method: "CreateTenantWithAdminUser",
+      }) as Promise<wellKnownEmpty>;
     },
-    TenantExists(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    TenantExists(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/tenants:exists`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.code) {
-        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`);
+        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`)
       }
       if (request.name) {
-        queryParams.push(`name=${encodeURIComponent(request.name.toString())}`);
+        queryParams.push(`name=${encodeURIComponent(request.name.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'TenantService',
-          method: 'TenantExists',
-        },
-      ) as Promise<identityservicev1_TenantExistsResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "TenantService",
+        method: "TenantExists",
+      }) as Promise<identityservicev1_TenantExistsResponse>;
     },
   };
 }
@@ -7698,24 +6204,24 @@ export type identityservicev1_Tenant = {
 
 // 租户类型
 export type identityservicev1_Tenant_Type =
-  | 'TENANT_TYPE_UNSPECIFIED'
-  | 'TRIAL'
-  | 'PAID'
-  | 'INTERNAL'
-  | 'PARTNER'
-  | 'CUSTOM';
+  | "TENANT_TYPE_UNSPECIFIED"
+  | "TRIAL"
+  | "PAID"
+  | "INTERNAL"
+  | "PARTNER"
+  | "CUSTOM";
 // 租户状态
 export type identityservicev1_Tenant_Status =
-  | 'OFF'
-  | 'ON'
-  | 'EXPIRED'
-  | 'FREEZE';
+  | "OFF"
+  | "ON"
+  | "EXPIRED"
+  | "FREEZE";
 // 租户审核状态
 export type identityservicev1_Tenant_AuditStatus =
-  | 'TENANT_AUDIT_STATUS_UNSPECIFIED'
-  | 'PENDING'
-  | 'APPROVED'
-  | 'REJECTED';
+  | "TENANT_AUDIT_STATUS_UNSPECIFIED"
+  | "PENDING"
+  | "APPROVED"
+  | "REJECTED";
 // 租户数据 - 请求
 export type identityservicev1_GetTenantRequest = {
   id?: number;
@@ -7791,15 +6297,18 @@ export type identityservicev1_User = {
 };
 
 // 用户性别
-export type identityservicev1_User_Gender = 'SECRET' | 'MALE' | 'FEMALE';
+export type identityservicev1_User_Gender =
+  | "SECRET"
+  | "MALE"
+  | "FEMALE";
 // 用户状态
 export type identityservicev1_User_Status =
-  | 'DISABLED'
-  | 'NORMAL'
-  | 'PENDING'
-  | 'LOCKED'
-  | 'EXPIRED'
-  | 'CLOSED';
+  | "DISABLED"
+  | "NORMAL"
+  | "PENDING"
+  | "LOCKED"
+  | "EXPIRED"
+  | "CLOSED";
 // 租户是否存在 - 请求
 export type identityservicev1_TenantExistsRequest = {
   code: string | undefined;
@@ -7814,13 +6323,9 @@ export type identityservicev1_TenantExistsResponse = {
 // 用户管理服务
 export interface UserService {
   // 获取用户列表
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<identityservicev1_ListUserResponse>;
+  List(request: pagination_PagingRequest): Promise<identityservicev1_ListUserResponse>;
   // 获取用户数据
-  Get(
-    request: identityservicev1_GetUserRequest,
-  ): Promise<identityservicev1_User>;
+  Get(request: identityservicev1_GetUserRequest): Promise<identityservicev1_User>;
   // 创建用户
   Create(request: identityservicev1_CreateUserRequest): Promise<wellKnownEmpty>;
   // 更新用户
@@ -7828,298 +6333,222 @@ export interface UserService {
   // 删除用户
   Delete(request: identityservicev1_DeleteUserRequest): Promise<wellKnownEmpty>;
   // 用户是否存在
-  UserExists(
-    request: identityservicev1_UserExistsRequest,
-  ): Promise<identityservicev1_UserExistsResponse>;
+  UserExists(request: identityservicev1_UserExistsRequest): Promise<identityservicev1_UserExistsResponse>;
   // 修改用户密码
-  EditUserPassword(
-    request: identityservicev1_EditUserPasswordRequest,
-  ): Promise<wellKnownEmpty>;
+  EditUserPassword(request: identityservicev1_EditUserPasswordRequest): Promise<wellKnownEmpty>;
 }
 
-export function createUserServiceClient(handler: RequestHandler): UserService {
+export function createUserServiceClient(
+  handler: RequestHandler
+): UserService {
   return {
-    List(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    List(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/users`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`)
       }
       if (request.pageSize) {
-        queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
-        );
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
       if (request.offset) {
-        queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
+        queryParams.push(`offset=${encodeURIComponent(request.offset.toString())}`)
       }
       if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
+        queryParams.push(`limit=${encodeURIComponent(request.limit.toString())}`)
       }
       if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
+        queryParams.push(`token=${encodeURIComponent(request.token.toString())}`)
       }
       if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
+        queryParams.push(`noPaging=${encodeURIComponent(request.noPaging.toString())}`)
       }
       if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
+        queryParams.push(`query=${encodeURIComponent(request.query.toString())}`)
       }
       if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
+        queryParams.push(`filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`)
       }
       if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`)
       }
       if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`)
       }
       if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`)
       }
       if (request.filterExpr?.conditions?.values) {
         request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
+          queryParams.push(`filterExpr.conditions.values=${encodeURIComponent(x.toString())}`)
+        })
       }
       if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`)
       }
       if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
+        queryParams.push(`filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`)
       }
       if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
+        queryParams.push(`orderBy=${encodeURIComponent(request.orderBy.toString())}`)
       }
       if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
+        queryParams.push(`sorting.field=${encodeURIComponent(request.sorting.field.toString())}`)
       }
       if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
+        queryParams.push(`sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`)
       }
       if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
-        );
+        queryParams.push(`fieldMask=${encodeURIComponent(request.fieldMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'UserService',
-          method: 'List',
-        },
-      ) as Promise<identityservicev1_ListUserResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "UserService",
+        method: "List",
+      }) as Promise<identityservicev1_ListUserResponse>;
     },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Get(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/users/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.username) {
-        queryParams.push(
-          `username=${encodeURIComponent(request.username.toString())}`,
-        );
+        queryParams.push(`username=${encodeURIComponent(request.username.toString())}`)
       }
       if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
+        queryParams.push(`viewMask=${encodeURIComponent(request.viewMask.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'UserService',
-          method: 'Get',
-        },
-      ) as Promise<identityservicev1_User>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "UserService",
+        method: "Get",
+      }) as Promise<identityservicev1_User>;
     },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Create(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/users`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'UserService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "UserService",
+        method: "Create",
+      }) as Promise<wellKnownEmpty>;
     },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Update(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/users/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'UserService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "UserService",
+        method: "Update",
+      }) as Promise<wellKnownEmpty>;
     },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    Delete(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
-        throw new Error('missing required field request.id');
+        throw new Error("missing required field request.id");
       }
       const path = `admin/v1/users/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.username) {
-        queryParams.push(
-          `username=${encodeURIComponent(request.username.toString())}`,
-        );
+        queryParams.push(`username=${encodeURIComponent(request.username.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'UserService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "UserService",
+        method: "Delete",
+      }) as Promise<wellKnownEmpty>;
     },
-    UserExists(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    UserExists(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/users:exists`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.id) {
-        queryParams.push(`id=${encodeURIComponent(request.id.toString())}`);
+        queryParams.push(`id=${encodeURIComponent(request.id.toString())}`)
       }
       if (request.username) {
-        queryParams.push(
-          `username=${encodeURIComponent(request.username.toString())}`,
-        );
+        queryParams.push(`username=${encodeURIComponent(request.username.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'UserService',
-          method: 'UserExists',
-        },
-      ) as Promise<identityservicev1_UserExistsResponse>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "UserService",
+        method: "UserExists",
+      }) as Promise<identityservicev1_UserExistsResponse>;
     },
-    EditUserPassword(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    EditUserPassword(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.userId) {
-        throw new Error('missing required field request.user_id');
+        throw new Error("missing required field request.user_id");
       }
       const path = `admin/v1/users/${request.userId}/password`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'UserService',
-          method: 'EditUserPassword',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "UserService",
+        method: "EditUserPassword",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -8181,179 +6610,141 @@ export interface UserProfileService {
   // 获取用户资料
   GetUser(request: wellKnownEmpty): Promise<identityservicev1_User>;
   // 更新用户资料
-  UpdateUser(
-    request: identityservicev1_UpdateUserRequest,
-  ): Promise<wellKnownEmpty>;
+  UpdateUser(request: identityservicev1_UpdateUserRequest): Promise<wellKnownEmpty>;
   // 修改用户密码
-  ChangePassword(
-    request: identityservicev1_ChangePasswordRequest,
-  ): Promise<wellKnownEmpty>;
+  ChangePassword(request: identityservicev1_ChangePasswordRequest): Promise<wellKnownEmpty>;
   // 上传头像
-  UploadAvatar(
-    request: identityservicev1_UploadAvatarRequest,
-  ): Promise<identityservicev1_UploadAvatarResponse>;
+  UploadAvatar(request: identityservicev1_UploadAvatarRequest): Promise<identityservicev1_UploadAvatarResponse>;
   // 删除头像
   DeleteAvatar(request: wellKnownEmpty): Promise<wellKnownEmpty>;
   // 绑定手机号码/邮箱
-  BindContact(
-    request: identityservicev1_BindContactRequest,
-  ): Promise<wellKnownEmpty>;
+  BindContact(request: identityservicev1_BindContactRequest): Promise<wellKnownEmpty>;
   // 验证手机号码/邮箱
-  VerifyContact(
-    request: identityservicev1_VerifyContactRequest,
-  ): Promise<wellKnownEmpty>;
+  VerifyContact(request: identityservicev1_VerifyContactRequest): Promise<wellKnownEmpty>;
 }
 
 export function createUserProfileServiceClient(
-  handler: RequestHandler,
+  handler: RequestHandler
 ): UserProfileService {
   return {
-    GetUser(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    GetUser(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/me`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'UserProfileService',
-          method: 'GetUser',
-        },
-      ) as Promise<identityservicev1_User>;
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "UserProfileService",
+        method: "GetUser",
+      }) as Promise<identityservicev1_User>;
     },
-    UpdateUser(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    UpdateUser(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/me`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'UserProfileService',
-          method: 'UpdateUser',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "PUT",
+        body,
+      }, {
+        service: "UserProfileService",
+        method: "UpdateUser",
+      }) as Promise<wellKnownEmpty>;
     },
-    ChangePassword(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    ChangePassword(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/me/password`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'UserProfileService',
-          method: 'ChangePassword',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "UserProfileService",
+        method: "ChangePassword",
+      }) as Promise<wellKnownEmpty>;
     },
-    UploadAvatar(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    UploadAvatar(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/me/avatar`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'UserProfileService',
-          method: 'UploadAvatar',
-        },
-      ) as Promise<identityservicev1_UploadAvatarResponse>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "UserProfileService",
+        method: "UploadAvatar",
+      }) as Promise<identityservicev1_UploadAvatarResponse>;
     },
-    DeleteAvatar(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    DeleteAvatar(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/me/avatar`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'UserProfileService',
-          method: 'DeleteAvatar',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "UserProfileService",
+        method: "DeleteAvatar",
+      }) as Promise<wellKnownEmpty>;
     },
-    BindContact(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    BindContact(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/me/contact`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'UserProfileService',
-          method: 'BindContact',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "UserProfileService",
+        method: "BindContact",
+      }) as Promise<wellKnownEmpty>;
     },
-    VerifyContact(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    VerifyContact(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/me/contact/verify`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
+        uri += `?${queryParams.join("&")}`
       }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'UserProfileService',
-          method: 'VerifyContact',
-        },
-      ) as Promise<wellKnownEmpty>;
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "UserProfileService",
+        method: "VerifyContact",
+      }) as Promise<wellKnownEmpty>;
     },
   };
 }
@@ -8409,5 +6800,6 @@ export type identityservicev1_EmailVerification = {
   // Behaviors: REQUIRED
   code: string | undefined;
 };
+
 
 // @@protoc_insertion_point(typescript-http-eof)

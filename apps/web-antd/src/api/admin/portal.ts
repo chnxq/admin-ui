@@ -1,6 +1,9 @@
 import type { RouteMeta, RouteRecordStringComponent } from '@vben/types';
 
-import type { resourceservicev1_MenuRouteItem } from '#/api/generated/admin/service/v1';
+import type {
+  AnalyticsDashboardResponse,
+  resourceservicev1_MenuRouteItem,
+} from '#/api/generated/admin/service/v1';
 
 import { adminPortalClient } from './clients';
 
@@ -75,4 +78,9 @@ export async function getInitialContextApi() {
     menus: (response.menus ?? []).map((route) => mapRoute(route)),
     permissions: response.permissions ?? [],
   };
+}
+
+export async function getAnalyticsDashboardApi() {
+  const response = await adminPortalClient.GetAnalyticsDashboard({});
+  return response as AnalyticsDashboardResponse;
 }

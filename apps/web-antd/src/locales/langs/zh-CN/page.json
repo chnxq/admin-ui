@@ -12,6 +12,23 @@
     "analytics": "分析页",
     "workspace": "工作台"
   },
+  "analytics": {
+    "accessCount": "访问数量",
+    "accessSource": "访问来源",
+    "businessRatio": "业务占比",
+    "currentAccessCount": "访问量",
+    "currentDownloadCount": "下载量",
+    "currentUsageCount": "使用量",
+    "currentUserCount": "用户量",
+    "loadFailed": "加载分析数据失败",
+    "month": "月",
+    "monthAccessCount": "月访问量",
+    "totalAccessCount": "总访问量",
+    "totalDownloadCount": "总下载量",
+    "totalUsageCount": "总使用量",
+    "totalUserCount": "总用户量",
+    "trafficTrend": "访问趋势"
+  },
   "api": {
     "moduleName": "API管理",
     "syncButton": "同步API",

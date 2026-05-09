@@ -1,14 +1,29 @@
 <script lang="ts" setup>
 import type { EchartsUIType } from '@vben/plugins/echarts';
 
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
+import { $t } from '@vben/locales';
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
+
+interface NamedValue {
+  name: string;
+  value: number;
+}
+
+interface Props {
+  items?: NamedValue[];
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  items: () => [],
+});
 
 const chartRef = ref<EchartsUIType>();
 const { renderEcharts } = useEcharts(chartRef);
 
-onMounted(() => {
+function renderChart() {
+  const sortedData = [...props.items].sort((a, b) => a.value - b.value);
   renderEcharts({
     series: [
       {
@@ -19,15 +34,8 @@ onMounted(() => {
         animationType: 'scale',
         center: ['50%', '50%'],
         color: ['#5ab1ef', '#b6a2de', '#67e0e3', '#2ec7c9'],
-        data: [
-          { name: '外包', value: 500 },
-          { name: '定制', value: 310 },
-          { name: '技术支持', value: 274 },
-          { name: '远程', value: 400 },
-        ].toSorted((a, b) => {
-          return a.value - b.value;
-        }),
-        name: '商业占比',
+        data: sortedData,
+        name: $t('page.analytics.businessRatio'),
         radius: '80%',
         roseType: 'radius',
         type: 'pie',
@@ -38,7 +46,19 @@ onMounted(() => {
       trigger: 'item',
     },
   });
+}
+
+onMounted(() => {
+  renderChart();
 });
+
+watch(
+  () => props.items,
+  () => {
+    renderChart();
+  },
+  { deep: true },
+);
 </script>
 
 <template>
