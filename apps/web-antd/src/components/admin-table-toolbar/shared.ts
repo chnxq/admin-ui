@@ -98,7 +98,7 @@ export function getAdminTableColumnSortField<T>(
 export function getDefaultVisibleColumnKeys<T>(columns: AdminTableColumn<T>[]) {
   return columns
     .map((column) => getAdminTableColumnKey(column))
-    .filter(Boolean);
+    .filter((key): key is string => Boolean(key));
 }
 
 export function filterVisibleAdminTableColumns<T>(
