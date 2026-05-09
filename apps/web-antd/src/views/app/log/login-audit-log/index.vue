@@ -14,6 +14,7 @@ import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 
 import { Tag } from 'ant-design-vue';
+import dayjs from 'dayjs';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminLoginAuditLogsApi } from '#/api/admin/login-audit-logs';
@@ -110,6 +111,16 @@ const formOptions: VbenFormProps = {
       fieldName: 'status',
       label: $t('page.loginAuditLog.status'),
     },
+    {
+      component: 'RangePicker',
+      componentProps: {
+        allowClear: true,
+        showTime: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+      },
+      fieldName: 'createdAtRange',
+      label: $t('page.loginAuditLog.createdAtRange'),
+    },
   ],
   showCollapseButton: false,
   submitOnEnter: true,
@@ -200,6 +211,8 @@ const gridOptions: VxeTableGridOptions<AdminLoginAuditLog> = {
 
         return await listAdminLoginAuditLogsApi({
           actionType: formValues.actionType,
+          createdAtEnd: toFilterTimeValue(formValues.createdAtRange?.[1], true),
+          createdAtStart: toFilterTimeValue(formValues.createdAtRange?.[0], false),
           ipAddress: formValues.ipAddress,
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -394,6 +407,17 @@ function formatLoginMethod(value?: string) {
       return value?.trim() || '-';
     }
   }
+}
+
+function toFilterTimeValue(value?: string, endOfSecond = false) {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = dayjs(value);
+  if (!parsed.isValid()) {
+    return undefined;
+  }
+  return (endOfSecond ? parsed.endOf('second') : parsed.startOf('second')).toISOString();
 }
 
 const [Grid] = useVbenVxeGrid<AdminLoginAuditLog>({

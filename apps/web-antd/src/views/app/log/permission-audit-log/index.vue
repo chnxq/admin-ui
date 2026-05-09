@@ -11,6 +11,7 @@ import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 
 import { Tag } from 'ant-design-vue';
+import dayjs from 'dayjs';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminPermissionAuditLogsApi } from '#/api/admin/permission-audit-logs';
@@ -82,6 +83,16 @@ const formOptions: VbenFormProps = {
       },
       fieldName: 'reason',
       label: $t('page.permissionAuditLog.reason'),
+    },
+    {
+      component: 'RangePicker',
+      componentProps: {
+        allowClear: true,
+        showTime: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+      },
+      fieldName: 'createdAtRange',
+      label: $t('page.permissionAuditLog.createdAtRange'),
     },
   ],
   showCollapseButton: false,
@@ -164,6 +175,8 @@ const gridOptions: VxeTableGridOptions<AdminPermissionAuditLog> = {
 
         return await listAdminPermissionAuditLogsApi({
           action: formValues.action,
+          createdAtEnd: toFilterTimeValue(formValues.createdAtRange?.[1], true),
+          createdAtStart: toFilterTimeValue(formValues.createdAtRange?.[0], false),
           ipAddress: formValues.ipAddress,
           operatorName: formValues.operatorName,
           page: page.currentPage,
@@ -242,6 +255,17 @@ function getActionColor(value?: AdminPermissionAuditLogActionType) {
 function formatJsonText(value?: string) {
   const text = value?.trim();
   return text || '-';
+}
+
+function toFilterTimeValue(value?: string, endOfSecond = false) {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = dayjs(value);
+  if (!parsed.isValid()) {
+    return undefined;
+  }
+  return (endOfSecond ? parsed.endOf('second') : parsed.startOf('second')).toISOString();
 }
 
 const [Grid] = useVbenVxeGrid<AdminPermissionAuditLog>({

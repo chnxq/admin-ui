@@ -22,6 +22,8 @@ export type AdminLoginAuditLogStatus = auditservicev1_LoginAuditLog_Status;
 
 export interface AdminLoginAuditLogListParams {
   actionType?: AdminLoginAuditLogActionType;
+  createdAtEnd?: string;
+  createdAtStart?: string;
   page?: number;
   pageSize?: number;
   riskLevel?: AdminLoginAuditLogRiskLevel;
@@ -41,9 +43,22 @@ function cleanText(value?: string) {
   return text || undefined;
 }
 
+function normalizeTimeValue(value?: string) {
+  if (!value) {
+    return undefined;
+  }
+  const text = value.trim();
+  if (!text) {
+    return undefined;
+  }
+  return text;
+}
+
 export async function listAdminLoginAuditLogsApi(
   params: AdminLoginAuditLogListParams = {},
 ): Promise<AdminLoginAuditLogListResult> {
+  const createdAtStart = normalizeTimeValue(params.createdAtStart);
+  const createdAtEnd = normalizeTimeValue(params.createdAtEnd);
   const response = await getAdminList<auditservicev1_ListLoginAuditLogResponse>(
     '/admin/v1/login-audit-logs',
     toPagingRequest({
@@ -72,6 +87,16 @@ export async function listAdminLoginAuditLogsApi(
           field: 'status',
           op: 'EQ',
           value: params.status,
+        },
+        {
+          field: 'created_at',
+          op: 'GTE',
+          value: createdAtStart,
+        },
+        {
+          field: 'created_at',
+          op: 'LTE',
+          value: createdAtEnd,
         },
       ],
       page: params.page,

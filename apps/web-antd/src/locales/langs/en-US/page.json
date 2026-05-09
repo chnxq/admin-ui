@@ -340,6 +340,7 @@
     "failureReason": "Reason",
     "searchUsername": "Search username",
     "searchIpAddress": "Search IP",
+    "createdAtRange": "Time Range",
     "selectActionType": "Select action",
     "selectRiskLevel": "Select risk level",
     "selectStatus": "Select status",
@@ -383,6 +384,7 @@
     "searchPath": "Search path",
     "searchApiModule": "Search module",
     "searchStatusCode": "e.g. 200",
+    "createdAtRange": "Time Range",
     "searchReason": "Search reason",
     "resultSuccess": "Success",
     "resultFailed": "Failed",
@@ -407,6 +409,7 @@
     "searchTargetType": "Search target type",
     "searchOperatorName": "Search operator",
     "searchIpAddress": "Search IP",
+    "createdAtRange": "Time Range",
     "searchReason": "Search reason",
     "selectAction": "Select action",
     "unspecified": "Unspecified"

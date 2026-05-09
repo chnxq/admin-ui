@@ -340,6 +340,7 @@
     "failureReason": "结果说明",
     "searchUsername": "输入用户名",
     "searchIpAddress": "输入 IP",
+    "createdAtRange": "时间范围",
     "selectActionType": "选择动作",
     "selectRiskLevel": "选择风险等级",
     "selectStatus": "选择状态",
@@ -383,6 +384,7 @@
     "searchPath": "输入路径",
     "searchApiModule": "输入模块",
     "searchStatusCode": "例如 200",
+    "createdAtRange": "时间范围",
     "searchReason": "输入结果说明",
     "resultSuccess": "成功",
     "resultFailed": "失败",
@@ -407,6 +409,7 @@
     "searchTargetType": "输入目标类型",
     "searchOperatorName": "输入操作人",
     "searchIpAddress": "输入 IP",
+    "createdAtRange": "时间范围",
     "searchReason": "输入原因",
     "selectAction": "选择动作",
     "unspecified": "未指定"

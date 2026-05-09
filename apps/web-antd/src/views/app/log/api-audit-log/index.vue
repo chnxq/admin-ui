@@ -8,6 +8,7 @@ import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 
 import { Tag } from 'ant-design-vue';
+import dayjs from 'dayjs';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminApiAuditLogsApi } from '#/api/admin/api-audit-logs';
@@ -83,6 +84,16 @@ const formOptions: VbenFormProps = {
       },
       fieldName: 'reason',
       label: $t('page.apiAuditLog.reason'),
+    },
+    {
+      component: 'RangePicker',
+      componentProps: {
+        allowClear: true,
+        showTime: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+      },
+      fieldName: 'createdAtRange',
+      label: $t('page.apiAuditLog.createdAtRange'),
     },
   ],
   showCollapseButton: false,
@@ -173,6 +184,8 @@ const gridOptions: VxeTableGridOptions<AdminApiAuditLog> = {
 
         return await listAdminApiAuditLogsApi({
           apiModule: formValues.apiModule,
+          createdAtEnd: toFilterTimeValue(formValues.createdAtRange?.[1], true),
+          createdAtStart: toFilterTimeValue(formValues.createdAtRange?.[0], false),
           httpMethod: formValues.httpMethod,
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -272,6 +285,17 @@ function formatGeoLocation(record: AdminApiAuditLog) {
     .filter(Boolean);
 
   return values.length > 0 ? values.join(' / ') : '-';
+}
+
+function toFilterTimeValue(value?: string, endOfSecond = false) {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = dayjs(value);
+  if (!parsed.isValid()) {
+    return undefined;
+  }
+  return (endOfSecond ? parsed.endOf('second') : parsed.startOf('second')).toISOString();
 }
 
 const [Grid] = useVbenVxeGrid<AdminApiAuditLog>({

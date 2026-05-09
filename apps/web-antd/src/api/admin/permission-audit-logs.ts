@@ -14,6 +14,8 @@ export type AdminPermissionAuditLogActionType =
 
 export interface AdminPermissionAuditLogListParams {
   action?: AdminPermissionAuditLogActionType;
+  createdAtEnd?: string;
+  createdAtStart?: string;
   ipAddress?: string;
   operatorName?: string;
   page?: number;
@@ -33,9 +35,22 @@ function cleanText(value?: string) {
   return text || undefined;
 }
 
+function normalizeTimeValue(value?: string) {
+  if (!value) {
+    return undefined;
+  }
+  const text = value.trim();
+  if (!text) {
+    return undefined;
+  }
+  return text;
+}
+
 export async function listAdminPermissionAuditLogsApi(
   params: AdminPermissionAuditLogListParams = {},
 ): Promise<AdminPermissionAuditLogListResult> {
+  const createdAtStart = normalizeTimeValue(params.createdAtStart);
+  const createdAtEnd = normalizeTimeValue(params.createdAtEnd);
   const response =
     await getAdminList<auditservicev1_ListPermissionAuditLogResponse>(
       '/admin/v1/permission-audit-logs',
@@ -65,6 +80,16 @@ export async function listAdminPermissionAuditLogsApi(
             field: 'operator_name',
             op: 'CONTAINS',
             value: cleanText(params.operatorName),
+          },
+          {
+            field: 'created_at',
+            op: 'GTE',
+            value: createdAtStart,
+          },
+          {
+            field: 'created_at',
+            op: 'LTE',
+            value: createdAtEnd,
           },
         ],
         page: params.page,
