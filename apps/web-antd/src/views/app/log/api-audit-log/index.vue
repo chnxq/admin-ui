@@ -185,7 +185,10 @@ const gridOptions: VxeTableGridOptions<AdminApiAuditLog> = {
         return await listAdminApiAuditLogsApi({
           apiModule: formValues.apiModule,
           createdAtEnd: toFilterTimeValue(formValues.createdAtRange?.[1], true),
-          createdAtStart: toFilterTimeValue(formValues.createdAtRange?.[0], false),
+          createdAtStart: toFilterTimeValue(
+            formValues.createdAtRange?.[0],
+            false,
+          ),
           httpMethod: formValues.httpMethod,
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -295,7 +298,9 @@ function toFilterTimeValue(value?: string, endOfSecond = false) {
   if (!parsed.isValid()) {
     return undefined;
   }
-  return (endOfSecond ? parsed.endOf('second') : parsed.startOf('second')).toISOString();
+  return (
+    endOfSecond ? parsed.endOf('second') : parsed.startOf('second')
+  ).toISOString();
 }
 
 const [Grid] = useVbenVxeGrid<AdminApiAuditLog>({
