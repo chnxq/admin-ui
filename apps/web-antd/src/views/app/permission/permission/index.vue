@@ -776,7 +776,7 @@ onMounted(() => {
               <template #icon>
                 <IconifyIcon icon="lucide:refresh-cw" />
               </template>
-              {{ $t('page.permission.moduleName') }}
+              {{ $t('page.permission.syncButton') }}
             </Button>
             <Button
               v-access:code="PERMISSION_ACCESS.create"

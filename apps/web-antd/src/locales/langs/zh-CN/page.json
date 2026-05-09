@@ -275,6 +275,7 @@
     "placeholderRemark": "请输入备注"
   },
   "permission": {
+    "syncButton": "同步权限点",
     "moduleName": "权限点管理",
     "permission": "权限点",
     "groupName": "权限组",

@@ -276,6 +276,7 @@
   },
   "permission": {
     "moduleName": "Permission Management",
+    "syncButton": "Sync Permission",
     "permission": "Permission",
     "groupName": "Permission Group",
     "status": "Status",
