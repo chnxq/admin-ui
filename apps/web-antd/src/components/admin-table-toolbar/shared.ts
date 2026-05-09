@@ -1,5 +1,7 @@
 import type { TableColumnsType } from 'ant-design-vue';
 
+import { $t } from '@vben/locales';
+
 type ColumnPath = Array<number | string> | number | string;
 type AdminTableSortOrder = 'ascend' | 'descend';
 
@@ -11,8 +13,8 @@ type AdminTableColumnBase<T> = TableColumnsType<T>[number] & {
   exportValue?: (record: T) => unknown;
   hideInColumnSettings?: boolean;
   key?: number | string;
-  sortField?: string;
   sortable?: boolean;
+  sortField?: string;
 };
 
 export type AdminTableColumn<T = Record<string, any>> = AdminTableColumnBase<T>;
@@ -75,7 +77,7 @@ export function getAdminTableColumnTitle<T>(
 }
 
 export function getAdminTableColumnSortField<T>(
-  column: Pick<AdminTableColumnBase<T>, 'dataIndex' | 'sortField' | 'sortable'>,
+  column: Pick<AdminTableColumnBase<T>, 'dataIndex' | 'sortable' | 'sortField'>,
 ) {
   const configured = column.sortField?.trim();
   if (configured) {
@@ -96,7 +98,7 @@ export function getAdminTableColumnSortField<T>(
 export function getDefaultVisibleColumnKeys<T>(columns: AdminTableColumn<T>[]) {
   return columns
     .map((column) => getAdminTableColumnKey(column))
-    .filter((key): key is string => Boolean(key));
+    .filter(Boolean);
 }
 
 export function filterVisibleAdminTableColumns<T>(
@@ -142,15 +144,15 @@ export function applyAdminTableSorting<T>(
 export function toAdminTableSorting<T>(
   sorter?: AdminTableSorterLike<T> | AdminTableSorterLike<T>[],
 ) {
-  const items = Array.isArray(sorter) ? sorter : sorter ? [sorter] : [];
+  const items = Array.isArray(sorter) ? sorter : (sorter ? [sorter] : []);
 
   return items.flatMap((item) => {
     const direction =
       item.order === 'ascend'
         ? 'ASC'
-        : item.order === 'descend'
+        : (item.order === 'descend'
           ? 'DESC'
-          : undefined;
+          : undefined);
     if (!direction) {
       return [];
     }
@@ -300,8 +302,8 @@ function resolveHeuristicExportValue<T extends Record<string, any>>(
     }
     case 'resource': {
       return [
-        `菜单 ${record.menuIds?.length ?? 0}`,
-        `API ${record.apiIds?.length ?? 0}`,
+        $t('ui.tableToolbar.menuCount', [record.menuIds?.length ?? 0]),
+        $t('ui.tableToolbar.apiCount', [record.apiIds?.length ?? 0]),
       ].join(' / ');
     }
     case 'role': {

@@ -1,39 +1,23 @@
 <script lang="ts" setup>
-import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
+import type { VbenFormProps } from '@vben/common-ui';
 
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type {
   AdminLoginAuditLog,
   AdminLoginAuditLogActionType,
+  AdminLoginAuditLogLoginMethod,
   AdminLoginAuditLogRiskLevel,
   AdminLoginAuditLogStatus,
 } from '#/api/admin/login-audit-logs';
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 
-import { computed, onMounted, reactive, ref } from 'vue';
-
+import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 
-import { Button, Form, Input, Select, Space, Table, Tag } from 'ant-design-vue';
-import dayjs from 'dayjs';
+import { Tag } from 'ant-design-vue';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminLoginAuditLogsApi } from '#/api/admin/login-audit-logs';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
-
-type LoginAuditLogRecord = AdminLoginAuditLog | Record<string, any>;
-type AdminTableChangeSorter = Parameters<
-  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
->[2];
 
 const LOGIN_AUDIT_ACCESS = {
   export: ['login:audit:logs:export'],
@@ -73,166 +57,271 @@ const statusOptions: Array<{ label: string; value: AdminLoginAuditLogStatus }> =
     { label: $t('page.loginAuditLog.statusLocked'), value: 'LOCKED' },
   ];
 
-const actionTypeTextMap: Record<AdminLoginAuditLogActionType, string> = {
-  ACTION_TYPE_UNSPECIFIED: $t('page.loginAuditLog.unspecified'),
-  KICKED_OUT: $t('page.loginAuditLog.actionKickedOut'),
-  LOGIN: $t('page.loginAuditLog.actionLogin'),
-  LOGOUT: $t('page.loginAuditLog.actionLogout'),
-  PASSWORD_RESET: $t('page.loginAuditLog.actionPasswordReset'),
-  SESSION_EXPIRED: $t('page.loginAuditLog.actionSessionExpired'),
+const { hasAccessByCodes } = useAccess();
+
+const formOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.loginAuditLog.searchUsername'),
+      },
+      fieldName: 'username',
+      label: $t('page.loginAuditLog.username'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.loginAuditLog.searchIpAddress'),
+      },
+      fieldName: 'ipAddress',
+      label: $t('page.loginAuditLog.ipAddress'),
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: actionTypeOptions,
+        placeholder: $t('page.loginAuditLog.selectActionType'),
+      },
+      fieldName: 'actionType',
+      label: $t('page.loginAuditLog.actionType'),
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: riskLevelOptions,
+        placeholder: $t('page.loginAuditLog.selectRiskLevel'),
+      },
+      fieldName: 'riskLevel',
+      label: $t('page.loginAuditLog.riskLevel'),
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: statusOptions,
+        placeholder: $t('page.loginAuditLog.selectStatus'),
+      },
+      fieldName: 'status',
+      label: $t('page.loginAuditLog.status'),
+    },
+  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
 };
 
-const riskLevelTextMap: Record<AdminLoginAuditLogRiskLevel, string> = {
-  HIGH: $t('page.loginAuditLog.riskHigh'),
-  LOW: $t('page.loginAuditLog.riskLow'),
-  MEDIUM: $t('page.loginAuditLog.riskMedium'),
-  RISK_LEVEL_UNSPECIFIED: $t('page.loginAuditLog.unspecified'),
+const gridOptions: VxeTableGridOptions<AdminLoginAuditLog> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
+  },
+  columns: [
+    {
+      field: 'createdAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.loginAuditLog.createdAt'),
+      width: 150,
+    },
+    {
+      field: 'status',
+      slots: { default: 'status' },
+      title: $t('page.loginAuditLog.status'),
+      width: 110,
+    },
+    {
+      field: 'username',
+      sortable: true,
+      title: $t('page.loginAuditLog.username'),
+      width: 140,
+    },
+    {
+      field: 'actionType',
+      slots: { default: 'actionType' },
+      title: $t('page.loginAuditLog.actionType'),
+      width: 130,
+    },
+    {
+      field: 'riskLevel',
+      slots: { default: 'riskLevel' },
+      title: $t('page.loginAuditLog.riskLevel'),
+      width: 120,
+    },
+    {
+      field: 'platformSummary',
+      slots: { default: 'platformSummary' },
+      title: $t('page.loginAuditLog.platform'),
+      width: 170,
+    },
+    {
+      field: 'geoLocationSummary',
+      slots: { default: 'geoLocationSummary' },
+      title: $t('page.loginAuditLog.geoLocation'),
+      width: 240,
+    },
+    {
+      field: 'ipAddress',
+      title: $t('page.loginAuditLog.ipAddress'),
+      width: 140,
+    },
+    {
+      field: 'loginMethod',
+      slots: { default: 'loginMethod' },
+      title: $t('page.loginAuditLog.loginMethod'),
+      width: 130,
+    },
+    {
+      field: 'deviceInfo.userAgent',
+      slots: { default: 'userAgent' },
+      title: 'User-Agent',
+      width: 280,
+    },
+  ],
+  exportConfig: {
+    filename: 'login-audit-logs',
+    type: 'csv',
+  },
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {},
+  proxyConfig: {
+    ajax: {
+      query: async (
+        { page, sort }: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        const sortField = String(sort.field || 'createdAt');
+        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+
+        return await listAdminLoginAuditLogsApi({
+          actionType: formValues.actionType,
+          ipAddress: formValues.ipAddress,
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          riskLevel: formValues.riskLevel,
+          sorting: [
+            {
+              direction,
+              field: sortField === 'createdAt' ? 'created_at' : sortField,
+            },
+          ],
+          status: formValues.status,
+          username: formValues.username,
+        });
+      },
+    },
+    sort: true,
+  },
+  rowConfig: {
+    isHover: true,
+  },
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: hasAccessByCodes([...LOGIN_AUDIT_ACCESS.export]),
+    refresh: true,
+    zoom: true,
+  },
 };
-
-const statusTextMap: Record<AdminLoginAuditLogStatus, string> = {
-  FAILED: $t('page.loginAuditLog.statusFailed'),
-  LOCKED: $t('page.loginAuditLog.statusLocked'),
-  PARTIAL: $t('page.loginAuditLog.statusPartial'),
-  STATUS_UNSPECIFIED: $t('page.loginAuditLog.unspecified'),
-  SUCCESS: $t('page.loginAuditLog.statusSuccess'),
-};
-
-const columns: AdminTableColumn<AdminLoginAuditLog>[] = [
-  {
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    sortField: 'created_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.loginAuditLog.createdAt'),
-    width: 170,
-  },
-  {
-    dataIndex: 'status',
-    key: 'status',
-    sortable: true,
-    sorter: true,
-    title: $t('page.loginAuditLog.status'),
-    width: 100,
-  },
-  {
-    dataIndex: 'username',
-    sortable: true,
-    sorter: true,
-    title: $t('page.loginAuditLog.username'),
-    width: 140,
-  },
-  {
-    dataIndex: 'actionType',
-    key: 'actionType',
-    title: $t('page.loginAuditLog.actionType'),
-    width: 120,
-  },
-  {
-    dataIndex: 'riskLevel',
-    key: 'riskLevel',
-    title: $t('page.loginAuditLog.riskLevel'),
-    width: 110,
-  },
-  {
-    dataIndex: 'ipAddress',
-    key: 'ipAddress',
-    title: $t('page.loginAuditLog.ipAddress'),
-    width: 140,
-  },
-  {
-    dataIndex: 'loginMethod',
-    key: 'loginMethod',
-    title: $t('page.loginAuditLog.loginMethod'),
-    width: 120,
-  },
-  {
-    dataIndex: 'deviceInfo.platform',
-    key: 'platform',
-    title: $t('page.loginAuditLog.platform'),
-    width: 120,
-  },
-  {
-    dataIndex: 'deviceInfo.userAgent',
-    key: 'userAgent',
-    title: 'User-Agent',
-    width: 280,
-  },
-  {
-    dataIndex: 'failureReason',
-    key: 'failureReason',
-    title: $t('page.loginAuditLog.failureReason'),
-    width: 220,
-  },
-];
-
-const loading = ref(false);
-const tableSurfaceRef = ref<HTMLElement>();
-const logs = ref<AdminLoginAuditLog[]>([]);
-const sorting = ref<AdminTableSorting[]>([
-  { direction: 'DESC', field: 'created_at' },
-]);
-const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
-
-const searchForm = reactive({
-  actionType: undefined as AdminLoginAuditLogActionType | undefined,
-  ipAddress: '',
-  riskLevel: undefined as AdminLoginAuditLogRiskLevel | undefined,
-  status: undefined as AdminLoginAuditLogStatus | undefined,
-  username: '',
-});
-
-const pager = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-});
-
-const displayColumns = computed<TableColumnsType<AdminLoginAuditLog>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(columns, sorting.value),
-    visibleColumnKeys.value,
-  ),
-);
-
-const tablePagination = computed<TablePaginationConfig>(() => ({
-  current: pager.page,
-  pageSize: pager.pageSize,
-  showSizeChanger: true,
-  showTotal: (total) => `${$t('page.loginAuditLog.total')} ${total}`,
-  total: pager.total,
-}));
-
-function formatTime(value?: string) {
-  return value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '-';
-}
 
 function getActionTypeText(value?: AdminLoginAuditLogActionType) {
-  return value ? (actionTypeTextMap[value] ?? value) : '-';
+  switch (value) {
+    case 'KICKED_OUT': {
+      return $t('page.loginAuditLog.actionKickedOut');
+    }
+    case 'LOGIN': {
+      return $t('page.loginAuditLog.actionLogin');
+    }
+    case 'LOGOUT': {
+      return $t('page.loginAuditLog.actionLogout');
+    }
+    case 'PASSWORD_RESET': {
+      return $t('page.loginAuditLog.actionPasswordReset');
+    }
+    case 'SESSION_EXPIRED': {
+      return $t('page.loginAuditLog.actionSessionExpired');
+    }
+    default: {
+      return $t('page.loginAuditLog.unspecified');
+    }
+  }
 }
 
 function getRiskLevelText(value?: AdminLoginAuditLogRiskLevel) {
-  return value ? (riskLevelTextMap[value] ?? value) : '-';
+  switch (value) {
+    case 'HIGH': {
+      return $t('page.loginAuditLog.riskHigh');
+    }
+    case 'LOW': {
+      return $t('page.loginAuditLog.riskLow');
+    }
+    case 'MEDIUM': {
+      return $t('page.loginAuditLog.riskMedium');
+    }
+    default: {
+      return $t('page.loginAuditLog.unspecified');
+    }
+  }
 }
 
 function getStatusText(value?: AdminLoginAuditLogStatus) {
-  return value ? (statusTextMap[value] ?? value) : '-';
+  switch (value) {
+    case 'FAILED': {
+      return $t('page.loginAuditLog.statusFailed');
+    }
+    case 'LOCKED': {
+      return $t('page.loginAuditLog.statusLocked');
+    }
+    case 'PARTIAL': {
+      return $t('page.loginAuditLog.statusPartial');
+    }
+    case 'SUCCESS': {
+      return $t('page.loginAuditLog.statusSuccess');
+    }
+    default: {
+      return $t('page.loginAuditLog.unspecified');
+    }
+  }
 }
 
 function getStatusColor(value?: AdminLoginAuditLogStatus) {
   switch (value) {
-    case 'FAILED':
-    case 'LOCKED': {
-      return 'error';
+    case 'FAILED': {
+      return 'crimson';
     }
+    case 'LOCKED':
     case 'PARTIAL': {
-      return 'warning';
+      return 'orange';
     }
     case 'SUCCESS': {
-      return 'success';
+      return 'limegreen';
     }
     default: {
-      return 'default';
+      return '#86909C';
+    }
+  }
+}
+
+function getActionTypeColor(value?: AdminLoginAuditLogActionType) {
+  switch (value) {
+    case 'KICKED_OUT':
+    case 'PASSWORD_RESET':
+    case 'SESSION_EXPIRED': {
+      return 'orange';
+    }
+    case 'LOGIN': {
+      return 'limegreen';
+    }
+    case 'LOGOUT': {
+      return '#1890FF';
+    }
+    default: {
+      return '#86909C';
     }
   }
 }
@@ -240,254 +329,122 @@ function getStatusColor(value?: AdminLoginAuditLogStatus) {
 function getRiskLevelColor(value?: AdminLoginAuditLogRiskLevel) {
   switch (value) {
     case 'HIGH': {
-      return 'error';
+      return 'crimson';
     }
     case 'LOW': {
-      return 'success';
+      return 'limegreen';
     }
     case 'MEDIUM': {
-      return 'warning';
+      return 'orange';
     }
     default: {
-      return 'default';
+      return '#86909C';
     }
   }
 }
 
-function formatGeoLocation(record: LoginAuditLogRecord) {
-  const location = (record as AdminLoginAuditLog).geoLocation;
-  const values = [location?.countryCode, location?.province, location?.city]
+function formatPlatform(record: AdminLoginAuditLog) {
+  const values = [
+    record.deviceInfo?.osName || record.deviceInfo?.platform,
+    record.deviceInfo?.browserName,
+  ]
     .map((item) => item?.trim())
     .filter(Boolean);
+
   return values.length > 0 ? values.join(' / ') : '-';
 }
 
-async function loadLogs() {
-  loading.value = true;
-  try {
-    const response = await listAdminLoginAuditLogsApi({
-      actionType: searchForm.actionType,
-      ipAddress: searchForm.ipAddress,
-      page: pager.page,
-      pageSize: pager.pageSize,
-      riskLevel: searchForm.riskLevel,
-      sorting: sorting.value,
-      status: searchForm.status,
-      username: searchForm.username,
-    });
-    logs.value = response.items;
-    pager.total = response.total;
-  } finally {
-    loading.value = false;
+function formatGeoLocation(record: AdminLoginAuditLog) {
+  const values = [
+    record.geoLocation?.countryCode,
+    record.geoLocation?.province,
+    record.geoLocation?.city,
+  ]
+    .map((item) => item?.trim())
+    .filter(Boolean);
+
+  return values.length > 0 ? values.join(' / ') : '-';
+}
+
+function formatFailureReason(record: AdminLoginAuditLog) {
+  return record.failureReason?.trim() || formatGeoLocation(record);
+}
+
+function formatLoginMethod(value?: string) {
+  switch (value as AdminLoginAuditLogLoginMethod | undefined) {
+    case 'BIOMETRIC': {
+      return $t('page.loginAuditLog.methodBiometric');
+    }
+    case 'FIDO2': {
+      return $t('page.loginAuditLog.methodFido2');
+    }
+    case 'OIDC_SOCIAL': {
+      return $t('page.loginAuditLog.methodOidcSocial');
+    }
+    case 'PASSWORD': {
+      return $t('page.loginAuditLog.methodPassword');
+    }
+    case 'QR_CODE': {
+      return $t('page.loginAuditLog.methodQrCode');
+    }
+    case 'SMS_CODE': {
+      return $t('page.loginAuditLog.methodSmsCode');
+    }
+    default: {
+      return value?.trim() || '-';
+    }
   }
 }
 
-async function handleSearch() {
-  pager.page = 1;
-  await loadLogs();
-}
-
-async function handleReset() {
-  searchForm.actionType = undefined;
-  searchForm.ipAddress = '';
-  searchForm.riskLevel = undefined;
-  searchForm.status = undefined;
-  searchForm.username = '';
-  pager.page = 1;
-  sorting.value = [{ direction: 'DESC', field: 'created_at' }];
-  await loadLogs();
-}
-
-async function handleTableChange(
-  pagination: TablePaginationConfig,
-  _filters: Record<string, any>,
-  sorter: AdminTableChangeSorter,
-) {
-  pager.page = pagination.current ?? 1;
-  pager.pageSize = pagination.pageSize ?? 10;
-  const nextSorting = toAdminTableSorting(sorter as any);
-  sorting.value =
-    nextSorting.length > 0
-      ? nextSorting
-      : [{ direction: 'DESC', field: 'created_at' }];
-  await loadLogs();
-}
-
-onMounted(() => {
-  loadLogs();
+const [Grid] = useVbenVxeGrid<AdminLoginAuditLog>({
+  formOptions,
+  gridClass: 'log-audit-grid',
+  gridOptions,
 });
 </script>
 
 <template>
-  <Page auto-content-height :title="$t('menu.log.loginAuditLog')">
-    <div ref="tableSurfaceRef" class="admin-log-surface">
-      <div class="admin-log-toolbar">
-        <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item :label="$t('page.loginAuditLog.username')" name="username">
-            <Input
-              v-model:value="searchForm.username"
-              allow-clear
-              :placeholder="$t('page.loginAuditLog.searchUsername')"
-            />
-          </Form.Item>
-          <Form.Item
-            :label="$t('page.loginAuditLog.ipAddress')"
-            name="ipAddress"
-          >
-            <Input
-              v-model:value="searchForm.ipAddress"
-              allow-clear
-              :placeholder="$t('page.loginAuditLog.searchIpAddress')"
-            />
-          </Form.Item>
-          <Form.Item
-            :label="$t('page.loginAuditLog.actionType')"
-            name="actionType"
-          >
-            <Select
-              v-model:value="searchForm.actionType"
-              allow-clear
-              :options="actionTypeOptions"
-              :placeholder="$t('page.loginAuditLog.selectActionType')"
-              style="width: 140px"
-            />
-          </Form.Item>
-          <Form.Item
-            :label="$t('page.loginAuditLog.riskLevel')"
-            name="riskLevel"
-          >
-            <Select
-              v-model:value="searchForm.riskLevel"
-              allow-clear
-              :options="riskLevelOptions"
-              :placeholder="$t('page.loginAuditLog.selectRiskLevel')"
-              style="width: 120px"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.loginAuditLog.status')" name="status">
-            <Select
-              v-model:value="searchForm.status"
-              allow-clear
-              :options="statusOptions"
-              :placeholder="$t('page.loginAuditLog.selectStatus')"
-              style="width: 120px"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button html-type="submit" type="primary">
-                <template #icon>
-                  <IconifyIcon icon="lucide:search" />
-                </template>
-                {{ $t('common.search') }}
-              </Button>
-              <Button @click="handleReset">
-                <template #icon>
-                  <IconifyIcon icon="lucide:rotate-ccw" />
-                </template>
-                {{ $t('common.reset') }}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
+  <Page auto-content-height>
+    <Grid :table-title="$t('menu.log.loginAuditLog')">
+      <template #status="{ row }">
+        <Tag :color="getStatusColor(row.status)">
+          {{ getStatusText(row.status) }}
+        </Tag>
+      </template>
 
-        <AdminTableToolbar
-          v-model:column-keys="visibleColumnKeys"
-          :columns="columns"
-          :data-source="logs"
-          :export-access-codes="LOGIN_AUDIT_ACCESS.export"
-          file-name="login-audit-logs"
-          :fullscreen-target="tableSurfaceRef"
-          :refresh="loadLogs"
-          storage-key="app-login-audit-log-list"
-        />
-      </div>
+      <template #actionType="{ row }">
+        <Tag :color="getActionTypeColor(row.actionType)">
+          {{ getActionTypeText(row.actionType) }}
+        </Tag>
+      </template>
 
-      <Table
-        class="admin-log-table"
-        :columns="displayColumns"
-        :data-source="logs"
-        :loading="loading"
-        :pagination="tablePagination"
-        row-key="id"
-        size="middle"
-        @change="handleTableChange"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'createdAt'">
-            {{ formatTime(record.createdAt) }}
-          </template>
+      <template #riskLevel="{ row }">
+        <Tag :color="getRiskLevelColor(row.riskLevel)">
+          {{ getRiskLevelText(row.riskLevel) }}
+        </Tag>
+      </template>
 
-          <template v-else-if="column.key === 'status'">
-            <Tag :color="getStatusColor(record.status)">
-              {{ getStatusText(record.status) }}
-            </Tag>
-          </template>
+      <template #platformSummary="{ row }">
+        <span :title="formatPlatform(row)">
+          {{ formatPlatform(row) }}
+        </span>
+      </template>
 
-          <template v-else-if="column.key === 'actionType'">
-            {{ getActionTypeText(record.actionType) }}
-          </template>
+      <template #geoLocationSummary="{ row }">
+        <span :title="formatFailureReason(row)">
+          {{ formatFailureReason(row) }}
+        </span>
+      </template>
 
-          <template v-else-if="column.key === 'riskLevel'">
-            <Tag :color="getRiskLevelColor(record.riskLevel)">
-              {{ getRiskLevelText(record.riskLevel) }}
-            </Tag>
-          </template>
+      <template #loginMethod="{ row }">
+        {{ formatLoginMethod(row.loginMethod) }}
+      </template>
 
-          <template v-else-if="column.key === 'platform'">
-            {{ record.deviceInfo?.platform || '-' }}
-          </template>
-
-          <template v-else-if="column.key === 'userAgent'">
-            <span :title="record.deviceInfo?.userAgent || ''">
-              {{ record.deviceInfo?.userAgent || '-' }}
-            </span>
-          </template>
-
-          <template v-else-if="column.key === 'failureReason'">
-            <span :title="record.failureReason || formatGeoLocation(record)">
-              {{ record.failureReason || formatGeoLocation(record) }}
-            </span>
-          </template>
-        </template>
-      </Table>
-    </div>
+      <template #userAgent="{ row }">
+        <span :title="row.deviceInfo?.userAgent || ''">
+          {{ row.deviceInfo?.userAgent || '-' }}
+        </span>
+      </template>
+    </Grid>
   </Page>
 </template>
-
-<style scoped>
-.admin-log-surface {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 100%;
-  padding: 16px;
-  overflow-y: auto;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-}
-
-.admin-log-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-.admin-log-table {
-  flex: 1;
-  min-height: 0;
-}
-
-@media (max-width: 640px) {
-  .admin-log-surface {
-    padding: 12px;
-  }
-
-  .admin-log-toolbar {
-    align-items: stretch;
-  }
-}
-</style>

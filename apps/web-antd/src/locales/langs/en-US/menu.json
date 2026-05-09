@@ -17,6 +17,7 @@
   "log": {
     "moduleName": "Audit Logs",
     "loginAuditLog": "Login Logs",
-    "apiAuditLog": "API Logs"
+    "apiAuditLog": "API Logs",
+    "permissionAuditLog": "Permission Audit Logs"
   }
 }

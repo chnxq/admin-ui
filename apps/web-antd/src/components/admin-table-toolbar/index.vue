@@ -5,6 +5,7 @@ import { computed, ref, toRef, watch } from 'vue';
 
 import { AccessControl } from '@vben/access';
 import { IconifyIcon } from '@vben/icons';
+import { $t } from '@vben/locales';
 import { downloadFileFromBlobPart } from '@vben/utils';
 
 import { useFullscreen } from '@vueuse/core';
@@ -215,7 +216,7 @@ watch(
       :codes="[...props.exportAccessCodes]"
       type="code"
     >
-      <Tooltip title="导出">
+      <Tooltip :title="$t('ui.tableToolbar.export')">
         <Button
           class="admin-table-toolbar__button"
           :disabled="exportColumns.length === 0"
@@ -227,7 +228,7 @@ watch(
         </Button>
       </Tooltip>
     </AccessControl>
-    <Tooltip v-else title="导出">
+    <Tooltip v-else :title="$t('ui.tableToolbar.export')">
       <Button
         class="admin-table-toolbar__button"
         :disabled="exportColumns.length === 0"
@@ -239,7 +240,7 @@ watch(
       </Button>
     </Tooltip>
 
-    <Tooltip title="刷新">
+    <Tooltip :title="$t('ui.tableToolbar.refresh')">
       <Button
         class="admin-table-toolbar__button"
         :disabled="!refresh"
@@ -251,7 +252,13 @@ watch(
       </Button>
     </Tooltip>
 
-    <Tooltip :title="isFullscreen ? '退出全屏' : '全屏'">
+    <Tooltip
+      :title="
+        isFullscreen
+          ? $t('ui.tableToolbar.exitFullscreen')
+          : $t('ui.tableToolbar.fullscreen')
+      "
+    >
       <Button class="admin-table-toolbar__button" @click="toggle()">
         <template #icon>
           <IconifyIcon
@@ -262,7 +269,7 @@ watch(
     </Tooltip>
 
     <Dropdown placement="bottomRight" trigger="click">
-      <Tooltip title="列设置">
+      <Tooltip :title="$t('ui.tableToolbar.columnSettings')">
         <Button class="admin-table-toolbar__button">
           <template #icon>
             <IconifyIcon icon="lucide:settings-2" />

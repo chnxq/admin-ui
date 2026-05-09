@@ -24,6 +24,15 @@
     "operationSuccess": "操作成功",
     "operationFailed": "操作失败"
   },
+  "tableToolbar": {
+    "export": "导出",
+    "refresh": "刷新",
+    "fullscreen": "全屏",
+    "exitFullscreen": "退出全屏",
+    "columnSettings": "列设置",
+    "menuCount": "菜单 {0}",
+    "apiCount": "API {0}"
+  },
   "placeholder": {
     "input": "请输入",
     "select": "请选择",

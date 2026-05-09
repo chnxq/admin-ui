@@ -24,6 +24,15 @@
     "operationSuccess": "Operation succeeded",
     "operationFailed": "Operation failed"
   },
+  "tableToolbar": {
+    "export": "Export",
+    "refresh": "Refresh",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit Fullscreen",
+    "columnSettings": "Column Settings",
+    "menuCount": "Menu {0}",
+    "apiCount": "API {0}"
+  },
   "placeholder": {
     "input": "Please enter",
     "select": "Please select",

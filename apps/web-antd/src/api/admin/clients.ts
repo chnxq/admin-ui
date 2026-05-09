@@ -6,6 +6,7 @@ import {
   createLoginAuditLogServiceClient,
   createMenuServiceClient,
   createOrgUnitServiceClient,
+  createPermissionAuditLogServiceClient,
   createPermissionGroupServiceClient,
   createPermissionServiceClient,
   createPositionServiceClient,
@@ -32,6 +33,9 @@ export const loginAuditLogClient =
   createLoginAuditLogServiceClient(adminRequestHandler);
 
 export const menuClient = createMenuServiceClient(adminRequestHandler);
+
+export const permissionAuditLogClient =
+  createPermissionAuditLogServiceClient(adminRequestHandler);
 
 export const orgUnitClient = createOrgUnitServiceClient(adminRequestHandler);
 

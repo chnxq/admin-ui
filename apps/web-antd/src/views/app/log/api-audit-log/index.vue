@@ -1,43 +1,17 @@
 <script lang="ts" setup>
-import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
+import type { VbenFormProps } from '@vben/common-ui';
 
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { AdminApiAuditLog } from '#/api/admin/api-audit-logs';
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 
-import { computed, onMounted, reactive, ref } from 'vue';
-
+import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
 
-import {
-  Button,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Space,
-  Table,
-  Tag,
-} from 'ant-design-vue';
-import dayjs from 'dayjs';
+import { Tag } from 'ant-design-vue';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminApiAuditLogsApi } from '#/api/admin/api-audit-logs';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
-
-type ApiAuditLogRecord = AdminApiAuditLog | Record<string, any>;
-type AdminTableChangeSorter = Parameters<
-  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
->[2];
 
 const API_AUDIT_ACCESS = {
   export: ['api:audit:logs:export'],
@@ -50,395 +24,293 @@ const methodOptions = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(
   }),
 );
 
-const columns: AdminTableColumn<AdminApiAuditLog>[] = [
-  {
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    sortField: 'created_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.apiAuditLog.createdAt'),
-    width: 170,
-  },
-  {
-    dataIndex: 'httpMethod',
-    key: 'httpMethod',
-    title: $t('page.apiAuditLog.httpMethod'),
-    width: 90,
-  },
-  {
-    dataIndex: 'path',
-    sortable: true,
-    sorter: true,
-    title: $t('page.apiAuditLog.path'),
-    width: 240,
-  },
-  {
-    dataIndex: 'username',
-    sortable: true,
-    sorter: true,
-    title: $t('page.apiAuditLog.username'),
-    width: 140,
-  },
-  {
-    dataIndex: 'apiModule',
-    key: 'apiModule',
-    title: $t('page.apiAuditLog.apiModule'),
-    width: 120,
-  },
-  {
-    dataIndex: 'apiOperation',
-    key: 'apiOperation',
-    title: $t('page.apiAuditLog.apiOperation'),
-    width: 180,
-  },
-  {
-    dataIndex: 'statusCode',
-    key: 'statusCode',
-    sortable: true,
-    sorter: true,
-    title: $t('page.apiAuditLog.statusCode'),
-    width: 100,
-  },
-  {
-    dataIndex: 'latencyMs',
-    key: 'latencyMs',
-    sortable: true,
-    sorter: true,
-    title: $t('page.apiAuditLog.latencyMs'),
-    width: 120,
-  },
-  {
-    dataIndex: 'ipAddress',
-    key: 'ipAddress',
-    title: 'IP',
-    width: 140,
-  },
-  {
-    dataIndex: 'requestId',
-    key: 'requestId',
-    title: $t('page.apiAuditLog.requestId'),
-    width: 220,
-  },
-  {
-    dataIndex: 'reason',
-    key: 'reason',
-    title: $t('page.apiAuditLog.reason'),
-    width: 240,
-  },
-];
+const { hasAccessByCodes } = useAccess();
 
-const loading = ref(false);
-const tableSurfaceRef = ref<HTMLElement>();
-const logs = ref<AdminApiAuditLog[]>([]);
-const sorting = ref<AdminTableSorting[]>([
-  { direction: 'DESC', field: 'created_at' },
-]);
-const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
+const formOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.apiAuditLog.searchUsername'),
+      },
+      fieldName: 'username',
+      label: $t('page.apiAuditLog.username'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.apiAuditLog.searchPath'),
+      },
+      fieldName: 'path',
+      label: $t('page.apiAuditLog.path'),
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: methodOptions,
+        placeholder: $t('page.apiAuditLog.selectHttpMethod'),
+      },
+      fieldName: 'httpMethod',
+      label: $t('page.apiAuditLog.httpMethod'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.apiAuditLog.searchApiModule'),
+      },
+      fieldName: 'apiModule',
+      label: $t('page.apiAuditLog.apiModule'),
+    },
+    {
+      component: 'InputNumber',
+      componentProps: {
+        controls: false,
+        placeholder: $t('page.apiAuditLog.searchStatusCode'),
+      },
+      fieldName: 'statusCode',
+      label: $t('page.apiAuditLog.statusCode'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.apiAuditLog.searchReason'),
+      },
+      fieldName: 'reason',
+      label: $t('page.apiAuditLog.reason'),
+    },
+  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
+};
 
-const searchForm = reactive({
-  apiModule: '',
-  httpMethod: undefined as string | undefined,
-  path: '',
-  reason: '',
-  statusCode: undefined as number | undefined,
-  username: '',
-});
+const gridOptions: VxeTableGridOptions<AdminApiAuditLog> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
+  },
+  columns: [
+    {
+      field: 'createdAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.apiAuditLog.createdAt'),
+      width: 150,
+    },
+    {
+      field: 'successSummary',
+      slots: { default: 'successSummary' },
+      title: $t('page.apiAuditLog.statusCode'),
+      width: 120,
+    },
+    {
+      field: 'username',
+      sortable: true,
+      title: $t('page.apiAuditLog.username'),
+      width: 140,
+    },
+    {
+      field: 'httpMethod',
+      slots: { default: 'httpMethod' },
+      title: $t('page.apiAuditLog.httpMethod'),
+      width: 100,
+    },
+    {
+      field: 'path',
+      sortable: true,
+      title: $t('page.apiAuditLog.path'),
+      width: 260,
+    },
+    {
+      field: 'latencyMs',
+      slots: { default: 'latencyMs' },
+      title: $t('page.apiAuditLog.latencyMs'),
+      width: 120,
+    },
+    {
+      field: 'platformSummary',
+      slots: { default: 'platformSummary' },
+      title: $t('page.apiAuditLog.platform'),
+      width: 170,
+    },
+    {
+      field: 'geoLocationSummary',
+      slots: { default: 'geoLocationSummary' },
+      title: $t('page.apiAuditLog.geoLocation'),
+      width: 220,
+    },
+    {
+      field: 'ipAddress',
+      title: $t('page.apiAuditLog.ipAddress'),
+      width: 140,
+    },
+    {
+      field: 'apiOperation',
+      title: $t('page.apiAuditLog.apiOperation'),
+      width: 180,
+    },
+  ],
+  exportConfig: {
+    filename: 'api-audit-logs',
+    type: 'csv',
+  },
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {},
+  proxyConfig: {
+    ajax: {
+      query: async (
+        { page, sort }: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        const sortField = String(sort.field || 'createdAt');
+        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
 
-const pager = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-});
-
-const displayColumns = computed<TableColumnsType<AdminApiAuditLog>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(columns, sorting.value),
-    visibleColumnKeys.value,
-  ),
-);
-
-const tablePagination = computed<TablePaginationConfig>(() => ({
-  current: pager.page,
-  pageSize: pager.pageSize,
-  showSizeChanger: true,
-  showTotal: (total) => `${$t('page.apiAuditLog.total')} ${total}`,
-  total: pager.total,
-}));
-
-function formatTime(value?: string) {
-  return value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '-';
-}
+        return await listAdminApiAuditLogsApi({
+          apiModule: formValues.apiModule,
+          httpMethod: formValues.httpMethod,
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          path: formValues.path,
+          reason: formValues.reason,
+          sorting: [
+            {
+              direction,
+              field: sortField === 'createdAt' ? 'created_at' : sortField,
+            },
+          ],
+          statusCode: formValues.statusCode,
+          username: formValues.username,
+        });
+      },
+    },
+    sort: true,
+  },
+  rowConfig: {
+    isHover: true,
+  },
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: hasAccessByCodes([...API_AUDIT_ACCESS.export]),
+    refresh: true,
+    zoom: true,
+  },
+};
 
 function getMethodColor(method?: string) {
   switch (method) {
     case 'DELETE': {
-      return 'error';
+      return 'crimson';
     }
     case 'GET': {
-      return 'processing';
+      return '#1890FF';
     }
     case 'PATCH':
     case 'PUT': {
-      return 'warning';
+      return 'orange';
     }
     case 'POST': {
-      return 'success';
+      return 'limegreen';
     }
     default: {
-      return 'default';
+      return '#86909C';
     }
   }
 }
 
 function getStatusCodeColor(statusCode?: number) {
   if (statusCode === undefined) {
-    return 'default';
+    return '#86909C';
   }
   if (statusCode >= 500) {
-    return 'error';
+    return 'crimson';
   }
   if (statusCode >= 400) {
-    return 'warning';
+    return 'orange';
   }
   if (statusCode >= 200 && statusCode < 400) {
-    return 'success';
+    return 'limegreen';
   }
-  return 'default';
+  return '#86909C';
+}
+
+function formatSuccess(record: AdminApiAuditLog) {
+  if (record.success === false) {
+    return `${$t('page.apiAuditLog.resultFailed')} (${record.statusCode ?? '-'})`;
+  }
+  return `${$t('page.apiAuditLog.resultSuccess')} (${record.statusCode ?? '-'})`;
 }
 
 function formatLatency(value?: number) {
   return value === undefined ? '-' : `${value}`;
 }
 
-function formatReason(record: ApiAuditLogRecord) {
-  const item = record as AdminApiAuditLog;
-  if (item.reason?.trim()) {
-    return item.reason.trim();
-  }
-  return item.success === false
-    ? $t('page.apiAuditLog.resultFailed')
-    : $t('page.apiAuditLog.resultSuccess');
+function formatPlatform(record: AdminApiAuditLog) {
+  const values = [
+    record.deviceInfo?.osName || record.deviceInfo?.platform,
+    record.deviceInfo?.browserName,
+  ]
+    .map((item) => item?.trim())
+    .filter(Boolean);
+
+  return values.length > 0 ? values.join(' / ') : '-';
 }
 
-async function loadLogs() {
-  loading.value = true;
-  try {
-    const response = await listAdminApiAuditLogsApi({
-      apiModule: searchForm.apiModule,
-      httpMethod: searchForm.httpMethod,
-      page: pager.page,
-      pageSize: pager.pageSize,
-      path: searchForm.path,
-      reason: searchForm.reason,
-      sorting: sorting.value,
-      statusCode: searchForm.statusCode,
-      username: searchForm.username,
-    });
-    logs.value = response.items;
-    pager.total = response.total;
-  } finally {
-    loading.value = false;
-  }
+function formatGeoLocation(record: AdminApiAuditLog) {
+  const values = [
+    record.geoLocation?.countryCode,
+    record.geoLocation?.province,
+    record.geoLocation?.city,
+  ]
+    .map((item) => item?.trim())
+    .filter(Boolean);
+
+  return values.length > 0 ? values.join(' / ') : '-';
 }
 
-async function handleSearch() {
-  pager.page = 1;
-  await loadLogs();
-}
-
-async function handleReset() {
-  searchForm.apiModule = '';
-  searchForm.httpMethod = undefined;
-  searchForm.path = '';
-  searchForm.reason = '';
-  searchForm.statusCode = undefined;
-  searchForm.username = '';
-  pager.page = 1;
-  sorting.value = [{ direction: 'DESC', field: 'created_at' }];
-  await loadLogs();
-}
-
-async function handleTableChange(
-  pagination: TablePaginationConfig,
-  _filters: Record<string, any>,
-  sorter: AdminTableChangeSorter,
-) {
-  pager.page = pagination.current ?? 1;
-  pager.pageSize = pagination.pageSize ?? 10;
-  const nextSorting = toAdminTableSorting(sorter as any);
-  sorting.value =
-    nextSorting.length > 0
-      ? nextSorting
-      : [{ direction: 'DESC', field: 'created_at' }];
-  await loadLogs();
-}
-
-onMounted(() => {
-  loadLogs();
+const [Grid] = useVbenVxeGrid<AdminApiAuditLog>({
+  formOptions,
+  gridClass: 'log-audit-grid',
+  gridOptions,
 });
 </script>
 
 <template>
-  <Page auto-content-height :title="$t('menu.log.apiAuditLog')">
-    <div ref="tableSurfaceRef" class="admin-log-surface">
-      <div class="admin-log-toolbar">
-        <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item :label="$t('page.apiAuditLog.username')" name="username">
-            <Input
-              v-model:value="searchForm.username"
-              allow-clear
-              :placeholder="$t('page.apiAuditLog.searchUsername')"
-            />
-          </Form.Item>
-          <Form.Item
-            :label="$t('page.apiAuditLog.httpMethod')"
-            name="httpMethod"
-          >
-            <Select
-              v-model:value="searchForm.httpMethod"
-              allow-clear
-              :options="methodOptions"
-              :placeholder="$t('page.apiAuditLog.selectHttpMethod')"
-              style="width: 120px"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.apiAuditLog.path')" name="path">
-            <Input
-              v-model:value="searchForm.path"
-              allow-clear
-              :placeholder="$t('page.apiAuditLog.searchPath')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.apiAuditLog.apiModule')" name="apiModule">
-            <Input
-              v-model:value="searchForm.apiModule"
-              allow-clear
-              :placeholder="$t('page.apiAuditLog.searchApiModule')"
-            />
-          </Form.Item>
-          <Form.Item
-            :label="$t('page.apiAuditLog.statusCode')"
-            name="statusCode"
-          >
-            <InputNumber
-              v-model:value="searchForm.statusCode"
-              :controls="false"
-              :placeholder="$t('page.apiAuditLog.searchStatusCode')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.apiAuditLog.reason')" name="reason">
-            <Input
-              v-model:value="searchForm.reason"
-              allow-clear
-              :placeholder="$t('page.apiAuditLog.searchReason')"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button html-type="submit" type="primary">
-                <template #icon>
-                  <IconifyIcon icon="lucide:search" />
-                </template>
-                {{ $t('common.search') }}
-              </Button>
-              <Button @click="handleReset">
-                <template #icon>
-                  <IconifyIcon icon="lucide:rotate-ccw" />
-                </template>
-                {{ $t('common.reset') }}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
+  <Page auto-content-height>
+    <Grid :table-title="$t('menu.log.apiAuditLog')">
+      <template #successSummary="{ row }">
+        <Tag :color="getStatusCodeColor(row.statusCode)">
+          {{ formatSuccess(row) }}
+        </Tag>
+      </template>
 
-        <AdminTableToolbar
-          v-model:column-keys="visibleColumnKeys"
-          :columns="columns"
-          :data-source="logs"
-          :export-access-codes="API_AUDIT_ACCESS.export"
-          file-name="api-audit-logs"
-          :fullscreen-target="tableSurfaceRef"
-          :refresh="loadLogs"
-          storage-key="app-api-audit-log-list"
-        />
-      </div>
+      <template #httpMethod="{ row }">
+        <Tag :color="getMethodColor(row.httpMethod)">
+          {{ row.httpMethod || '-' }}
+        </Tag>
+      </template>
 
-      <Table
-        class="admin-log-table"
-        :columns="displayColumns"
-        :data-source="logs"
-        :loading="loading"
-        :pagination="tablePagination"
-        row-key="id"
-        size="middle"
-        @change="handleTableChange"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'createdAt'">
-            {{ formatTime(record.createdAt) }}
-          </template>
+      <template #latencyMs="{ row }">
+        {{ formatLatency(row.latencyMs) }}
+      </template>
 
-          <template v-else-if="column.key === 'httpMethod'">
-            <Tag :color="getMethodColor(record.httpMethod)">
-              {{ record.httpMethod || '-' }}
-            </Tag>
-          </template>
+      <template #platformSummary="{ row }">
+        <span :title="formatPlatform(row)">
+          {{ formatPlatform(row) }}
+        </span>
+      </template>
 
-          <template v-else-if="column.key === 'statusCode'">
-            <Tag :color="getStatusCodeColor(record.statusCode)">
-              {{ record.statusCode ?? '-' }}
-            </Tag>
-          </template>
-
-          <template v-else-if="column.key === 'latencyMs'">
-            {{ formatLatency(record.latencyMs) }}
-          </template>
-
-          <template v-else-if="column.key === 'reason'">
-            <span :title="formatReason(record)">
-              {{ formatReason(record) }}
-            </span>
-          </template>
-        </template>
-      </Table>
-    </div>
+      <template #geoLocationSummary="{ row }">
+        <span :title="formatGeoLocation(row)">
+          {{ formatGeoLocation(row) }}
+        </span>
+      </template>
+    </Grid>
   </Page>
 </template>
-
-<style scoped>
-.admin-log-surface {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 100%;
-  padding: 16px;
-  overflow-y: auto;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-}
-
-.admin-log-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-.admin-log-table {
-  flex: 1;
-  min-height: 0;
-}
-
-@media (max-width: 640px) {
-  .admin-log-surface {
-    padding: 12px;
-  }
-
-  .admin-log-toolbar {
-    align-items: stretch;
-  }
-}
-</style>

@@ -4,6 +4,7 @@ import type {
   auditservicev1_ListLoginAuditLogResponse,
   auditservicev1_LoginAuditLog,
   auditservicev1_LoginAuditLog_ActionType,
+  auditservicev1_LoginAuditLog_LoginMethod,
   auditservicev1_LoginAuditLog_RiskLevel,
   auditservicev1_LoginAuditLog_Status,
 } from '#/api/generated/admin/service/v1';
@@ -13,6 +14,8 @@ import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
 export type AdminLoginAuditLog = auditservicev1_LoginAuditLog;
 export type AdminLoginAuditLogActionType =
   auditservicev1_LoginAuditLog_ActionType;
+export type AdminLoginAuditLogLoginMethod =
+  auditservicev1_LoginAuditLog_LoginMethod;
 export type AdminLoginAuditLogRiskLevel =
   auditservicev1_LoginAuditLog_RiskLevel;
 export type AdminLoginAuditLogStatus = auditservicev1_LoginAuditLog_Status;

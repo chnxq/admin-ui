@@ -4,6 +4,7 @@ export * from './auth';
 export * from './login-audit-logs';
 export * from './menus';
 export * from './org-units';
+export * from './permission-audit-logs';
 export * from './permissions';
 export * from './portal';
 export * from './positions';
