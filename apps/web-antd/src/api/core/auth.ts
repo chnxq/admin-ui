@@ -1,5 +1,6 @@
 import {
   getAccessCodesApi as getAdminAccessCodesApi,
+  getCaptchaApiV1 as getAdminCaptchaApi,
   loginApi as loginAdminApi,
   logoutApi as logoutAdminApi,
   refreshTokenApi as refreshAdminTokenApi,
@@ -8,6 +9,8 @@ import {
 export namespace AuthApi {
   /** 登录接口参数 */
   export interface LoginParams {
+    captchaCode?: string;
+    captchaId?: string;
     password?: string;
     username?: string;
   }
@@ -20,6 +23,12 @@ export namespace AuthApi {
   export interface RefreshTokenResult {
     data: string;
     status: number;
+  }
+
+  export interface CaptchaResult {
+    captchaId: string;
+    expiresIn?: number;
+    imageBase64: string;
   }
 }
 
@@ -49,4 +58,11 @@ export async function logoutApi() {
  */
 export async function getAccessCodesApi() {
   return getAdminAccessCodesApi();
+}
+
+/**
+ * 获取登录验证码
+ */
+export async function getCaptchaApi() {
+  return (await getAdminCaptchaApi()) as AuthApi.CaptchaResult;
 }

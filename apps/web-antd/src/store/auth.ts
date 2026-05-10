@@ -28,7 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function authLogin(
     params: Recordable<any>,
     onSuccess?: () => Promise<void> | void,
-  ) {
+  ): Promise<null | { userInfo: null | UserInfo }> {
     // 异步处理用户登录操作并获取 accessToken
     let userInfo: null | UserInfo = null;
     try {
@@ -68,6 +68,19 @@ export const useAuthStore = defineStore('auth', () => {
           });
         }
       }
+    } catch (error) {
+      if (error instanceof Error) {
+        notification.error({
+          description: error.message,
+          message: $t('authentication.loginFailed'),
+        });
+      } else {
+        notification.error({
+          description: $t('authentication.loginFailedDesc'),
+          message: $t('authentication.loginFailed'),
+        });
+      }
+      return null;
     } finally {
       loginLoading.value = false;
     }

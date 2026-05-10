@@ -66,6 +66,10 @@ export async function getPermissionCodesApi() {
   return response.codes ?? [];
 }
 
+export async function getCaptchaApi() {
+  return await adminPortalClient.GetCaptcha({});
+}
+
 export async function getAllMenusApi() {
   const response = await adminPortalClient.GetNavigation({});
   return (response.items ?? []).map((route) => mapRoute(route));

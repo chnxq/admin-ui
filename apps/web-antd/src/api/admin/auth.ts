@@ -1,9 +1,11 @@
 import { authenticationClient } from './clients';
-import { getPermissionCodesApi } from './portal';
+import { getCaptchaApi, getPermissionCodesApi } from './portal';
 
 const REFRESH_TOKEN_STORAGE_KEY = 'admin.refresh_token';
 
 export interface LoginParams {
+  captchaCode?: string;
+  captchaId?: string;
   password?: string;
   username?: string;
 }
@@ -15,6 +17,12 @@ export interface LoginResult {
 export interface RefreshTokenResult {
   data: string;
   status: number;
+}
+
+export interface CaptchaResult {
+  captchaId: string;
+  expiresIn?: number;
+  imageBase64: string;
 }
 
 function getStorage() {
@@ -48,7 +56,9 @@ function requireAccessToken(accessToken?: string) {
 
 export async function loginApi(data: LoginParams): Promise<LoginResult> {
   const response = await authenticationClient.Login({
+    client_id: data.captchaId,
     client_type: 'admin',
+    code: data.captchaCode,
     grant_type: 'password',
     password: data.password,
     username: data.username,
@@ -91,4 +101,16 @@ export async function logoutApi() {
 
 export async function getAccessCodesApi() {
   return await getPermissionCodesApi();
+}
+
+export async function getCaptchaApiV1(): Promise<CaptchaResult> {
+  const response = await getCaptchaApi();
+  if (!response.captchaId || !response.imageBase64) {
+    throw new Error('captcha response is invalid');
+  }
+  return {
+    captchaId: response.captchaId,
+    expiresIn: response.expiresIn,
+    imageBase64: response.imageBase64,
+  };
 }
