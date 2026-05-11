@@ -441,5 +441,42 @@
     "searchReason": "Search reason",
     "selectAction": "Select action",
     "unspecified": "Unspecified"
+  },
+  "internalMessage": {
+    "moduleName": "Internal Messages",
+    "sendButton": "Send Message",
+    "sendTitle": "Send Internal Message",
+    "revokeButton": "Revoke",
+    "title": "Title",
+    "content": "Content",
+    "type": "Type",
+    "status": "Status",
+    "senderName": "Sender",
+    "createdAt": "Created At",
+    "targetAll": "Send to all users",
+    "targetUserIds": "Target user IDs",
+    "searchTitle": "Search title",
+    "selectType": "Select type",
+    "placeholderTitle": "Please enter title",
+    "placeholderContent": "Please enter content",
+    "placeholderTargetUserIds": "Use comma-separated IDs, e.g. 1,2,3",
+    "targetUserIdsRequired": "Please enter target user IDs",
+    "loadFailed": "Failed to load internal messages",
+    "loadInboxFailed": "Failed to load inbox messages",
+    "sendSuccess": "Message sent",
+    "revokeSuccess": "Message revoked",
+    "typeNotification": "Notification",
+    "typePrivate": "Private",
+    "typeGroup": "Group",
+    "statusDraft": "Draft",
+    "statusPublished": "Published",
+    "statusScheduled": "Scheduled",
+    "statusRevoked": "Revoked",
+    "statusArchived": "Archived",
+    "statusDeleted": "Deleted",
+    "total": "Total"
+  },
+  "sse": {
+    "connectFailed": "Real-time message connection failed"
   }
 }

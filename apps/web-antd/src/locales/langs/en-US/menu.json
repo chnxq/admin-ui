@@ -19,5 +19,9 @@
     "loginAuditLog": "Login Logs",
     "apiAuditLog": "API Logs",
     "permissionAuditLog": "Permission Audit Logs"
+  },
+  "internalMessage": {
+    "moduleName": "Internal Messages",
+    "internalMessage": "Message Management"
   }
 }

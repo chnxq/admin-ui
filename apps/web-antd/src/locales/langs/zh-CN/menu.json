@@ -19,5 +19,9 @@
     "loginAuditLog": "登录日志",
     "apiAuditLog": "API日志",
     "permissionAuditLog": "权限日志"
+  },
+  "internalMessage": {
+    "moduleName": "站内消息",
+    "internalMessage": "消息管理"
   }
 }

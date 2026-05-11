@@ -430,5 +430,42 @@
     "searchReason": "输入原因",
     "selectAction": "选择动作",
     "unspecified": "未指定"
+  },
+  "internalMessage": {
+    "moduleName": "站内消息",
+    "sendButton": "发送消息",
+    "sendTitle": "发送站内消息",
+    "revokeButton": "撤销",
+    "title": "标题",
+    "content": "内容",
+    "type": "消息类型",
+    "status": "状态",
+    "senderName": "发送人",
+    "createdAt": "创建时间",
+    "targetAll": "发送给全部用户",
+    "targetUserIds": "目标用户 ID",
+    "searchTitle": "输入标题",
+    "selectType": "选择消息类型",
+    "placeholderTitle": "请输入消息标题",
+    "placeholderContent": "请输入消息内容",
+    "placeholderTargetUserIds": "多个用户ID请用逗号分隔，例如 1,2,3",
+    "targetUserIdsRequired": "请填写目标用户 ID",
+    "loadFailed": "加载站内消息失败",
+    "loadInboxFailed": "加载站内消息失败",
+    "sendSuccess": "消息发送成功",
+    "revokeSuccess": "消息已撤销",
+    "typeNotification": "通知",
+    "typePrivate": "私信",
+    "typeGroup": "群发",
+    "statusDraft": "草稿",
+    "statusPublished": "已发布",
+    "statusScheduled": "待发布",
+    "statusRevoked": "已撤销",
+    "statusArchived": "已归档",
+    "statusDeleted": "已删除",
+    "total": "共"
+  },
+  "sse": {
+    "connectFailed": "实时消息连接失败"
   }
 }

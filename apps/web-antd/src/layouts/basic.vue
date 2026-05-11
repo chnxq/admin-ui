@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import type { NotificationItem } from '@vben/layouts';
 
-import { computed, ref, watch } from 'vue';
+import type { AdminInboxMessage } from '#/api/admin/internal-messages';
+
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
@@ -18,69 +20,66 @@ import { preferences, usePreferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { openWindow } from '@vben/utils';
 
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+import {
+  deleteAdminInboxMessagesApi,
+  listAdminInboxMessagesApi,
+  markAdminInboxMessagesReadApi,
+} from '#/api/admin/internal-messages';
 import { $t } from '#/locales';
 import { useAuthStore } from '#/store';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
-const notifications = ref<NotificationItem[]>([
-  {
-    id: 1,
-    avatar: 'https://avatar.vercel.sh/vercel.svg?text=VB',
-    date: '3小时前',
-    isRead: true,
-    message: '描述信息描述信息描述信息',
-    title: '收到了 14 份新周报',
-  },
-  {
-    id: 2,
-    avatar: 'https://avatar.vercel.sh/1',
-    date: '刚刚',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '朱偏右 回复了你',
-  },
-  {
-    id: 3,
-    avatar: 'https://avatar.vercel.sh/1',
-    date: '2024-01-01',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '曲丽丽 评论了你',
-  },
-  {
-    id: 4,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '代办提醒',
-  },
-  {
-    id: 5,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '跳转Workspace示例',
-    link: '/workspace',
-  },
-  {
-    id: 6,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '跳转外部链接示例',
-    link: 'https://doc.vben.pro',
-  },
-]);
+interface InboxNotificationItem extends NotificationItem {
+  createdAt?: string;
+  messageId?: number;
+  recipientId: number;
+}
 
+interface SseNotificationPayload {
+  at?: string;
+  content?: string;
+  event?: string;
+  messageId?: number;
+  title?: string;
+}
+
+dayjs.extend(relativeTime);
+
+const notifications = ref<InboxNotificationItem[]>([]);
 const router = useRouter();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 const accessStore = useAccessStore();
 const { destroyWatermark, updateWatermark } = useWatermark();
 const { isDark } = usePreferences();
+
+const sseController = ref<AbortController | null>(null);
+const sseReconnectTimer = ref<null | number>(null);
+const sseUrl = computed(() => {
+  const configured = String(import.meta.env.VITE_GLOB_SSE_URL || '').trim();
+  if (configured) {
+    return configured;
+  }
+  const apiBase = String(import.meta.env.VITE_GLOB_API_URL || '').trim();
+  if (apiBase.startsWith('http://') || apiBase.startsWith('https://')) {
+    return `${apiBase.replace(/\/+$/, '')}/events`;
+  }
+  if (typeof window !== 'undefined') {
+    const origin = window.location.origin;
+    if (apiBase.startsWith('/')) {
+      return `${origin}${apiBase.replace(/\/+$/, '')}/events`;
+    }
+    if (apiBase) {
+      return `${origin}/${apiBase.replaceAll(/^\/+|\/+$/g, '')}/events`;
+    }
+    return `${origin}/events`;
+  }
+  return '';
+});
+
 const showDot = computed(() =>
   notifications.value.some((item) => !item.isRead),
 );
@@ -126,33 +125,234 @@ const avatar = computed(() => {
   return userStore.userInfo?.avatar ?? preferences.app.defaultAvatar;
 });
 
+function formatNotificationDate(value?: string) {
+  if (!value) {
+    return '-';
+  }
+  const parsed = dayjs(value);
+  if (!parsed.isValid()) {
+    return value;
+  }
+  return parsed.fromNow();
+}
+
+function buildNotificationItem(
+  item: Pick<
+    AdminInboxMessage,
+    'content' | 'createdAt' | 'id' | 'messageId' | 'status' | 'title'
+  >,
+): InboxNotificationItem | null {
+  const id = item.id;
+  if (typeof id !== 'number' || id <= 0) {
+    return null;
+  }
+  return {
+    avatar: avatar.value,
+    createdAt: item.createdAt,
+    date: formatNotificationDate(item.createdAt),
+    id,
+    isRead: item.status === 'READ',
+    message: item.content || '',
+    messageId: item.messageId,
+    recipientId: id,
+    title: item.title || '-',
+  };
+}
+
+function clearSseReconnectTimer() {
+  if (sseReconnectTimer.value !== null) {
+    window.clearTimeout(sseReconnectTimer.value);
+    sseReconnectTimer.value = null;
+  }
+}
+
+function disconnectSse() {
+  clearSseReconnectTimer();
+  if (sseController.value) {
+    sseController.value.abort();
+    sseController.value = null;
+  }
+}
+
+function scheduleSseReconnect() {
+  clearSseReconnectTimer();
+  sseReconnectTimer.value = window.setTimeout(() => {
+    sseReconnectTimer.value = null;
+    connectSse();
+  }, 2500);
+}
+
+function connectSse() {
+  disconnectSse();
+  const userId = userStore.userInfo?.userId;
+  const base = sseUrl.value;
+  if (!userId || !base) {
+    return;
+  }
+  const streamId = String(userId).trim();
+  if (!streamId) {
+    return;
+  }
+
+  const controller = new AbortController();
+  sseController.value = controller;
+
+  const targetUrl = new URL(base, window.location.origin);
+  targetUrl.searchParams.set('stream', streamId);
+
+  let eventSource: EventSource;
+  try {
+    eventSource = new EventSource(targetUrl.toString(), {
+      withCredentials: false,
+    });
+  } catch {
+    scheduleSseReconnect();
+    return;
+  }
+
+  const close = () => {
+    eventSource.close();
+    if (sseController.value === controller) {
+      sseController.value = null;
+    }
+  };
+
+  controller.signal.addEventListener('abort', close, { once: true });
+
+  eventSource.addEventListener('notification', (event) => {
+    const messageEvent = event as MessageEvent<string>;
+    let payload: SseNotificationPayload;
+    try {
+      payload = JSON.parse(messageEvent.data) as SseNotificationPayload;
+    } catch {
+      return;
+    }
+    const messageId = payload.messageId;
+    if (typeof messageId !== 'number' || messageId <= 0) {
+      return;
+    }
+    const exists = notifications.value.some(
+      (item) => item.messageId === messageId,
+    );
+    if (!exists) {
+      notifications.value.unshift({
+        avatar: avatar.value,
+        createdAt: payload.at || new Date().toISOString(),
+        date: formatNotificationDate(payload.at || new Date().toISOString()),
+        id: `msg-${messageId}-${Date.now()}`,
+        isRead: false,
+        message: payload.content || '',
+        messageId,
+        recipientId: -1,
+        title: payload.title || '-',
+      });
+      if (notifications.value.length > 50) {
+        notifications.value = notifications.value.slice(0, 50);
+      }
+    }
+    void loadInbox(1, 20);
+  });
+
+  eventSource.addEventListener('error', () => {
+    if (controller.signal.aborted) {
+      return;
+    }
+    close();
+    scheduleSseReconnect();
+  });
+}
+
+async function loadInbox(page = 1, pageSize = 20) {
+  try {
+    const result = await listAdminInboxMessagesApi({ page, pageSize });
+    notifications.value = (result.items || [])
+      .map((item) => buildNotificationItem(item))
+      .filter(Boolean);
+  } catch {
+    notifications.value = [];
+  }
+}
+
 async function handleLogout() {
+  disconnectSse();
   await authStore.logout(false);
 }
 
 function handleNoticeClear() {
+  const ids = notifications.value
+    .map((item) => item.recipientId)
+    .filter((id) => Number.isFinite(id) && id > 0);
   notifications.value = [];
-}
-
-function markRead(id: number | string) {
-  const item = notifications.value.find((item) => item.id === id);
-  if (item) {
-    item.isRead = true;
+  if (ids.length > 0) {
+    void deleteAdminInboxMessagesApi(ids);
   }
 }
 
-function remove(id: number | string) {
-  notifications.value = notifications.value.filter((item) => item.id !== id);
+function getRecipientId(id: number | string) {
+  const item = notifications.value.find(
+    (current) => String(current.id) === String(id),
+  );
+  if (!item) {
+    return null;
+  }
+  return item.recipientId > 0 ? item.recipientId : null;
 }
 
-function handleMakeAll() {
-  notifications.value.forEach((item) => (item.isRead = true));
+async function markRead(id: number | string) {
+  const numericId = getRecipientId(id);
+  const item = notifications.value.find((current) => current.id === id);
+  if (!numericId) {
+    if (item) {
+      item.isRead = true;
+    }
+    return;
+  }
+  if (item) {
+    item.isRead = true;
+  }
+  try {
+    await markAdminInboxMessagesReadApi([numericId]);
+  } catch {
+    // Ignore transient failures; next reload will reconcile.
+  }
+}
+
+async function remove(id: number | string) {
+  const numericId = getRecipientId(id);
+  notifications.value = notifications.value.filter((item) => item.id !== id);
+  if (!numericId) {
+    return;
+  }
+  try {
+    await deleteAdminInboxMessagesApi([numericId]);
+  } catch {
+    // Ignore transient failures; next reload will reconcile.
+  }
+}
+
+async function handleMakeAll() {
+  const unreadIds = notifications.value
+    .filter((item) => !item.isRead)
+    .map((item) => (item.recipientId > 0 ? item.recipientId : null))
+    .filter((id): id is number => typeof id === 'number');
+
+  notifications.value.forEach((item) => {
+    item.isRead = true;
+  });
+
+  if (unreadIds.length === 0) {
+    return;
+  }
+  try {
+    await markAdminInboxMessagesReadApi(unreadIds);
+  } catch {
+    // Ignore transient failures; next reload will reconcile.
+  }
 }
 
 const viewAll = () => {};
 
 const handleClick = (item: NotificationItem) => {
-  // 如果通知项有链接，点击时跳转
   if (item.link) {
     navigateTo(item.link, item.query, item.state);
   }
@@ -164,10 +364,8 @@ function navigateTo(
   state?: Record<string, any>,
 ) {
   if (link.startsWith('http://') || link.startsWith('https://')) {
-    // 外部链接，在新标签页打开
     window.open(link, '_blank');
   } else {
-    // 内部路由链接，支持 query 参数和 state
     router.push({
       path: link,
       query: query || {},
@@ -175,6 +373,31 @@ function navigateTo(
     });
   }
 }
+
+watch(
+  () => accessStore.accessToken,
+  (token) => {
+    if (!token) {
+      disconnectSse();
+      notifications.value = [];
+      return;
+    }
+    void loadInbox(1, 20);
+    connectSse();
+  },
+  { immediate: true },
+);
+
+watch(
+  () => userStore.userInfo?.userId,
+  (userId) => {
+    if (!userId) {
+      disconnectSse();
+      return;
+    }
+    connectSse();
+  },
+);
 
 watch(
   () => ({
@@ -214,6 +437,14 @@ watch(
     immediate: true,
   },
 );
+
+onMounted(() => {
+  void loadInbox(1, 20);
+});
+
+onBeforeUnmount(() => {
+  disconnectSse();
+});
 </script>
 
 <template>

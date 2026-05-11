@@ -3,6 +3,8 @@ import {
   createApiAuditLogServiceClient,
   createApiServiceClient,
   createAuthenticationServiceClient,
+  createInternalMessageRecipientServiceClient,
+  createInternalMessageServiceClient,
   createLoginAuditLogServiceClient,
   createMenuServiceClient,
   createOrgUnitServiceClient,
@@ -31,6 +33,12 @@ export const authenticationClient =
 
 export const loginAuditLogClient =
   createLoginAuditLogServiceClient(adminRequestHandler);
+
+export const internalMessageClient =
+  createInternalMessageServiceClient(adminRequestHandler);
+
+export const internalMessageRecipientClient =
+  createInternalMessageRecipientServiceClient(adminRequestHandler);
 
 export const menuClient = createMenuServiceClient(adminRequestHandler);
 
