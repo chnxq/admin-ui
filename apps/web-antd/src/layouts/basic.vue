@@ -267,7 +267,7 @@ async function loadInbox(page = 1, pageSize = 20) {
     const result = await listAdminInboxMessagesApi({ page, pageSize });
     notifications.value = (result.items || [])
       .map((item) => buildNotificationItem(item))
-      .filter(Boolean);
+      .filter((item): item is InboxNotificationItem => Boolean(item));
   } catch {
     notifications.value = [];
   }
@@ -350,7 +350,11 @@ async function handleMakeAll() {
   }
 }
 
-const viewAll = () => {};
+const viewAll = () => {
+  void router.push({
+    path: '/app/internal-message/message',
+  });
+};
 
 const handleClick = (item: NotificationItem) => {
   if (item.link) {

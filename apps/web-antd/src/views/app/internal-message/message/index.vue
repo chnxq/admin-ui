@@ -71,9 +71,13 @@ interface SendFormModel {
 }
 
 const INTERNAL_MESSAGE_ACCESS = {
-  export: ['internal-messages:export'],
-  revoke: ['internal-messages:revoke'],
-  send: ['internal-messages:send'],
+  export: ['internal:message:export', 'internal-messages:export'],
+  revoke: [
+    'internal:message:create',
+    'internal:message:edit',
+    'internal-messages:revoke',
+  ],
+  send: ['internal:message:create', 'internal-messages:send'],
 } as const;
 
 const typeOptions: Array<{ label: string; value: AdminInternalMessageType }> = [
