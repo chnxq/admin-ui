@@ -1,54 +1,40 @@
 <script setup lang="ts">
-import type { BasicOption } from '@vben/types';
-
 import type { VbenFormSchema } from '#/adapter/form';
 
 import { computed, onMounted, ref } from 'vue';
 
 import { ProfileBaseSetting } from '@vben/common-ui';
 
-import { getUserInfoApi } from '#/api';
+import { message } from 'ant-design-vue';
+
+import { userProfileClient } from '#/api/admin/clients';
 
 const profileBaseSettingRef = ref();
-
-const MOCK_ROLES_OPTIONS: BasicOption[] = [
-  {
-    label: '管理员',
-    value: 'super',
-  },
-  {
-    label: '用户',
-    value: 'user',
-  },
-  {
-    label: '测试',
-    value: 'test',
-  },
-];
 
 const formSchema = computed((): VbenFormSchema[] => {
   return [
     {
-      fieldName: 'realName',
+      fieldName: 'realname',
       component: 'Input',
       label: '姓名',
     },
     {
-      fieldName: 'username',
+      fieldName: 'nickname',
       component: 'Input',
-      label: '用户名',
+      label: '昵称',
     },
     {
-      fieldName: 'roles',
-      component: 'Select',
-      componentProps: {
-        mode: 'tags',
-        options: MOCK_ROLES_OPTIONS,
-      },
-      label: '角色',
+      fieldName: 'email',
+      component: 'Input',
+      label: '邮箱',
     },
     {
-      fieldName: 'introduction',
+      fieldName: 'mobile',
+      component: 'Input',
+      label: '手机号',
+    },
+    {
+      fieldName: 'description',
       component: 'Textarea',
       label: '个人简介',
     },
@@ -56,10 +42,35 @@ const formSchema = computed((): VbenFormSchema[] => {
 });
 
 onMounted(async () => {
-  const data = await getUserInfoApi();
-  profileBaseSettingRef.value.getFormApi().setValues(data);
+  const user = await userProfileClient.GetUser({});
+  profileBaseSettingRef.value.getFormApi().setValues({
+    realname: user.realname || '',
+    nickname: user.nickname || '',
+    email: user.email || '',
+    mobile: user.mobile || '',
+    description: user.description || '',
+  });
 });
+
+async function handleSubmit(values: Record<string, any>) {
+  await userProfileClient.UpdateUser({
+    id: 0,
+    updateMask: 'nickname,realname,email,mobile,description',
+    data: {
+      realname: values.realname,
+      nickname: values.nickname,
+      email: values.email,
+      mobile: values.mobile,
+      description: values.description,
+    } as any,
+  });
+  message.success('个人信息已更新');
+}
 </script>
 <template>
-  <ProfileBaseSetting ref="profileBaseSettingRef" :form-schema="formSchema" />
+  <ProfileBaseSetting
+    ref="profileBaseSettingRef"
+    :form-schema="formSchema"
+    @submit="handleSubmit"
+  />
 </template>

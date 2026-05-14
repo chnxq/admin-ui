@@ -7,6 +7,8 @@ import { ProfilePasswordSetting, z } from '@vben/common-ui';
 
 import { message } from 'ant-design-vue';
 
+import { userProfileClient } from '#/api/admin/clients';
+
 const formSchema = computed((): VbenFormSchema[] => {
   return [
     {
@@ -50,7 +52,11 @@ const formSchema = computed((): VbenFormSchema[] => {
   ];
 });
 
-function handleSubmit() {
+async function handleSubmit(values: Record<string, any>) {
+  await userProfileClient.ChangePassword({
+    oldPassword: values.oldPassword,
+    newPassword: values.newPassword,
+  });
   message.success('密码修改成功');
 }
 </script>
