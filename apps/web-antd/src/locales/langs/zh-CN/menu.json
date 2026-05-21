@@ -5,6 +5,7 @@
     "role": "角色管理",
     "menu": "菜单管理",
     "api": "API管理",
+    "apiDocs": "API文档",
     "tenant": "租户管理",
     "orgUnit": "组织管理",
     "position": "岗位管理"

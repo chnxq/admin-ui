@@ -13,6 +13,12 @@ export default defineConfig(async () => {
             target: 'http://localhost:7788',
             ws: true,
           },
+          '/docs': {
+            changeOrigin: true,
+            // admin swagger docs
+            target: 'http://localhost:7788',
+            ws: true,
+          },
         },
       },
     },

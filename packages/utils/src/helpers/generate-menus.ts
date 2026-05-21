@@ -63,7 +63,7 @@ function generateMenus(
     }
 
     // 确定最终路径
-    const resultPath = hideChildrenInMenu ? redirect || path : link || path;
+    const resultPath = hideChildrenInMenu ? redirect || path : path;
 
     return {
       activeIcon,
@@ -71,6 +71,7 @@ function generateMenus(
       badgeType,
       badgeVariants,
       icon,
+      link,
       name,
       query,
       order,

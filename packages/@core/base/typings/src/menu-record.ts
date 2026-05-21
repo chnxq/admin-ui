@@ -48,6 +48,7 @@ interface MenuRecordRaw extends MenuRecordBadgeRaw {
    * 图标名
    */
   icon?: Component | string;
+  link?: string;
   /**
    * 菜单名
    */

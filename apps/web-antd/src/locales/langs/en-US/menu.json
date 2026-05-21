@@ -5,6 +5,7 @@
     "role": "Role Management",
     "menu": "Menu Management",
     "api": "API Management",
+    "apiDocs": "API Docs",
     "tenant": "Tenant Management",
     "orgUnit": "Organization Management",
     "position": "Position Management"

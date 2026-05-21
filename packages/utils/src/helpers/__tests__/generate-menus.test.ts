@@ -127,6 +127,40 @@ describe('generateMenus', () => {
     ]);
   });
 
+  it('keeps route path for link menus and exposes link separately', async () => {
+    const linkRoutes = [
+      {
+        meta: {
+          icon: 'book-icon',
+          link: '/docs/',
+          openInNewWindow: true,
+          title: 'API Docs',
+        },
+        name: 'apiDocs',
+        path: '/system/api-docs',
+      },
+    ] as RouteRecordRaw[];
+
+    const menus = generateMenus(linkRoutes, mockRouter as any);
+    expect(menus).toEqual([
+      {
+        badge: undefined,
+        badgeType: undefined,
+        badgeVariants: undefined,
+        children: [],
+        icon: 'book-icon',
+        link: '/docs/',
+        name: 'API Docs',
+        order: undefined,
+        parent: undefined,
+        parents: undefined,
+        path: '/system/api-docs',
+        query: undefined,
+        show: true,
+      },
+    ]);
+  });
+
   it('processes routes with redirects correctly', async () => {
     const mockRoutesWithRedirect = [
       {

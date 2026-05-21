@@ -8,6 +8,7 @@ import { ProfileBaseSetting } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 
 import { userProfileClient } from '#/api/admin/clients';
+import { $t } from '#/locales';
 
 const profileBaseSettingRef = ref();
 
@@ -16,27 +17,27 @@ const formSchema = computed((): VbenFormSchema[] => {
     {
       fieldName: 'realname',
       component: 'Input',
-      label: '姓名',
+      label: $t('page.profile.realname'),
     },
     {
       fieldName: 'nickname',
       component: 'Input',
-      label: '昵称',
+      label: $t('page.profile.nickname'),
     },
     {
       fieldName: 'email',
       component: 'Input',
-      label: '邮箱',
+      label: $t('page.profile.email'),
     },
     {
       fieldName: 'mobile',
       component: 'Input',
-      label: '手机号',
+      label: $t('page.profile.mobile'),
     },
     {
       fieldName: 'description',
       component: 'Textarea',
-      label: '个人简介',
+      label: $t('page.profile.description'),
     },
   ];
 });
@@ -64,7 +65,7 @@ async function handleSubmit(values: Record<string, any>) {
       description: values.description,
     } as any,
   });
-  message.success('个人信息已更新');
+  message.success($t('page.profile.profileUpdated'));
 }
 </script>
 <template>

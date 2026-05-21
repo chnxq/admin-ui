@@ -140,7 +140,7 @@ function useMixedMenu() {
   watch(
     () => route.path,
     (path) => {
-      const currentPath = route?.meta?.activePath ?? route?.meta?.link ?? path;
+      const currentPath = route?.meta?.activePath ?? path;
       if (willOpenedByWindow(currentPath)) {
         return;
       }
