@@ -3,6 +3,8 @@ import {
   createApiAuditLogServiceClient,
   createApiServiceClient,
   createAuthenticationServiceClient,
+  createDictEntryServiceClient,
+  createDictTypeServiceClient,
   createInternalMessageRecipientServiceClient,
   createInternalMessageServiceClient,
   createLoginAuditLogServiceClient,
@@ -30,6 +32,10 @@ export const apiClient = createApiServiceClient(adminRequestHandler);
 
 export const authenticationClient =
   createAuthenticationServiceClient(adminRequestHandler);
+
+export const dictEntryClient = createDictEntryServiceClient(adminRequestHandler);
+
+export const dictTypeClient = createDictTypeServiceClient(adminRequestHandler);
 
 export const loginAuditLogClient =
   createLoginAuditLogServiceClient(adminRequestHandler);
