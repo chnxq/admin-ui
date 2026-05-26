@@ -23,7 +23,7 @@ import type {
   AdminTableSorting,
 } from '#/components/admin-table-toolbar/shared';
 
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
@@ -41,8 +41,10 @@ import {
   Space,
   Spin,
   Table,
+  TabPane,
+  Tabs,
   Tag,
-  TreeSelect,
+  Tree,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
@@ -190,6 +192,17 @@ const resourceOptionLoading = ref(false);
 const authorizeResourcesLoaded = ref(false);
 const sorting = ref<AdminTableSorting[]>([]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
+
+const treeSearchValue = ref('');
+const treeCheckedKeys = ref<Array<number | string>>([]);
+const expandedKeys = ref<Array<number | string>>([]);
+const autoExpandParent = ref(true);
+const activeTabKey = ref('permissions');
+
+const editTreeSearchValue = ref('');
+const editTreeCheckedKeys = ref<Array<number | string>>([]);
+const editExpandedKeys = ref<Array<number | string>>([]);
+const editAutoExpandParent = ref(true);
 
 const searchForm = reactive({
   code: '',
@@ -346,6 +359,9 @@ function resetFormModel() {
 function resetAuthorizeState() {
   authorizeRole.value = undefined;
   authorizePermissionIds.value = [];
+  treeCheckedKeys.value = [];
+  treeSearchValue.value = '';
+  expandedKeys.value = [];
 }
 
 function toAdminRole(record: AdminRoleTableRecord) {
@@ -419,10 +435,6 @@ function getMenuMeta(menu: AdminMenu) {
   return menu.path?.trim() || menu.name?.trim() || '-';
 }
 
-function getApiLabel(api: AdminApi) {
-  return `${api.method ?? 'API'} ${api.path ?? ''}`.trim();
-}
-
 function getApiMeta(api: AdminApi) {
   return (
     api.operation?.trim() ||
@@ -446,6 +458,7 @@ function buildPermissionTree(
     groupNodeMap.set(group.id, {
       title: group.name ?? `#${group.id}`,
       value: `group-${group.id}`,
+      key: `group-${group.id}`,
       selectable: false,
       children: [],
     });
@@ -473,6 +486,7 @@ function buildPermissionTree(
     const node = {
       title: `${permission.name ?? permission.code ?? `#${permission.id}`} (${permission.code ?? '-'})`,
       value: permission.id,
+      key: permission.id,
     };
     if (
       permission.groupId !== undefined &&
@@ -576,6 +590,9 @@ async function handleTableChange(
 async function openCreate() {
   editingId.value = undefined;
   resetFormModel();
+  editTreeCheckedKeys.value = [];
+  editTreeSearchValue.value = '';
+  editExpandedKeys.value = [];
   modalOpen.value = true;
   await nextTick();
   formRef.value?.clearValidate();
@@ -590,6 +607,9 @@ async function openEdit(record: AdminRoleTableRecord) {
 
   editingId.value = role.id;
   Object.assign(formModel, toRoleSaveInput(role));
+  editTreeCheckedKeys.value = [...(formModel.permissions ?? [])];
+  editTreeSearchValue.value = '';
+  editExpandedKeys.value = [];
   modalOpen.value = true;
   await nextTick();
   formRef.value?.clearValidate();
@@ -616,6 +636,10 @@ async function openAuthorize(record: AdminRoleTableRecord) {
     authorizePermissionIds.value = normalizePermissionIds(
       roleDetail.permissions ?? [],
     );
+    treeCheckedKeys.value = [...authorizePermissionIds.value];
+    treeSearchValue.value = '';
+    expandedKeys.value = [];
+    activeTabKey.value = 'permissions';
   } catch (error) {
     authorizeModalOpen.value = false;
     resetAuthorizeState();
@@ -627,15 +651,164 @@ async function openAuthorize(record: AdminRoleTableRecord) {
   }
 }
 
-function handleAuthorizePermissionChange(
-  values?: Array<number | string> | number | string,
-) {
-  const nextValues = Array.isArray(values)
-    ? values
-    : (values === undefined
-      ? []
-      : [values]);
-  authorizePermissionIds.value = normalizePermissionIds(nextValues);
+watch(treeCheckedKeys, (newCheckedKeys) => {
+  authorizePermissionIds.value = normalizePermissionIds(newCheckedKeys);
+});
+
+function removePermission(id: number) {
+  treeCheckedKeys.value = treeCheckedKeys.value.filter((item) => item !== id);
+}
+
+function getApiMethodColor(method?: string) {
+  const m = method?.toUpperCase();
+  if (m === 'GET') return 'processing';
+  if (m === 'POST') return 'success';
+  if (m === 'PUT' || m === 'PATCH') return 'warning';
+  if (m === 'DELETE') return 'error';
+  return 'default';
+}
+
+function getAllGroupKeys(nodes: any[]): Array<number | string> {
+  let keys: Array<number | string> = [];
+  for (const node of nodes) {
+    if (node.children && node.children.length > 0) {
+      keys.push(node.key);
+      keys = [...keys, ...getAllGroupKeys(node.children)];
+    }
+  }
+  return keys;
+}
+
+const filteredPermissionTreeData = computed(() => {
+  const query = treeSearchValue.value.trim().toLowerCase();
+  if (!query) {
+    return permissionTreeData.value;
+  }
+
+  function filterNode(node: any): any | null {
+    const titleMatches = node.title.toLowerCase().includes(query);
+    if (node.children && node.children.length > 0) {
+      const filteredChildren = node.children
+        .map((n: any) => filterNode(n))
+        .filter((child: any) => child !== null);
+
+      if (filteredChildren.length > 0) {
+        return {
+          ...node,
+          children: filteredChildren,
+        };
+      }
+    }
+
+    if (titleMatches) {
+      return {
+        ...node,
+        children: node.children ? [...node.children] : undefined,
+      };
+    }
+
+    return null;
+  }
+
+  return permissionTreeData.value
+    .map((n: any) => filterNode(n))
+    .filter((node: any) => node !== null);
+});
+
+watch(treeSearchValue, (val) => {
+  if (val) {
+    expandedKeys.value = getAllGroupKeys(filteredPermissionTreeData.value);
+    autoExpandParent.value = true;
+  } else {
+    expandedKeys.value = [];
+  }
+});
+
+function expandAll() {
+  expandedKeys.value = getAllGroupKeys(permissionTreeData.value);
+}
+
+function collapseAll() {
+  expandedKeys.value = [];
+}
+
+function selectAll() {
+  treeCheckedKeys.value = permissions.value
+    .map((p) => p.id)
+    .filter((id): id is number => typeof id === 'number');
+}
+
+function clearAll() {
+  treeCheckedKeys.value = [];
+}
+
+watch(editTreeCheckedKeys, (newCheckedKeys) => {
+  formModel.permissions = normalizePermissionIds(newCheckedKeys);
+});
+
+const editFilteredPermissionTreeData = computed(() => {
+  const query = editTreeSearchValue.value.trim().toLowerCase();
+  if (!query) {
+    return permissionTreeData.value;
+  }
+
+  function filterNode(node: any): any | null {
+    const titleMatches = node.title.toLowerCase().includes(query);
+    if (node.children && node.children.length > 0) {
+      const filteredChildren = node.children
+        .map((n: any) => filterNode(n))
+        .filter((child: any) => child !== null);
+
+      if (filteredChildren.length > 0) {
+        return {
+          ...node,
+          children: filteredChildren,
+        };
+      }
+    }
+
+    if (titleMatches) {
+      return {
+        ...node,
+        children: node.children ? [...node.children] : undefined,
+      };
+    }
+
+    return null;
+  }
+
+  return permissionTreeData.value
+    .map((n: any) => filterNode(n))
+    .filter((node: any) => node !== null);
+});
+
+watch(editTreeSearchValue, (val) => {
+  if (val) {
+    editExpandedKeys.value = getAllGroupKeys(
+      editFilteredPermissionTreeData.value,
+    );
+    editAutoExpandParent.value = true;
+  } else {
+    editExpandedKeys.value = [];
+  }
+});
+
+function editExpandAll() {
+  editExpandedKeys.value = getAllGroupKeys(permissionTreeData.value);
+}
+
+function editCollapseAll() {
+  editExpandedKeys.value = [];
+}
+
+function editSelectAll() {
+  editTreeCheckedKeys.value = permissions.value
+    .map((p) => p.id)
+    .filter((id): id is number => typeof id === 'number');
+}
+
+function editClearAll() {
+  editTreeCheckedKeys.value = [];
 }
 
 async function submitRole() {
@@ -849,67 +1022,101 @@ onMounted(async () => {
       destroy-on-close
       :confirm-loading="submitting"
       :title="modalTitle"
+      :width="960"
       @ok="submitRole"
     >
-      <Form
-        ref="formRef"
-        :model="formModel"
-        :rules="formRules"
-        layout="vertical"
-      >
-        <Form.Item :label="$t('page.role.name')" name="name">
-          <Input
-            v-model:value="formModel.name"
-            :placeholder="$t('page.role.placeholderName')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.role.code')" name="code">
-          <Input
-            v-model:value="formModel.code"
-            :placeholder="$t('page.role.placeholderCode')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.role.type')" name="type">
-          <Select v-model:value="formModel.type" :options="typeOptions" />
-        </Form.Item>
-        <Form.Item :label="$t('page.role.status')" name="status">
-          <Select v-model:value="formModel.status" :options="statusOptions" />
-        </Form.Item>
-        <Form.Item :label="$t('ui.table.sortOrder')" name="sortOrder">
-          <InputNumber
-            v-model:value="formModel.sortOrder"
-            class="full-width-control"
-            :min="0"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.role.permissions')" name="permissions">
-          <TreeSelect
-            v-model:value="formModel.permissions"
-            allow-clear
-            class="full-width-control"
-            :field-names="{
-              label: 'title',
-              value: 'value',
-              children: 'children',
-            }"
-            :loading="permissionOptionLoading"
-            multiple
-            :placeholder="$t('page.role.placeholderPermissions')"
-            show-search
-            :tree-checkable="true"
-            :tree-data="permissionTreeData"
-            tree-default-expand-all
-            tree-node-filter-prop="title"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.role.description')" name="description">
-          <Input.TextArea
-            v-model:value="formModel.description"
-            :auto-size="{ minRows: 3, maxRows: 5 }"
-            :placeholder="$t('page.user.placeholderDescription')"
-          />
-        </Form.Item>
-      </Form>
+      <div class="edit-role-container">
+        <!-- Left Side: Role details Form -->
+        <div class="edit-role-form-panel">
+          <Form
+            ref="formRef"
+            :model="formModel"
+            :rules="formRules"
+            layout="vertical"
+          >
+            <Form.Item :label="$t('page.role.name')" name="name">
+              <Input
+                v-model:value="formModel.name"
+                :placeholder="$t('page.role.placeholderName')"
+              />
+            </Form.Item>
+            <Form.Item :label="$t('page.role.code')" name="code">
+              <Input
+                v-model:value="formModel.code"
+                :placeholder="$t('page.role.placeholderCode')"
+              />
+            </Form.Item>
+            <div class="form-row-grid-2">
+              <Form.Item :label="$t('page.role.type')" name="type">
+                <Select v-model:value="formModel.type" :options="typeOptions" />
+              </Form.Item>
+              <Form.Item :label="$t('page.role.status')" name="status">
+                <Select
+                  v-model:value="formModel.status"
+                  :options="statusOptions"
+                />
+              </Form.Item>
+            </div>
+            <Form.Item :label="$t('ui.table.sortOrder')" name="sortOrder">
+              <InputNumber
+                v-model:value="formModel.sortOrder"
+                class="full-width-control"
+                :min="0"
+              />
+            </Form.Item>
+            <Form.Item :label="$t('page.role.description')" name="description">
+              <Input.TextArea
+                v-model:value="formModel.description"
+                :auto-size="{ minRows: 4, maxRows: 6 }"
+                :placeholder="$t('page.user.placeholderDescription')"
+              />
+            </Form.Item>
+          </Form>
+        </div>
+
+        <!-- Divider -->
+        <div class="panel-divider"></div>
+
+        <!-- Right Side: Permissions Checkbox Tree -->
+        <div class="edit-role-tree-panel">
+          <div class="panel-header">
+            <span class="panel-title-text">
+              {{ $t('page.role.permissions') }} (已选
+              {{ formModel.permissions?.length ?? 0 }})
+            </span>
+            <Input.Search
+              v-model:value="editTreeSearchValue"
+              placeholder="搜索权限名称或标识..."
+              allow-clear
+              size="middle"
+            />
+            <div class="panel-actions">
+              <Button size="small" type="link" @click="editExpandAll">
+                展开所有
+              </Button>
+              <Button size="small" type="link" @click="editCollapseAll">
+                折叠所有
+              </Button>
+              <Button size="small" type="link" @click="editSelectAll">
+                全选
+              </Button>
+              <Button size="small" type="link" danger @click="editClearAll">
+                清空
+              </Button>
+            </div>
+          </div>
+          <div class="tree-wrapper">
+            <Tree
+              v-model:checked-keys="editTreeCheckedKeys"
+              v-model:expanded-keys="editExpandedKeys"
+              :auto-expand-parent="editAutoExpandParent"
+              checkable
+              :selectable="false"
+              :tree-data="editFilteredPermissionTreeData"
+            />
+          </div>
+        </div>
+      </div>
     </Modal>
 
     <Modal
@@ -955,114 +1162,150 @@ onMounted(async () => {
           </Space>
         </div>
 
-        <Form layout="vertical">
-          <Form.Item :label="$t('page.role.permissions')">
-            <TreeSelect
-              :value="authorizePermissionIds"
-              allow-clear
-              class="full-width-control"
-              :field-names="{
-                label: 'title',
-                value: 'value',
-                children: 'children',
-              }"
-              :loading="permissionOptionLoading"
-              multiple
-              :placeholder="$t('page.role.placeholderPermissions')"
-              show-search
-              :tree-checkable="true"
-              :tree-data="permissionTreeData"
-              tree-default-expand-all
-              tree-node-filter-prop="title"
-              @change="handleAuthorizePermissionChange"
-            />
-          </Form.Item>
-        </Form>
-
-        <div class="authorize-preview-grid">
-          <section class="authorize-preview-panel">
-            <div class="authorize-preview-header">
-              <span class="authorize-preview-title">{{
-                $t('page.role.selectedPermissions')
-              }}</span>
-              <Tag>{{ selectedAuthorizePermissions.length }}</Tag>
-            </div>
-            <div
-              v-if="selectedAuthorizePermissions.length > 0"
-              class="authorize-item-list"
-            >
-              <div
-                v-for="item in selectedAuthorizePermissions"
-                :key="item.id"
-                class="authorize-item"
-              >
-                <span class="authorize-item-main">
-                  {{ getPermissionLabel(item) }}
-                </span>
-                <span class="authorize-item-sub">
-                  {{ getPermissionMeta(item) }}
-                </span>
+        <div class="authorize-container">
+          <!-- Left Pane: Permission Tree -->
+          <div class="authorize-tree-panel">
+            <div class="panel-header">
+              <Input.Search
+                v-model:value="treeSearchValue"
+                placeholder="搜索权限名称或标识..."
+                allow-clear
+                size="middle"
+              />
+              <div class="panel-actions">
+                <Button size="small" type="link" @click="expandAll">
+                  展开所有
+                </Button>
+                <Button size="small" type="link" @click="collapseAll">
+                  折叠所有
+                </Button>
+                <Button size="small" type="link" @click="selectAll">
+                  全选
+                </Button>
+                <Button size="small" type="link" danger @click="clearAll">
+                  清空
+                </Button>
               </div>
             </div>
-            <Empty
-              v-else
-              :description="$t('page.role.emptySelectedPermissions')"
-            />
-          </section>
+            <div class="tree-wrapper">
+              <Tree
+                v-model:checked-keys="treeCheckedKeys"
+                v-model:expanded-keys="expandedKeys"
+                :auto-expand-parent="autoExpandParent"
+                checkable
+                :selectable="false"
+                :tree-data="filteredPermissionTreeData"
+              />
+            </div>
+          </div>
 
-          <section class="authorize-preview-panel">
-            <div class="authorize-preview-header">
-              <span class="authorize-preview-title">{{
-                $t('page.role.relatedMenus')
-              }}</span>
-              <Tag>{{ selectedAuthorizeMenus.length }}</Tag>
-            </div>
-            <div
-              v-if="selectedAuthorizeMenus.length > 0"
-              class="authorize-item-list"
-            >
-              <div
-                v-for="item in selectedAuthorizeMenus"
-                :key="item.id"
-                class="authorize-item"
-              >
-                <span class="authorize-item-main">
-                  {{ getMenuLabel(item) }}
-                </span>
-                <span class="authorize-item-sub">
-                  {{ getMenuMeta(item) }}
-                </span>
-              </div>
-            </div>
-            <Empty v-else :description="$t('page.role.emptyRelatedMenus')" />
-          </section>
+          <!-- Divider -->
+          <div class="panel-divider"></div>
 
-          <section class="authorize-preview-panel">
-            <div class="authorize-preview-header">
-              <span class="authorize-preview-title">{{
-                $t('page.role.relatedApis')
-              }}</span>
-              <Tag>{{ selectedAuthorizeApis.length }}</Tag>
-            </div>
-            <div
-              v-if="selectedAuthorizeApis.length > 0"
-              class="authorize-item-list"
-            >
-              <div
-                v-for="item in selectedAuthorizeApis"
-                :key="item.id"
-                class="authorize-item"
+          <!-- Right Pane: Preview & Impact Tabs -->
+          <div class="authorize-preview-panel-new">
+            <Tabs v-model:active-key="activeTabKey" size="middle">
+              <TabPane
+                key="permissions"
+                :tab="`已选权限 (${selectedAuthorizePermissions.length})`"
               >
-                <span class="authorize-item-main">
-                  {{ getApiLabel(item) }}
-                </span>
-                <span class="authorize-item-sub">
-                  {{ getApiMeta(item) }}
-                </span>
-              </div>
-            </div>
-            <Empty v-else :description="$t('page.role.emptyRelatedApis')" />
-          </section>
+                <div class="preview-list">
+                  <div
+                    v-for="item in selectedAuthorizePermissions"
+                    :key="item.id"
+                    class="preview-item"
+                  >
+                    <div class="item-info">
+                      <div class="item-name">
+                        <IconifyIcon
+                          icon="lucide:shield"
+                          class="item-icon text-primary"
+                        />
+                        {{ getPermissionLabel(item) }}
+                      </div>
+                      <div class="item-code">{{ getPermissionMeta(item) }}</div>
+                    </div>
+                    <Button
+                      type="text"
+                      danger
+                      size="small"
+                      class="remove-btn"
+                      @click="removePermission(item.id!)"
+                    >
+                      <template #icon>
+                        <IconifyIcon icon="lucide:x" />
+                      </template>
+                    </Button>
+                  </div>
+                  <Empty
+                    v-if="selectedAuthorizePermissions.length === 0"
+                    :description="$t('page.role.emptySelectedPermissions')"
+                    class="empty-preview"
+                  />
+                </div>
+              </TabPane>
+
+              <TabPane
+                key="menus"
+                :tab="`关联页面 (${selectedAuthorizeMenus.length})`"
+              >
+                <div class="preview-list">
+                  <div
+                    v-for="item in selectedAuthorizeMenus"
+                    :key="item.id"
+                    class="preview-item readonly"
+                  >
+                    <div class="item-info">
+                      <div class="item-name">
+                        <IconifyIcon
+                          icon="lucide:layout"
+                          class="item-icon text-success"
+                        />
+                        {{ getMenuLabel(item) }}
+                      </div>
+                      <div class="item-code">{{ getMenuMeta(item) }}</div>
+                    </div>
+                  </div>
+                  <Empty
+                    v-if="selectedAuthorizeMenus.length === 0"
+                    :description="$t('page.role.emptyRelatedMenus')"
+                    class="empty-preview"
+                  />
+                </div>
+              </TabPane>
+
+              <TabPane
+                key="apis"
+                :tab="`关联接口 (${selectedAuthorizeApis.length})`"
+              >
+                <div class="preview-list">
+                  <div
+                    v-for="item in selectedAuthorizeApis"
+                    :key="item.id"
+                    class="preview-item readonly"
+                  >
+                    <div class="item-info">
+                      <div class="item-name">
+                        <Tag
+                          :color="getApiMethodColor(item.method)"
+                          class="method-tag"
+                        >
+                          {{ item.method }}
+                        </Tag>
+                        <span class="api-path">{{ item.path }}</span>
+                      </div>
+                      <div class="item-code">{{ getApiMeta(item) }}</div>
+                    </div>
+                  </div>
+                  <Empty
+                    v-if="selectedAuthorizeApis.length === 0"
+                    :description="$t('page.role.emptyRelatedApis')"
+                    class="empty-preview"
+                  />
+                </div>
+              </TabPane>
+            </Tabs>
+          </div>
         </div>
       </Spin>
     </Modal>
@@ -1147,71 +1390,220 @@ onMounted(async () => {
   color: hsl(var(--muted-foreground));
 }
 
-.authorize-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+.edit-role-container {
+  display: flex;
+  gap: 20px;
+  min-height: 480px;
+  margin-top: 8px;
 }
 
-.authorize-preview-panel {
+.edit-role-form-panel {
+  flex: 45;
+  min-width: 0;
+}
+
+.edit-role-tree-panel {
   display: flex;
+  flex: 55;
   flex-direction: column;
   gap: 12px;
-  min-height: 280px;
-  padding: 12px;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
+  min-width: 0;
 }
 
-.authorize-preview-header {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
+.form-row-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.authorize-preview-title {
+.panel-title-text {
   font-size: 14px;
   font-weight: 600;
   color: hsl(var(--foreground));
 }
 
-.authorize-item-list {
+.authorize-container {
+  display: flex;
+  gap: 20px;
+  height: 520px;
+  margin-top: 8px;
+}
+
+.authorize-tree-panel {
+  display: flex;
+  flex: 55;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.panel-actions :deep(.ant-btn-link) {
+  padding: 0 4px;
+  font-size: 12px;
+}
+
+.tree-wrapper {
+  flex: 1;
+  padding: 10px;
+  overflow: auto;
+  background: hsl(var(--muted) / 10%);
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+}
+
+.tree-wrapper :deep(.ant-tree) {
+  background: transparent;
+}
+
+.panel-divider {
+  width: 1px;
+  background: hsl(var(--border));
+}
+
+.authorize-preview-panel-new {
+  display: flex;
+  flex: 45;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.authorize-preview-panel-new :deep(.ant-tabs) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.authorize-preview-panel-new :deep(.ant-tabs-content-holder) {
+  flex: 1;
+  min-height: 0;
+}
+
+.authorize-preview-panel-new :deep(.ant-tabs-content) {
+  height: 100%;
+}
+
+.authorize-preview-panel-new :deep(.ant-tabs-tabpane) {
+  height: 100%;
+  padding-bottom: 0;
+}
+
+.preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding-right: 4px;
+  overflow-y: auto;
+}
+
+.preview-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: hsl(var(--muted) / 15%);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.preview-item:hover {
+  background: hsl(var(--muted) / 30%);
+  border-color: hsl(var(--border));
+}
+
+.preview-item.readonly {
+  justify-content: flex-start;
+}
+
+.item-info {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 8px;
-  min-height: 0;
-  overflow: auto;
+  gap: 2px;
+  min-width: 0;
 }
 
-.authorize-item {
+.item-name {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px 12px;
-  background: hsl(var(--muted) / 30%);
-  border-radius: 6px;
-}
-
-.authorize-item-main {
-  font-size: 13px;
+  gap: 6px;
+  align-items: center;
+  font-size: 13.5px;
   font-weight: 500;
-  line-height: 1.5;
   color: hsl(var(--foreground));
 }
 
-.authorize-item-sub {
-  font-size: 12px;
-  line-height: 1.4;
+.item-icon {
+  font-size: 14px;
+}
+
+.text-primary {
+  color: hsl(var(--primary));
+}
+
+.text-success {
+  color: hsl(var(--success));
+}
+
+.item-code {
+  font-family: monospace;
+  font-size: 11.5px;
   color: hsl(var(--muted-foreground));
   word-break: break-all;
 }
 
+.method-tag {
+  min-width: 55px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.api-path {
+  font-family: monospace;
+  font-size: 13px;
+  color: hsl(var(--foreground));
+  word-break: break-all;
+}
+
+.remove-btn {
+  color: hsl(var(--muted-foreground));
+}
+
+.remove-btn:hover {
+  color: hsl(var(--destructive)) !important;
+  background: hsl(var(--destructive) / 10%);
+}
+
+.empty-preview {
+  padding: 40px 0;
+  margin: auto 0;
+}
+
 @media (max-width: 960px) {
-  .authorize-preview-grid {
-    grid-template-columns: 1fr;
+  .authorize-container {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .panel-divider {
+    display: none;
+  }
+
+  .tree-wrapper,
+  .preview-list {
+    max-height: 350px;
   }
 }
 
