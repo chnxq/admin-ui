@@ -724,8 +724,8 @@ onMounted(async () => {
             </Button>
             <Button @click="handleTypeReset">
               <template #icon>
-<IconifyIcon icon="lucide:rotate-ccw" />
-</template>
+                <IconifyIcon icon="lucide:rotate-ccw" />
+              </template>
               {{ $t('common.reset') }}
             </Button>
           </Space>
@@ -754,10 +754,8 @@ onMounted(async () => {
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'isEnabled'">
               <Tag :color="statusColor(toAdminDictType(record).isEnabled)">
-{{
-                statusText(toAdminDictType(record).isEnabled)
-              }}
-</Tag>
+                {{ statusText(toAdminDictType(record).isEnabled) }}
+              </Tag>
             </template>
             <template v-else-if="column.key === 'createdAt'">
               {{ formatTime(toAdminDictType(record).createdAt) }}
@@ -850,8 +848,8 @@ onMounted(async () => {
             </Button>
             <Button @click="handleEntryReset">
               <template #icon>
-<IconifyIcon icon="lucide:rotate-ccw" />
-</template>
+                <IconifyIcon icon="lucide:rotate-ccw" />
+              </template>
               {{ $t('common.reset') }}
             </Button>
           </Space>
@@ -875,10 +873,8 @@ onMounted(async () => {
             </template>
             <template v-else-if="column.key === 'isEnabled'">
               <Tag :color="statusColor(toAdminDictEntry(record).isEnabled)">
-{{
-                statusText(toAdminDictEntry(record).isEnabled)
-              }}
-</Tag>
+                {{ statusText(toAdminDictEntry(record).isEnabled) }}
+              </Tag>
             </template>
             <template v-else-if="column.key === 'createdAt'">
               {{ formatTime(toAdminDictEntry(record).createdAt) }}
