@@ -72,6 +72,8 @@ const API_ACCESS = {
   sync: ['apis:sync:create'],
 } as const;
 
+const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
+
 const methodOptions = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(
   (value) => ({
     label: value,
@@ -183,7 +185,7 @@ const editingId = ref<number>();
 const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const apis = ref<AdminApi[]>([]);
-const sorting = ref<AdminTableSorting[]>([]);
+const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -337,7 +339,7 @@ async function handleReset() {
   searchForm.module = '';
   searchForm.path = '';
   pager.page = 1;
-  sorting.value = [];
+  sorting.value = [...defaultSorting];
   await loadApis();
 }
 

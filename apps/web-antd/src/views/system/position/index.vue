@@ -76,6 +76,10 @@ const POSITION_ACCESS = {
   export: ['positions:export'],
 } as const;
 
+const defaultSorting: AdminTableSorting[] = [
+  { direction: 'ASC', field: 'sort_order' },
+];
+
 const statusOptions = [
   { label: $t('enum.status.ON'), value: 'ON' },
   { label: $t('enum.status.OFF'), value: 'OFF' },
@@ -123,6 +127,9 @@ const columns: AdminTableColumn<AdminPosition>[] = [
   },
   {
     dataIndex: 'orgUnitName',
+    sortField: 'org_unit_id',
+    sortable: true,
+    sorter: true,
     title: $t('page.position.orgUnitName'),
     width: 180,
   },
@@ -175,7 +182,7 @@ const editingId = ref<number>();
 const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const positions = ref<AdminPosition[]>([]);
-const sorting = ref<AdminTableSorting[]>([]);
+const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -309,7 +316,7 @@ function handleReset() {
   searchForm.code = '';
   searchForm.name = '';
   pager.page = 1;
-  sorting.value = [];
+  sorting.value = [...defaultSorting];
   void loadPositions();
 }
 

@@ -96,6 +96,13 @@ const DICT_ENTRY_ACCESS = {
   view: ['dict:entries:view'],
 } as const;
 
+const defaultTypeSorting: AdminTableSorting[] = [
+  { direction: 'ASC', field: 'sort_order' },
+];
+const defaultEntrySorting: AdminTableSorting[] = [
+  { direction: 'ASC', field: 'sort_order' },
+];
+
 const enabledOptions = [
   { label: $t('common.enabled'), value: 1 },
   { label: $t('common.disabled'), value: 0 },
@@ -228,8 +235,8 @@ const typeSurfaceRef = ref<HTMLElement>();
 const entrySurfaceRef = ref<HTMLElement>();
 const typeItems = ref<AdminDictType[]>([]);
 const entryItems = ref<AdminDictEntry[]>([]);
-const typeSorting = ref<AdminTableSorting[]>([]);
-const entrySorting = ref<AdminTableSorting[]>([]);
+const typeSorting = ref<AdminTableSorting[]>([...defaultTypeSorting]);
+const entrySorting = ref<AdminTableSorting[]>([...defaultEntrySorting]);
 const typeVisibleColumnKeys = ref<string[]>(
   getDefaultVisibleColumnKeys(typeColumns),
 );
@@ -493,7 +500,7 @@ function handleTypeReset() {
   typeSearchForm.isEnabled = undefined;
   typeSearchForm.typeCode = '';
   typeSearchForm.typeName = '';
-  typeSorting.value = [];
+  typeSorting.value = [...defaultTypeSorting];
   typePager.page = 1;
   void loadTypeData();
 }
@@ -506,7 +513,7 @@ function handleEntrySearch() {
 function handleEntryReset() {
   entrySearchForm.entryValue = '';
   entrySearchForm.isEnabled = undefined;
-  entrySorting.value = [];
+  entrySorting.value = [...defaultEntrySorting];
   entryPager.page = 1;
   void loadEntryData();
 }

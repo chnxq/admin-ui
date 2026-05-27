@@ -85,6 +85,8 @@ const USER_ACCESS = {
   export: ['users:export'],
 } as const;
 
+const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
+
 const statusOptions = [
   { label: $t('enum.user.status.NORMAL'), value: 'NORMAL' },
   { label: $t('enum.user.status.DISABLED'), value: 'DISABLED' },
@@ -202,7 +204,7 @@ const users = ref<AdminUser[]>([]);
 const orgOptions = ref<AdminOrgUnit[]>([]);
 const positionOptions = ref<AdminPosition[]>([]);
 const roleOptions = ref<AdminRole[]>([]);
-const sorting = ref<AdminTableSorting[]>([]);
+const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -374,9 +376,21 @@ async function loadReferenceOptions() {
   optionLoading.value = true;
   try {
     const [orgResult, positionResult, roleResult] = await Promise.all([
-      listAdminOrgUnitsApi({ page: 1, pageSize: 200 }),
-      listAdminPositionsApi({ page: 1, pageSize: 200 }),
-      listAdminRolesApi({ page: 1, pageSize: 200 }),
+      listAdminOrgUnitsApi({
+        page: 1,
+        pageSize: 200,
+        sorting: [{ direction: 'ASC', field: 'sort_order' }],
+      }),
+      listAdminPositionsApi({
+        page: 1,
+        pageSize: 200,
+        sorting: [{ direction: 'ASC', field: 'sort_order' }],
+      }),
+      listAdminRolesApi({
+        page: 1,
+        pageSize: 200,
+        sorting: [{ direction: 'ASC', field: 'sort_order' }],
+      }),
     ]);
     orgOptions.value = orgResult.items;
     positionOptions.value = positionResult.items;
@@ -425,7 +439,7 @@ async function handleReset() {
   searchForm.status = undefined;
   searchForm.telephone = '';
   searchForm.username = '';
-  sorting.value = [];
+  sorting.value = [...defaultSorting];
   pager.page = 1;
   await loadUsers();
 }

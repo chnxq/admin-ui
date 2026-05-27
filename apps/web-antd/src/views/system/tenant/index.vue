@@ -72,6 +72,8 @@ const TENANT_ACCESS = {
   export: ['tenants:export'],
 } as const;
 
+const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
+
 const statusOptions = [
   { label: $t('enum.tenant.status.ON'), value: 'ON' },
   { label: $t('enum.tenant.status.OFF'), value: 'OFF' },
@@ -169,6 +171,8 @@ const columns: AdminTableColumn<AdminTenant>[] = [
   },
   {
     dataIndex: 'memberCount',
+    sortable: true,
+    sorter: true,
     title: $t('page.tenant.memberCount'),
     width: 100,
   },
@@ -191,7 +195,7 @@ const editingId = ref<number>();
 const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const tenants = ref<AdminTenant[]>([]);
-const sorting = ref<AdminTableSorting[]>([]);
+const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -321,7 +325,7 @@ function handleReset() {
   searchForm.code = '';
   searchForm.name = '';
   pager.page = 1;
-  sorting.value = [];
+  sorting.value = [...defaultSorting];
   void loadTenants();
 }
 

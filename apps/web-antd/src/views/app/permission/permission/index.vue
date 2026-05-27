@@ -95,6 +95,8 @@ const PERMISSION_ACCESS = {
   sync: ['permissions:sync:perms:create'],
 } as const;
 
+const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
+
 const statusOptions = [
   { label: $t('enum.status.ON'), value: 'ON' },
   { label: $t('enum.status.OFF'), value: 'OFF' },
@@ -172,7 +174,7 @@ const groupTree = ref<AdminPermissionGroup[]>([]);
 const menuOptions = ref<AdminMenu[]>([]);
 const apiOptions = ref<AdminApi[]>([]);
 const resourceOptionLoading = ref(false);
-const sorting = ref<AdminTableSorting[]>([]);
+const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -391,8 +393,14 @@ async function loadResourceOptions() {
   resourceOptionLoading.value = true;
   try {
     const [menuResponse, apiResponse] = await Promise.all([
-      listAdminMenusApi({ pageSize: 500 }),
-      listAdminApisApi({ pageSize: 1000 }),
+      listAdminMenusApi({
+        pageSize: 500,
+        sorting: [{ direction: 'ASC', field: 'id' }],
+      }),
+      listAdminApisApi({
+        pageSize: 1000,
+        sorting: [{ direction: 'ASC', field: 'id' }],
+      }),
     ]);
     menuOptions.value = menuResponse.items;
     apiOptions.value = apiResponse.items;
@@ -495,7 +503,7 @@ async function handleReset() {
   searchForm.code = '';
   searchForm.name = '';
   pager.page = 1;
-  sorting.value = [];
+  sorting.value = [...defaultSorting];
   await loadPermissions();
 }
 

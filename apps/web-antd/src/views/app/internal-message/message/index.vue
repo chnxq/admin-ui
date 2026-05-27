@@ -80,6 +80,10 @@ const INTERNAL_MESSAGE_ACCESS = {
   send: ['internal:message:create', 'internal-messages:send'],
 } as const;
 
+const defaultSorting: AdminTableSorting[] = [
+  { direction: 'DESC', field: 'created_at' },
+];
+
 const typeOptions: Array<{ label: string; value: AdminInternalMessageType }> = [
   { label: $t('page.internalMessage.typeNotification'), value: 'NOTIFICATION' },
   { label: $t('page.internalMessage.typePrivate'), value: 'PRIVATE' },
@@ -145,7 +149,7 @@ const sendModalOpen = ref(false);
 const sending = ref(false);
 const tableSurfaceRef = ref<HTMLElement>();
 const messages = ref<AdminInternalMessage[]>([]);
-const sorting = ref<AdminTableSorting[]>([]);
+const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 const formRef = ref<FormInstance>();
 
@@ -350,7 +354,7 @@ async function handleReset() {
   searchForm.title = '';
   searchForm.type = undefined;
   pager.page = 1;
-  sorting.value = [];
+  sorting.value = [...defaultSorting];
   await loadMessages();
 }
 

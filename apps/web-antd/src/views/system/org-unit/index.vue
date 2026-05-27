@@ -72,6 +72,10 @@ const ORG_UNIT_ACCESS = {
   export: ['org:units:export'],
 } as const;
 
+const defaultSorting: AdminTableSorting[] = [
+  { direction: 'ASC', field: 'sort_order' },
+];
+
 const statusOptions = [
   { label: $t('enum.status.ON'), value: 'ON' },
   { label: $t('enum.status.OFF'), value: 'OFF' },
@@ -169,7 +173,7 @@ const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const orgUnits = ref<AdminOrgUnit[]>([]);
 const orgUnitTree = ref<AdminOrgUnit[]>([]);
-const sorting = ref<AdminTableSorting[]>([]);
+const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -290,7 +294,7 @@ function handleSearch() {
 function handleReset() {
   searchForm.code = '';
   searchForm.name = '';
-  sorting.value = [];
+  sorting.value = [...defaultSorting];
   void loadOrgUnits();
 }
 

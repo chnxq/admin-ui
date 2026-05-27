@@ -91,6 +91,10 @@ const ROLE_ACCESS = {
   export: ['roles:export'],
 } as const;
 
+const defaultSorting: AdminTableSorting[] = [
+  { direction: 'ASC', field: 'sort_order' },
+];
+
 const statusOptions = [
   { label: $t('enum.role.status.ON'), value: 'ON' },
   { label: $t('enum.role.status.OFF'), value: 'OFF' },
@@ -190,7 +194,7 @@ const authorizePermissionIds = ref<number[]>([]);
 const permissionOptionLoading = ref(false);
 const resourceOptionLoading = ref(false);
 const authorizeResourcesLoaded = ref(false);
-const sorting = ref<AdminTableSorting[]>([]);
+const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const treeSearchValue = ref('');
@@ -506,7 +510,10 @@ async function loadPermissionOptions() {
   try {
     const [groupResponse, permissionResponse] = await Promise.all([
       listAdminPermissionGroupsApi({ pageSize: 500 }),
-      listAdminPermissionsApi({ pageSize: 1000 }),
+      listAdminPermissionsApi({
+        pageSize: 1000,
+        sorting: [{ direction: 'ASC', field: 'id' }],
+      }),
     ]);
     permissionGroups.value = groupResponse.items;
     permissions.value = permissionResponse.items;
@@ -528,8 +535,14 @@ async function loadAuthorizeResources() {
   resourceOptionLoading.value = true;
   try {
     const [menuResponse, apiResponse] = await Promise.all([
-      listAdminMenusApi({ pageSize: 500 }),
-      listAdminApisApi({ pageSize: 1000 }),
+      listAdminMenusApi({
+        pageSize: 500,
+        sorting: [{ direction: 'ASC', field: 'id' }],
+      }),
+      listAdminApisApi({
+        pageSize: 1000,
+        sorting: [{ direction: 'ASC', field: 'id' }],
+      }),
     ]);
     menuOptions.value = menuResponse.items;
     apiOptions.value = apiResponse.items;
@@ -572,7 +585,7 @@ async function handleReset() {
   searchForm.code = '';
   searchForm.name = '';
   pager.page = 1;
-  sorting.value = [];
+  sorting.value = [...defaultSorting];
   await loadRoles();
 }
 

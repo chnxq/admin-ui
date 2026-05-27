@@ -19,11 +19,12 @@ import type {
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
-import { Page } from '@vben/common-ui';
+import { IconPicker, Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { $t, $te } from '@vben/locales';
 
 import {
+  AutoComplete,
   Button,
   Form,
   Input,
@@ -70,6 +71,11 @@ interface AdminMenuFormModel extends Omit<
 }
 
 type AdminMenuTableRecord = AdminMenu | Record<string, any>;
+type ComponentOption = {
+  label: string;
+  meta: string;
+  value: string;
+};
 type AdminTableChangeSorter = Parameters<
   NonNullable<InstanceType<typeof Table>['$props']['onChange']>
 >[2];
@@ -81,6 +87,8 @@ const MENU_ACCESS = {
   export: ['menus:export'],
   sync: ['menus:sync:create', 'menus:create'],
 } as const;
+
+const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
 
 const statusOptions = [
   { label: $t('enum.status.ON'), value: 'ON' },
@@ -107,6 +115,8 @@ const typeTextMap: Record<AdminMenuType, string> = {
   LINK: $t('enum.menu.type.LINK'),
   MENU: $t('enum.menu.type.MENU'),
 };
+
+const pageComponentMap = import.meta.glob('../../**/*.vue');
 
 const columns: AdminTableColumn<AdminMenu>[] = [
   {
@@ -171,7 +181,7 @@ const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const menuItems = ref<AdminMenu[]>([]);
 const menuTree = ref<AdminMenu[]>([]);
-const sorting = ref<AdminTableSorting[]>([]);
+const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 
 const searchForm = reactive({
@@ -244,6 +254,29 @@ const parentOptions = computed(() =>
       value: item.id,
     })),
 );
+const componentOptions = computed<ComponentOption[]>(() => {
+  const existingComponents = menuItems.value
+    .map((item) => item.component?.trim())
+    .filter(Boolean);
+  const fileComponents = Object.keys(pageComponentMap)
+    .map((filePath) => normalizeComponentPathFromFile(filePath))
+    .filter(Boolean);
+  const merged = [...new Set([...existingComponents, ...fileComponents])];
+
+  return merged
+    .toSorted((left, right) => left.localeCompare(right))
+    .map((value) => ({
+      label: value,
+      meta: buildComponentOptionMeta(value),
+      value,
+    }));
+});
+const componentAutoCompleteOptions = computed(() =>
+  componentOptions.value.map((item) => ({
+    label: item.label,
+    value: item.value,
+  })),
+);
 
 function resetFormModel() {
   Object.assign(formModel, {
@@ -290,6 +323,28 @@ function getDisplayTitle(title?: string) {
   return $te(normalizedTitle) ? $t(normalizedTitle) : normalizedTitle;
 }
 
+function normalizeComponentPathFromFile(filePath: string) {
+  const normalized = filePath
+    .replaceAll('\\', '/')
+    .replace(/^\.\.\/\.\.\//, '/')
+    .replace(/\.vue$/, '');
+
+  return normalized.startsWith('/') ? normalized : `/${normalized}`;
+}
+
+function buildComponentOptionMeta(componentPath: string) {
+  if (componentPath.startsWith('/_core/')) {
+    return $t('page.menu.componentOptionMetaFallback');
+  }
+  if (componentPath.startsWith('/dashboard/')) {
+    return $t('page.menu.componentOptionMetaDashboard');
+  }
+  if (componentPath.startsWith('/system/')) {
+    return $t('page.menu.componentOptionMetaSystem');
+  }
+  return $t('page.menu.componentOptionMetaView');
+}
+
 async function loadMenus() {
   loading.value = true;
   try {
@@ -315,7 +370,7 @@ async function handleSearch() {
 async function handleReset() {
   searchForm.name = '';
   searchForm.path = '';
-  sorting.value = [];
+  sorting.value = [...defaultSorting];
   await loadMenus();
 }
 
@@ -623,10 +678,21 @@ onMounted(() => {
           />
         </Form.Item>
         <Form.Item :label="$t('page.menu.component')" name="component">
-          <Input
+          <AutoComplete
             v-model:value="formModel.component"
+            allow-clear
+            :options="componentAutoCompleteOptions"
             :placeholder="$t('page.menu.placeholderComponent')"
-          />
+          >
+            <template #option="{ value }">
+              <div class="menu-option">
+                <span class="menu-option-main">{{ value }}</span>
+                <span class="menu-option-meta">{{
+                  componentOptions.find((item) => item.value === value)?.meta
+                }}</span>
+              </div>
+            </template>
+          </AutoComplete>
         </Form.Item>
         <Form.Item :label="$t('page.menu.redirect')" name="redirect">
           <Input
@@ -635,8 +701,9 @@ onMounted(() => {
           />
         </Form.Item>
         <Form.Item :label="$t('page.menu.icon')" name="icon">
-          <Input
-            v-model:value="formModel.icon"
+          <IconPicker
+            v-model="formModel.icon"
+            prefix="lucide"
             :placeholder="$t('page.menu.placeholderIcon')"
           />
         </Form.Item>
@@ -718,6 +785,23 @@ onMounted(() => {
 }
 
 .menu-sub {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.menu-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.4;
+}
+
+.menu-option-main {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.menu-option-meta {
   font-size: 12px;
   color: hsl(var(--muted-foreground));
 }
