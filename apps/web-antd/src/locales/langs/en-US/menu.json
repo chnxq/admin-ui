@@ -6,6 +6,7 @@
     "menu": "Menu Management",
     "api": "API Management",
     "apiDocs": "API Docs",
+    "dict": "Dictionary Management",
     "dictType": "Dictionary Types",
     "dictEntry": "Dictionary Entries",
     "tenant": "Tenant Management",

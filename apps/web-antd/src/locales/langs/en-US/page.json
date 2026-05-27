@@ -152,6 +152,9 @@
     "placeholderEntryLabelEn": "Please enter the English label",
     "total": "Total"
   },
+  "dict": {
+    "moduleName": "Dictionary Management"
+  },
   "menu": {
     "moduleName": "Menu Management",
     "syncButton": "Sync Menu",
