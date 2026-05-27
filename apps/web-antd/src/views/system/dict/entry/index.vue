@@ -224,7 +224,9 @@ const formRules: Record<string, Rule[]> = {
   ],
   typeId: [
     {
-      message: $t('ui.formRules.selectRequired', [$t('page.dictEntry.typeName')]),
+      message: $t('ui.formRules.selectRequired', [
+        $t('page.dictEntry.typeName'),
+      ]),
       required: true,
     },
   ],
@@ -327,7 +329,9 @@ async function loadData() {
     const result = await listAdminDictEntriesApi({
       entryValue: searchForm.entryValue,
       isEnabled:
-        searchForm.isEnabled === undefined ? undefined : searchForm.isEnabled === 1,
+        searchForm.isEnabled === undefined
+          ? undefined
+          : searchForm.isEnabled === 1,
       page: pager.page,
       pageSize: pager.pageSize,
       sorting: sorting.value,
@@ -378,7 +382,8 @@ async function openEditModal(record: AdminDictEntryTableRecord) {
   editingId.value = item.id;
   Object.assign(formModel, {
     entryLabelEn: item.i18n?.['en-US']?.entryLabel ?? '',
-    entryLabelZh: item.i18n?.['zh-CN']?.entryLabel ?? item.currentI18n?.entryLabel ?? '',
+    entryLabelZh:
+      item.i18n?.['zh-CN']?.entryLabel ?? item.currentI18n?.entryLabel ?? '',
     entryValue: item.entryValue ?? '',
     isEnabled: item.isEnabled ?? true,
     numericValue: item.numericValue ?? 0,
@@ -557,7 +562,12 @@ onMounted(async () => {
       width="720px"
       @ok="handleSubmit"
     >
-      <Form ref="formRef" :model="formModel" :rules="formRules" layout="vertical">
+      <Form
+        ref="formRef"
+        :model="formModel"
+        :rules="formRules"
+        layout="vertical"
+      >
         <Form.Item :label="$t('page.dictEntry.typeName')" name="typeId">
           <Select
             v-model:value="formModel.typeId"
@@ -571,19 +581,28 @@ onMounted(async () => {
             :placeholder="$t('page.dictEntry.placeholderEntryValue')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.dictEntry.entryLabelZh')" name="entryLabelZh">
+        <Form.Item
+          :label="$t('page.dictEntry.entryLabelZh')"
+          name="entryLabelZh"
+        >
           <Input
             v-model:value="formModel.entryLabelZh"
             :placeholder="$t('page.dictEntry.placeholderEntryLabelZh')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.dictEntry.entryLabelEn')" name="entryLabelEn">
+        <Form.Item
+          :label="$t('page.dictEntry.entryLabelEn')"
+          name="entryLabelEn"
+        >
           <Input
             v-model:value="formModel.entryLabelEn"
             :placeholder="$t('page.dictEntry.placeholderEntryLabelEn')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.dictEntry.numericValue')" name="numericValue">
+        <Form.Item
+          :label="$t('page.dictEntry.numericValue')"
+          name="numericValue"
+        >
           <InputNumber
             v-model:value="formModel.numericValue"
             class="full-input"

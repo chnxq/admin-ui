@@ -33,7 +33,8 @@ export const apiClient = createApiServiceClient(adminRequestHandler);
 export const authenticationClient =
   createAuthenticationServiceClient(adminRequestHandler);
 
-export const dictEntryClient = createDictEntryServiceClient(adminRequestHandler);
+export const dictEntryClient =
+  createDictEntryServiceClient(adminRequestHandler);
 
 export const dictTypeClient = createDictTypeServiceClient(adminRequestHandler);
 

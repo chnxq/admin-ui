@@ -6,10 +6,7 @@ import type {
 } from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
 
-import type {
-  AdminDictType,
-  AdminDictTypeSaveInput,
-} from '#/api/admin/dicts';
+import type { AdminDictType, AdminDictTypeSaveInput } from '#/api/admin/dicts';
 import type {
   AdminTableColumn,
   AdminTableSorting,
@@ -234,7 +231,9 @@ async function loadData() {
   try {
     const result = await listAdminDictTypesApi({
       isEnabled:
-        searchForm.isEnabled === undefined ? undefined : searchForm.isEnabled === 1,
+        searchForm.isEnabled === undefined
+          ? undefined
+          : searchForm.isEnabled === 1,
       page: pager.page,
       pageSize: pager.pageSize,
       sorting: sorting.value,
@@ -446,7 +445,12 @@ onMounted(() => {
       destroy-on-close
       @ok="handleSubmit"
     >
-      <Form ref="formRef" :model="formModel" :rules="formRules" layout="vertical">
+      <Form
+        ref="formRef"
+        :model="formModel"
+        :rules="formRules"
+        layout="vertical"
+      >
         <Form.Item :label="$t('page.dictType.typeName')" name="typeName">
           <Input
             v-model:value="formModel.typeName"

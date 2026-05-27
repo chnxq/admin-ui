@@ -42,6 +42,8 @@ const messageToI18nKey: Record<string, string> = {
   'invalid captcha code': 'authentication.serverError.invalidCaptchaCode',
 };
 
+let unauthorizedLogoutPromise: null | Promise<void> = null;
+
 function resolveErrorMessage(error: any, fallbackMessage: string) {
   const responseData = error?.response?.data ?? {};
   const rawMessage =
@@ -70,6 +72,29 @@ function resolveErrorMessage(error: any, fallbackMessage: string) {
     return rawMessage;
   }
   return fallbackMessage;
+}
+
+function isUnauthorizedError(error: any) {
+  const responseData = error?.response?.data ?? {};
+  const status = error?.response?.status;
+  const reason =
+    typeof responseData?.reason === 'string'
+      ? responseData.reason.trim().toUpperCase()
+      : '';
+
+  return status === 401 || reason === 'UNAUTHORIZED';
+}
+
+export async function handleUnauthorizedError(redirect: boolean = true) {
+  if (unauthorizedLogoutPromise) {
+    return unauthorizedLogoutPromise;
+  }
+
+  const authStore = useAuthStore();
+  unauthorizedLogoutPromise = authStore.logout(redirect).finally(() => {
+    unauthorizedLogoutPromise = null;
+  });
+  return unauthorizedLogoutPromise;
 }
 
 function createRequestClient(baseURL: string, options?: RequestClientOptions) {
@@ -145,6 +170,9 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   // 通用的错误处理,如果没有进入上面的错误处理逻辑，就会进入这里
   client.addResponseInterceptor(
     errorMessageResponseInterceptor((msg: string, error) => {
+      if (isUnauthorizedError(error)) {
+        void handleUnauthorizedError(false);
+      }
       message.error(resolveErrorMessage(error, msg));
     }),
   );

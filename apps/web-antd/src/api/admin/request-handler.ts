@@ -1,6 +1,6 @@
 import type { RequestClientConfig } from '@vben/request';
 
-import { requestClient } from '#/api/request';
+import { handleUnauthorizedError, requestClient } from '#/api/request';
 
 interface GeneratedRequest {
   body: null | string;
@@ -70,10 +70,23 @@ export async function adminRequestHandler<T = unknown>(
     config.data = body;
   }
 
-  const response = await requestClient.request<unknown>(
-    normalizePath(request.path),
-    config,
-  );
+  let response: unknown;
+  try {
+    response = await requestClient.request<unknown>(
+      normalizePath(request.path),
+      config,
+    );
+  } catch (error: any) {
+    const status = error?.response?.status;
+    const reason =
+      typeof error?.response?.data?.reason === 'string'
+        ? error.response.data.reason.trim().toUpperCase()
+        : '';
+    if (status === 401 || reason === 'UNAUTHORIZED') {
+      await handleUnauthorizedError(false);
+    }
+    throw error;
+  }
 
   return unwrapEnvelope<T>(response, meta);
 }

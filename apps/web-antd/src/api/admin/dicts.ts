@@ -140,7 +140,11 @@ export async function listAdminDictTypesApi(
           field: 'is_enabled',
           op: 'EQ',
           value:
-            params.isEnabled === undefined ? undefined : params.isEnabled ? 1 : 0,
+            params.isEnabled === undefined
+              ? undefined
+              : (params.isEnabled
+                ? 1
+                : 0),
         },
       ],
       page: params.page,
@@ -197,7 +201,11 @@ export async function listAdminDictEntriesApi(
           field: 'is_enabled',
           op: 'EQ',
           value:
-            params.isEnabled === undefined ? undefined : params.isEnabled ? 1 : 0,
+            params.isEnabled === undefined
+              ? undefined
+              : (params.isEnabled
+                ? 1
+                : 0),
         },
       ],
       page: params.page,
