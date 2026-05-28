@@ -339,7 +339,9 @@ async function loadTargetUsers(keyword = '') {
       username: keyword || undefined,
     });
     targetUserOptions.value = response.items
-      .filter((item): item is typeof item & { id: number } => item.id !== undefined)
+      .filter(
+        (item): item is typeof item & { id: number } => item.id !== undefined,
+      )
       .map((item) => ({
         label: item.realname?.trim() || item.username?.trim() || `#${item.id}`,
         meta:
@@ -464,7 +466,9 @@ async function handleRevoke(record: AdminInternalMessageTableRecord) {
       message.error($t('page.internalMessage.revokeFailedAfterThirtyMinutes'));
       return;
     }
-    if (text.includes('message cannot be revoked after any recipient has read it')) {
+    if (
+      text.includes('message cannot be revoked after any recipient has read it')
+    ) {
       message.error($t('page.internalMessage.revokeFailedAfterRead'));
       return;
     }
@@ -705,8 +709,8 @@ onMounted(() => {
 }
 
 .message-target-option__meta {
-  color: hsl(var(--muted-foreground));
   font-size: 12px;
+  color: hsl(var(--muted-foreground));
 }
 
 @media (max-width: 640px) {

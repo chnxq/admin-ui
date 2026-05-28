@@ -553,10 +553,7 @@ onMounted(() => {
             <template #title="{ label, subtitle }">
               <div class="org-unit-parent-option">
                 <span class="org-unit-parent-option__main">{{ label }}</span>
-                <span
-                  v-if="subtitle"
-                  class="org-unit-parent-option__meta"
-                >
+                <span v-if="subtitle" class="org-unit-parent-option__meta">
                   {{ subtitle }}
                 </span>
               </div>
@@ -659,8 +656,8 @@ onMounted(() => {
 }
 
 .org-unit-parent-option__meta {
-  color: hsl(var(--muted-foreground));
   font-size: 12px;
+  color: hsl(var(--muted-foreground));
 }
 
 @media (max-width: 768px) {

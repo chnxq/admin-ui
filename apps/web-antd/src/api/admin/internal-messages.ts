@@ -1,3 +1,5 @@
+import type { AdminSorting } from './paging';
+
 import type {
   internal_messageservicev1_InternalMessage,
   internal_messageservicev1_InternalMessage_Status,
@@ -10,12 +12,7 @@ import {
   internalMessageClient,
   internalMessageRecipientClient,
 } from './clients';
-import {
-  getAdminList,
-  toAdminTotal,
-  toPagingRequest,
-  type AdminSorting,
-} from './paging';
+import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
 
 export type AdminInboxMessage =
   internal_messageservicev1_InternalMessageRecipient;
