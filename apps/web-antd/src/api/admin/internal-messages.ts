@@ -4,13 +4,18 @@ import type {
   internal_messageservicev1_InternalMessage_Type,
   internal_messageservicev1_InternalMessageRecipient,
   internal_messageservicev1_SendMessageResponse,
-  pagination_PagingRequest,
 } from '#/api/generated/admin/service/v1';
 
 import {
   internalMessageClient,
   internalMessageRecipientClient,
 } from './clients';
+import {
+  getAdminList,
+  toAdminTotal,
+  toPagingRequest,
+  type AdminSorting,
+} from './paging';
 
 export type AdminInboxMessage =
   internal_messageservicev1_InternalMessageRecipient;
@@ -25,6 +30,7 @@ export interface AdminInboxListParams {
   offset?: number;
   page?: number;
   pageSize?: number;
+  sorting?: AdminSorting[];
 }
 
 export interface AdminInboxListResult {
@@ -37,6 +43,7 @@ export interface AdminInternalMessageListParams {
   offset?: number;
   page?: number;
   pageSize?: number;
+  sorting?: AdminSorting[];
 }
 
 export interface AdminInternalMessageListResult {
@@ -52,20 +59,6 @@ export interface AdminSendInternalMessageInput {
   type: AdminInternalMessageType;
 }
 
-function toPagingRequest(
-  params: AdminInboxListParams = {},
-): pagination_PagingRequest {
-  const page = params.page ?? 1;
-  const pageSize = params.pageSize ?? params.limit ?? 20;
-  return {
-    limit: params.limit ?? pageSize,
-    offset: params.offset ?? (page - 1) * pageSize,
-    page,
-    pageSize,
-    sorting: [],
-  };
-}
-
 function toTotal(value?: number) {
   if (typeof value !== 'number') {
     return 0;
@@ -77,7 +70,11 @@ export async function listAdminInboxMessagesApi(
   params: AdminInboxListParams = {},
 ): Promise<AdminInboxListResult> {
   const response = await internalMessageRecipientClient.ListUserInbox(
-    toPagingRequest(params),
+    toPagingRequest({
+      page: params.page,
+      pageSize: params.pageSize ?? params.limit ?? 20,
+      sorting: params.sorting,
+    }),
   );
   return {
     items: response.items ?? [],
@@ -88,12 +85,20 @@ export async function listAdminInboxMessagesApi(
 export async function listAdminInternalMessagesApi(
   params: AdminInternalMessageListParams = {},
 ): Promise<AdminInternalMessageListResult> {
-  const response = await internalMessageClient.ListMessage(
-    toPagingRequest(params),
+  const response = await getAdminList<{
+    items?: internal_messageservicev1_InternalMessage[];
+    total?: number | string;
+  }>(
+    '/admin/v1/internal-message/messages',
+    toPagingRequest({
+      page: params.page,
+      pageSize: params.pageSize ?? params.limit ?? 20,
+      sorting: params.sorting,
+    }),
   );
   return {
     items: response.items ?? [],
-    total: toTotal(response.total),
+    total: toAdminTotal(response.total),
   };
 }
 

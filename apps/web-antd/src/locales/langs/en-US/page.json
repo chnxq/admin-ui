@@ -307,7 +307,8 @@
     "emptyRelatedApis": "No related APIs",
     "placeholderName": "Please enter role name",
     "placeholderCode": "Please enter role code",
-    "placeholderPermissions": "Select permissions"
+    "placeholderPermissions": "Select permissions",
+    "protectedDeleteBlocked": "Protected roles cannot be deleted"
   },
   "tenant": {
     "moduleName": "Tenant Management",
@@ -562,6 +563,11 @@
     "loadInboxFailed": "Failed to load inbox messages",
     "sendSuccess": "Message sent",
     "revokeSuccess": "Message revoked",
+    "revokeFailed": "Failed to revoke message",
+    "revokeFailedAfterThirtyMinutes": "Messages cannot be revoked after 30 minutes",
+    "revokeFailedAfterRead": "Messages cannot be revoked after any recipient has read them",
+    "revokeFailedNotSender": "Only the sender can revoke this message",
+    "revokeFailedAlreadyRevoked": "This message has already been revoked",
     "typeNotification": "Notification",
     "typePrivate": "Private",
     "typeGroup": "Group",
@@ -571,7 +577,8 @@
     "statusRevoked": "Revoked",
     "statusArchived": "Archived",
     "statusDeleted": "Deleted",
-    "total": "Total"
+    "total": "Total",
+    "placeholderTargetUsers": "Search and select target users"
   },
   "sse": {
     "connectFailed": "Real-time message connection failed"

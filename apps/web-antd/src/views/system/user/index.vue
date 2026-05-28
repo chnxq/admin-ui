@@ -287,26 +287,29 @@ const formRules = computed<Record<string, Rule[]>>(() => ({
   ],
 }));
 
-const orgSelectOptions = computed(() =>
-  orgOptions.value.map((item) => ({
-    label: item.name ?? `#${item.id}`,
-    meta: item.code ?? item.type ?? '-',
-    value: item.id as number,
-  })) satisfies UserSelectOption[],
+const orgSelectOptions = computed(
+  () =>
+    orgOptions.value.map((item) => ({
+      label: item.name ?? `#${item.id}`,
+      meta: item.code ?? item.type ?? '-',
+      value: item.id as number,
+    })) satisfies UserSelectOption[],
 );
-const positionSelectOptions = computed(() =>
-  positionOptions.value.map((item) => ({
-    label: item.name ?? `#${item.id}`,
-    meta: item.orgUnitName ?? item.code ?? '-',
-    value: item.id as number,
-  })) satisfies UserSelectOption[],
+const positionSelectOptions = computed(
+  () =>
+    positionOptions.value.map((item) => ({
+      label: item.name ?? `#${item.id}`,
+      meta: item.orgUnitName ?? item.code ?? '-',
+      value: item.id as number,
+    })) satisfies UserSelectOption[],
 );
-const roleSelectOptions = computed(() =>
-  roleOptions.value.map((item) => ({
-    label: item.name ?? `#${item.id}`,
-    meta: item.code ?? item.type ?? '-',
-    value: item.id as number,
-  })) satisfies UserSelectOption[],
+const roleSelectOptions = computed(
+  () =>
+    roleOptions.value.map((item) => ({
+      label: item.name ?? `#${item.id}`,
+      meta: item.code ?? item.type ?? '-',
+      value: item.id as number,
+    })) satisfies UserSelectOption[],
 );
 
 const tablePagination = computed<TablePaginationConfig>(() => ({

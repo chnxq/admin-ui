@@ -883,6 +883,10 @@ async function submitAuthorize() {
 
 async function handleDelete(record: AdminRoleTableRecord) {
   const role = toAdminRole(record);
+  if (role.isProtected) {
+    message.warning($t('page.role.protectedDeleteBlocked'));
+    return;
+  }
   if (!role.id) {
     message.warning($t('page.role.missingId'));
     return;
@@ -1016,6 +1020,7 @@ onMounted(async () => {
                 {{ $t('common.edit') }}
               </Button>
               <Popconfirm
+                :disabled="record.isProtected"
                 :title="
                   $t('ui.actionMessage.deleteConfirm', [
                     $t('page.role.moduleName'),
@@ -1142,7 +1147,9 @@ onMounted(async () => {
               <template #title="{ title, meta }">
                 <div class="role-tree-node">
                   <span class="role-tree-node__title">{{ title }}</span>
-                  <span v-if="meta" class="role-tree-node__meta">{{ meta }}</span>
+                  <span v-if="meta" class="role-tree-node__meta">{{
+                    meta
+                  }}</span>
                 </div>
               </template>
             </Tree>

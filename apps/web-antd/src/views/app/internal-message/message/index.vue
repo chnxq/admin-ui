@@ -37,6 +37,7 @@ import {
   revokeAdminInternalMessageApi,
   sendAdminInternalMessageApi,
 } from '#/api/admin/internal-messages';
+import { listAdminUsersApi } from '#/api/admin/users';
 import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
 import {
   applyAdminTableSorting,
@@ -65,9 +66,15 @@ type AdminTableChangeSorter = Parameters<
 interface SendFormModel {
   content: string;
   targetAll: boolean;
-  targetUserIds: string;
+  targetUserIds: number[];
   title: string;
   type: AdminInternalMessageType;
+}
+
+interface TargetUserOption {
+  label: string;
+  meta: string;
+  value: number;
 }
 
 const INTERNAL_MESSAGE_ACCESS = {
@@ -94,19 +101,25 @@ const columns: AdminTableColumn<AdminInternalMessage>[] = [
   {
     dataIndex: 'title',
     key: 'title',
+    sortField: 'title',
     sortable: true,
     sorter: true,
     title: $t('page.internalMessage.title'),
     width: 220,
   },
   {
+    dataIndex: 'content',
     key: 'content',
+    sortField: 'content',
+    sortable: true,
+    sorter: true,
     title: $t('page.internalMessage.content'),
     width: 360,
   },
   {
     dataIndex: 'type',
     key: 'type',
+    sortField: 'type',
     sortable: true,
     sorter: true,
     title: $t('page.internalMessage.type'),
@@ -115,6 +128,7 @@ const columns: AdminTableColumn<AdminInternalMessage>[] = [
   {
     dataIndex: 'status',
     key: 'status',
+    sortField: 'status',
     sortable: true,
     sorter: true,
     title: $t('page.internalMessage.status'),
@@ -152,6 +166,8 @@ const messages = ref<AdminInternalMessage[]>([]);
 const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
 const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
 const formRef = ref<FormInstance>();
+const targetUserLoading = ref(false);
+const targetUserOptions = ref<TargetUserOption[]>([]);
 
 const searchForm = reactive({
   title: '',
@@ -167,7 +183,7 @@ const pager = reactive({
 const sendFormModel = reactive<SendFormModel>({
   content: '',
   targetAll: true,
-  targetUserIds: '',
+  targetUserIds: [],
   title: '',
   type: 'NOTIFICATION',
 });
@@ -306,17 +322,43 @@ function resetSendFormModel() {
   Object.assign(sendFormModel, {
     content: '',
     targetAll: true,
-    targetUserIds: '',
+    targetUserIds: [],
     title: '',
     type: 'NOTIFICATION',
   });
 }
 
-function parseTargetUserIDs(raw: string) {
-  return raw
-    .split(',')
-    .map((part) => Number.parseInt(part.trim(), 10))
-    .filter((item) => Number.isInteger(item) && item > 0);
+async function loadTargetUsers(keyword = '') {
+  targetUserLoading.value = true;
+  try {
+    const response = await listAdminUsersApi({
+      page: 1,
+      pageSize: 50,
+      realname: keyword || undefined,
+      sorting: [{ direction: 'ASC', field: 'id' }],
+      username: keyword || undefined,
+    });
+    targetUserOptions.value = response.items
+      .filter((item): item is typeof item & { id: number } => item.id !== undefined)
+      .map((item) => ({
+        label: item.realname?.trim() || item.username?.trim() || `#${item.id}`,
+        meta:
+          [
+            item.username?.trim(),
+            item.mobile?.trim(),
+            item.orgUnitNames?.filter(Boolean).join('/'),
+          ]
+            .filter(Boolean)
+            .join(' / ') || '-',
+        value: item.id,
+      }));
+  } finally {
+    targetUserLoading.value = false;
+  }
+}
+
+async function handleTargetUserSearch(value: string) {
+  await loadTargetUsers(value.trim());
 }
 
 async function loadMessages() {
@@ -325,6 +367,7 @@ async function loadMessages() {
     const response = await listAdminInternalMessagesApi({
       page: pager.page,
       pageSize: pager.pageSize,
+      sorting: sorting.value,
     });
     let items = response.items;
     const title = searchForm.title.trim();
@@ -371,6 +414,7 @@ async function handleTableChange(
 
 async function openSend() {
   resetSendFormModel();
+  await loadTargetUsers();
   sendModalOpen.value = true;
   await nextTick();
   formRef.value?.clearValidate();
@@ -379,7 +423,7 @@ async function openSend() {
 async function submitSend() {
   await formRef.value?.validate();
 
-  const targetUserIds = parseTargetUserIDs(sendFormModel.targetUserIds);
+  const targetUserIds = sendFormModel.targetUserIds.filter((item) => item > 0);
   if (!sendFormModel.targetAll && targetUserIds.length === 0) {
     message.warning($t('page.internalMessage.targetUserIdsRequired'));
     return;
@@ -410,9 +454,30 @@ async function handleRevoke(record: AdminInternalMessageTableRecord) {
   if (!row.id) {
     return;
   }
-  await revokeAdminInternalMessageApi(row.id);
-  message.success($t('page.internalMessage.revokeSuccess'));
-  await loadMessages();
+  try {
+    await revokeAdminInternalMessageApi(row.id);
+    message.success($t('page.internalMessage.revokeSuccess'));
+    await loadMessages();
+  } catch (error) {
+    const text = (error as Error).message || '';
+    if (text.includes('message cannot be revoked after 30 minutes')) {
+      message.error($t('page.internalMessage.revokeFailedAfterThirtyMinutes'));
+      return;
+    }
+    if (text.includes('message cannot be revoked after any recipient has read it')) {
+      message.error($t('page.internalMessage.revokeFailedAfterRead'));
+      return;
+    }
+    if (text.includes('only sender can revoke message')) {
+      message.error($t('page.internalMessage.revokeFailedNotSender'));
+      return;
+    }
+    if (text.includes('message has already been revoked')) {
+      message.error($t('page.internalMessage.revokeFailedAlreadyRevoked'));
+      return;
+    }
+    message.error(text || $t('page.internalMessage.revokeFailed'));
+  }
 }
 
 const canSend = computed(() =>
@@ -580,11 +645,23 @@ onMounted(() => {
           :label="$t('page.internalMessage.targetUserIds')"
           name="targetUserIds"
         >
-          <Input
+          <Select
             v-model:value="sendFormModel.targetUserIds"
             :disabled="sendFormModel.targetAll"
-            :placeholder="$t('page.internalMessage.placeholderTargetUserIds')"
-          />
+            :loading="targetUserLoading"
+            mode="multiple"
+            :options="targetUserOptions"
+            :placeholder="$t('page.internalMessage.placeholderTargetUsers')"
+            show-search
+            @search="handleTargetUserSearch"
+          >
+            <template #option="{ label, meta }">
+              <div class="message-target-option">
+                <span class="message-target-option__main">{{ label }}</span>
+                <span class="message-target-option__meta">{{ meta }}</span>
+              </div>
+            </template>
+          </Select>
         </Form.Item>
       </Form>
     </Modal>
@@ -615,6 +692,21 @@ onMounted(() => {
 .admin-internal-message-table {
   flex: 1;
   min-height: 0;
+}
+
+.message-target-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.message-target-option__main {
+  color: hsl(var(--foreground));
+}
+
+.message-target-option__meta {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
 }
 
 @media (max-width: 640px) {

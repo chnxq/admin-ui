@@ -34,6 +34,7 @@ import {
   Space,
   Table,
   Tag,
+  TreeSelect,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
@@ -64,6 +65,13 @@ type AdminOrgUnitTableRecord = AdminOrgUnit | Record<string, any>;
 type AdminTableChangeSorter = Parameters<
   NonNullable<InstanceType<typeof Table>['$props']['onChange']>
 >[2];
+type OrgUnitTreeOption = {
+  children?: OrgUnitTreeOption[];
+  key: number;
+  label: string;
+  subtitle?: string;
+  value: number;
+};
 
 const ORG_UNIT_ACCESS = {
   create: ['org:units:create'],
@@ -233,14 +241,33 @@ const formRules: Record<string, Rule[]> = {
   ],
 };
 
-const parentOptions = computed(() =>
-  orgUnits.value
-    .filter((item) => item.id !== editingId.value)
-    .map((item) => ({
-      label: item.name ?? `#${item.id}`,
-      value: item.id,
-    })),
+const parentOptions = computed<OrgUnitTreeOption[]>(() =>
+  buildParentTreeOptions(orgUnitTree.value, editingId.value),
 );
+
+function buildParentTreeOptions(
+  items: AdminOrgUnit[],
+  excludeId?: number,
+): OrgUnitTreeOption[] {
+  return items.flatMap((item) => {
+    if (item.id === undefined) {
+      return [];
+    }
+    if (excludeId !== undefined && item.id === excludeId) {
+      return [];
+    }
+    const children = buildParentTreeOptions(item.children ?? [], excludeId);
+    return [
+      {
+        children: children.length > 0 ? children : undefined,
+        key: item.id,
+        label: item.name ?? `#${item.id}`,
+        subtitle: item.code ?? item.type ?? '-',
+        value: item.id,
+      },
+    ];
+  });
+}
 
 function resetFormModel() {
   Object.assign(formModel, {
@@ -514,12 +541,27 @@ onMounted(() => {
           />
         </Form.Item>
         <Form.Item :label="$t('page.orgUnit.parentId')" name="parentId">
-          <Select
+          <TreeSelect
             v-model:value="formModel.parentId"
             allow-clear
-            :options="parentOptions"
             :placeholder="$t('page.orgUnit.placeholderParent')"
-          />
+            show-search
+            :tree-data="parentOptions"
+            tree-default-expand-all
+            tree-node-filter-prop="label"
+          >
+            <template #title="{ label, subtitle }">
+              <div class="org-unit-parent-option">
+                <span class="org-unit-parent-option__main">{{ label }}</span>
+                <span
+                  v-if="subtitle"
+                  class="org-unit-parent-option__meta"
+                >
+                  {{ subtitle }}
+                </span>
+              </div>
+            </template>
+          </TreeSelect>
         </Form.Item>
         <Form.Item :label="$t('page.orgUnit.type')" name="type">
           <Select v-model:value="formModel.type" :options="typeOptions" />
@@ -604,6 +646,21 @@ onMounted(() => {
 
 .full-input {
   width: 100%;
+}
+
+.org-unit-parent-option {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.org-unit-parent-option__main {
+  color: hsl(var(--foreground));
+}
+
+.org-unit-parent-option__meta {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
 }
 
 @media (max-width: 768px) {

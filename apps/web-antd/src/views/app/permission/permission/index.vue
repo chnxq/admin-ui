@@ -301,12 +301,13 @@ const tablePagination = computed<TablePaginationConfig>(() => ({
   total: pager.total,
 }));
 
-const groupOptions = computed(() =>
-  groups.value.map((group) => ({
-    label: group.name ?? `#${group.id}`,
-    meta: group.module?.trim() || '-',
-    value: group.id as number,
-  })) satisfies GroupSelectOption[],
+const groupOptions = computed(
+  () =>
+    groups.value.map((group) => ({
+      label: group.name ?? `#${group.id}`,
+      meta: group.module?.trim() || '-',
+      value: group.id as number,
+    })) satisfies GroupSelectOption[],
 );
 
 const parentGroupTreeOptions = computed(() =>

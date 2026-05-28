@@ -293,7 +293,8 @@
     "emptyRelatedApis": "未关联 API",
     "placeholderName": "请输入角色名称",
     "placeholderCode": "请输入角色编码",
-    "placeholderPermissions": "选择权限点"
+    "placeholderPermissions": "选择权限点",
+    "protectedDeleteBlocked": "?????????"
   },
   "tenant": {
     "moduleName": "租户管理",
@@ -557,7 +558,13 @@
     "statusRevoked": "已撤销",
     "statusArchived": "已归档",
     "statusDeleted": "已删除",
-    "total": "共"
+    "total": "共",
+    "revokeFailed": "??????",
+    "revokeFailedAfterThirtyMinutes": "?????? 30 ???????",
+    "revokeFailedAfterRead": "??????????????",
+    "revokeFailedNotSender": "???????????",
+    "revokeFailedAlreadyRevoked": "???????",
+    "placeholderTargetUsers": "?????????"
   },
   "sse": {
     "connectFailed": "实时消息连接失败"
