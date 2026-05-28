@@ -5,6 +5,7 @@ import type {
   TablePaginationConfig,
 } from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
+import type { SelectValue } from 'ant-design-vue/es/select';
 
 import type {
   AdminMenu,
@@ -35,6 +36,7 @@ import {
   Space,
   Table,
   Tag,
+  TreeSelect,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
@@ -75,6 +77,12 @@ type ComponentOption = {
   label: string;
   meta: string;
   value: string;
+};
+type MenuTreeOption = {
+  children?: MenuTreeOption[];
+  label: string;
+  subtitle: string;
+  value: number;
 };
 type AdminTableChangeSorter = Parameters<
   NonNullable<InstanceType<typeof Table>['$props']['onChange']>
@@ -246,21 +254,16 @@ const formRules = computed<Record<string, Rule[]>>(() => ({
   ],
 }));
 
-const parentOptions = computed(() =>
-  menuItems.value
-    .filter((item) => item.id !== editingId.value)
-    .map((item) => ({
-      label: `${getDisplayTitle(item.meta?.title)} (${item.name ?? item.path ?? item.id})`,
-      value: item.id,
-    })),
+const parentTreeOptions = computed<MenuTreeOption[]>(() =>
+  buildParentTreeOptions(menuTree.value, editingId.value),
 );
 const componentOptions = computed<ComponentOption[]>(() => {
   const existingComponents = menuItems.value
     .map((item) => item.component?.trim())
-    .filter(Boolean);
+    .filter((item): item is string => Boolean(item));
   const fileComponents = Object.keys(pageComponentMap)
     .map((filePath) => normalizeComponentPathFromFile(filePath))
-    .filter(Boolean);
+    .filter((item): item is string => Boolean(item));
   const merged = [...new Set([...existingComponents, ...fileComponents])];
 
   return merged
@@ -321,6 +324,75 @@ function getDisplayTitle(title?: string) {
     return '-';
   }
   return $te(normalizedTitle) ? $t(normalizedTitle) : normalizedTitle;
+}
+
+function buildParentTreeOptions(
+  items: AdminMenu[],
+  excludedId?: number,
+): MenuTreeOption[] {
+  return items
+    .filter((item) => item.id && item.id !== excludedId)
+    .map((item) => ({
+      children: buildParentTreeOptions(item.children ?? [], excludedId),
+      label: getDisplayTitle(item.meta?.title),
+      subtitle: item.path ?? item.name ?? String(item.id),
+      value: item.id as number,
+    }));
+}
+
+function normalizeAuthorityInput(value: string) {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join(', ');
+}
+
+function syncFormByType(type: AdminMenuType) {
+  if (type === 'BUTTON') {
+    formModel.component = '';
+    formModel.redirect = '';
+    formModel.icon = '';
+    return;
+  }
+  if (type === 'CATALOG') {
+    formModel.component = '';
+    formModel.redirect = '';
+    return;
+  }
+  if (type === 'LINK') {
+    formModel.component = '';
+  }
+}
+
+function handleTypeChange(value: SelectValue) {
+  if (!value || typeof value !== 'string') {
+    return;
+  }
+  syncFormByType(value as AdminMenuType);
+}
+
+function getTypeHint(type: AdminMenuType) {
+  switch (type) {
+    case 'BUTTON': {
+      return $t('page.menu.typeHintButton');
+    }
+    case 'CATALOG': {
+      return $t('page.menu.typeHintCatalog');
+    }
+    case 'EMBEDDED': {
+      return $t('page.menu.typeHintEmbedded');
+    }
+    case 'LINK': {
+      return $t('page.menu.typeHintLink');
+    }
+    case 'MENU': {
+      return $t('page.menu.typeHintMenu');
+    }
+    default: {
+      return '';
+    }
+  }
 }
 
 function normalizeComponentPathFromFile(filePath: string) {
@@ -390,6 +462,7 @@ async function openCreate(parent?: AdminMenuTableRecord) {
   if (menu?.id) {
     formModel.parentId = menu.id;
   }
+  syncFormByType(formModel.type);
   modalOpen.value = true;
   await nextTick();
   formRef.value?.clearValidate();
@@ -419,6 +492,8 @@ async function openEdit(record: AdminMenuTableRecord) {
     title: menu.meta?.title ?? '',
     type: menu.type ?? 'MENU',
   });
+  formModel.authority = normalizeAuthorityInput(formModel.authority);
+  syncFormByType(formModel.type);
   modalOpen.value = true;
   await nextTick();
   formRef.value?.clearValidate();
@@ -431,7 +506,7 @@ async function submitMenu() {
   try {
     const payload: AdminMenuSaveInput = {
       ...formModel,
-      authority: formModel.authority
+      authority: normalizeAuthorityInput(formModel.authority)
         .split(',')
         .map((item) => item.trim())
         .filter(Boolean),
@@ -652,12 +727,31 @@ onMounted(() => {
         layout="vertical"
       >
         <Form.Item :label="$t('page.menu.parent')" name="parentId">
-          <Select
+          <TreeSelect
             v-model:value="formModel.parentId"
             allow-clear
-            :options="parentOptions"
+            class="full-width-control"
+            :field-names="{
+              label: 'label',
+              value: 'value',
+              children: 'children',
+            }"
             :placeholder="$t('page.menu.placeholderRootParent')"
-          />
+            show-search
+            :tree-data="parentTreeOptions"
+            tree-default-expand-all
+            tree-node-filter-prop="label"
+          >
+            <template #title="{ label, subtitle }">
+              <div class="menu-option">
+                <span class="menu-option-main">{{ label }}</span>
+                <span class="menu-option-meta">{{ subtitle }}</span>
+              </div>
+            </template>
+          </TreeSelect>
+          <div class="menu-form-hint">
+            {{ $t('page.menu.parentHint') }}
+          </div>
         </Form.Item>
         <Form.Item :label="$t('page.menu.title')" name="title">
           <Input
@@ -681,6 +775,11 @@ onMounted(() => {
           <AutoComplete
             v-model:value="formModel.component"
             allow-clear
+            :disabled="
+              formModel.type === 'BUTTON' ||
+              formModel.type === 'CATALOG' ||
+              formModel.type === 'LINK'
+            "
             :options="componentAutoCompleteOptions"
             :placeholder="$t('page.menu.placeholderComponent')"
           >
@@ -693,28 +792,49 @@ onMounted(() => {
               </div>
             </template>
           </AutoComplete>
+          <div class="menu-form-hint">
+            {{ $t('page.menu.componentHint') }}
+          </div>
         </Form.Item>
         <Form.Item :label="$t('page.menu.redirect')" name="redirect">
           <Input
             v-model:value="formModel.redirect"
+            :disabled="
+              formModel.type === 'BUTTON' || formModel.type === 'CATALOG'
+            "
             :placeholder="$t('page.menu.placeholderRedirect')"
           />
         </Form.Item>
         <Form.Item :label="$t('page.menu.icon')" name="icon">
           <IconPicker
             v-model="formModel.icon"
+            :disabled="formModel.type === 'BUTTON'"
             prefix="lucide"
             :placeholder="$t('page.menu.placeholderIcon')"
           />
+          <div class="menu-form-hint">
+            {{ $t('page.menu.iconHint') }}
+          </div>
         </Form.Item>
         <Form.Item :label="$t('page.menu.authority')" name="authority">
           <Input
             v-model:value="formModel.authority"
+            :disabled="formModel.type === 'CATALOG'"
             :placeholder="$t('page.menu.placeholderAuthority')"
           />
+          <div class="menu-form-hint">
+            {{ $t('page.menu.authorityHint') }}
+          </div>
         </Form.Item>
         <Form.Item :label="$t('page.menu.type')" name="type">
-          <Select v-model:value="formModel.type" :options="typeOptions" />
+          <Select
+            v-model:value="formModel.type"
+            :options="typeOptions"
+            @change="handleTypeChange"
+          />
+          <div class="menu-form-hint">
+            {{ getTypeHint(formModel.type) }}
+          </div>
         </Form.Item>
         <Form.Item :label="$t('page.menu.ignoreAccess')" name="ignoreAccess">
           <Select
@@ -803,6 +923,13 @@ onMounted(() => {
 
 .menu-option-meta {
   font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.menu-form-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
   color: hsl(var(--muted-foreground));
 }
 

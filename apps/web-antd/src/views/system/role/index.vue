@@ -79,6 +79,14 @@ interface AdminRoleFormModel extends AdminRoleSaveInput {
 }
 
 type AdminRoleTableRecord = AdminRole | Record<string, any>;
+type PermissionTreeNode = {
+  children?: PermissionTreeNode[];
+  key: number | string;
+  meta?: string;
+  selectable?: boolean;
+  title: string;
+  value: number | string;
+};
 type AdminTableChangeSorter = Parameters<
   NonNullable<InstanceType<typeof Table>['$props']['onChange']>
 >[2];
@@ -452,14 +460,15 @@ function buildPermissionTree(
   groupItems: AdminPermissionGroup[],
   permissionItems: AdminPermission[],
 ) {
-  const groupNodeMap = new Map<number, any>();
-  const roots: any[] = [];
+  const groupNodeMap = new Map<number, PermissionTreeNode>();
+  const roots: PermissionTreeNode[] = [];
 
   for (const group of groupItems) {
     if (group.id === undefined) {
       continue;
     }
     groupNodeMap.set(group.id, {
+      meta: group.module?.trim() || '-',
       title: group.name ?? `#${group.id}`,
       value: `group-${group.id}`,
       key: `group-${group.id}`,
@@ -477,7 +486,8 @@ function buildPermissionTree(
       continue;
     }
     if (group.parentId !== undefined && groupNodeMap.has(group.parentId)) {
-      groupNodeMap.get(group.parentId).children.push(node);
+      const parentNode = groupNodeMap.get(group.parentId);
+      parentNode?.children?.push(node);
     } else {
       roots.push(node);
     }
@@ -488,15 +498,17 @@ function buildPermissionTree(
       continue;
     }
     const node = {
-      title: `${permission.name ?? permission.code ?? `#${permission.id}`} (${permission.code ?? '-'})`,
+      meta: permission.code ?? '-',
+      title: permission.name ?? permission.code ?? `#${permission.id}`,
       value: permission.id,
       key: permission.id,
-    };
+    } satisfies PermissionTreeNode;
     if (
       permission.groupId !== undefined &&
       groupNodeMap.has(permission.groupId)
     ) {
-      groupNodeMap.get(permission.groupId).children.push(node);
+      const groupNode = groupNodeMap.get(permission.groupId);
+      groupNode?.children?.push(node);
     } else {
       roots.push(node);
     }
@@ -1126,7 +1138,14 @@ onMounted(async () => {
               checkable
               :selectable="false"
               :tree-data="editFilteredPermissionTreeData"
-            />
+            >
+              <template #title="{ title, meta }">
+                <div class="role-tree-node">
+                  <span class="role-tree-node__title">{{ title }}</span>
+                  <span v-if="meta" class="role-tree-node__meta">{{ meta }}</span>
+                </div>
+              </template>
+            </Tree>
           </div>
         </div>
       </div>
@@ -1208,7 +1227,16 @@ onMounted(async () => {
                 checkable
                 :selectable="false"
                 :tree-data="filteredPermissionTreeData"
-              />
+              >
+                <template #title="{ title, meta }">
+                  <div class="role-tree-node">
+                    <span class="role-tree-node__title">{{ title }}</span>
+                    <span v-if="meta" class="role-tree-node__meta">{{
+                      meta
+                    }}</span>
+                  </div>
+                </template>
+              </Tree>
             </div>
           </div>
 
@@ -1478,6 +1506,23 @@ onMounted(async () => {
 
 .tree-wrapper :deep(.ant-tree) {
   background: transparent;
+}
+
+.role-tree-node {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.4;
+}
+
+.role-tree-node__title {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.role-tree-node__meta {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
 }
 
 .panel-divider {

@@ -77,6 +77,11 @@ type AdminTableChangeSorter =
   | TableColumnType<AdminUser>['sorter'];
 
 type AdminUserTableRecord = AdminUser | Record<string, any>;
+type UserSelectOption = {
+  label: string;
+  meta: string;
+  value: number;
+};
 
 const USER_ACCESS = {
   create: ['users:create'],
@@ -285,20 +290,23 @@ const formRules = computed<Record<string, Rule[]>>(() => ({
 const orgSelectOptions = computed(() =>
   orgOptions.value.map((item) => ({
     label: item.name ?? `#${item.id}`,
-    value: item.id,
-  })),
+    meta: item.code ?? item.type ?? '-',
+    value: item.id as number,
+  })) satisfies UserSelectOption[],
 );
 const positionSelectOptions = computed(() =>
   positionOptions.value.map((item) => ({
     label: item.name ?? `#${item.id}`,
-    value: item.id,
-  })),
+    meta: item.orgUnitName ?? item.code ?? '-',
+    value: item.id as number,
+  })) satisfies UserSelectOption[],
 );
 const roleSelectOptions = computed(() =>
   roleOptions.value.map((item) => ({
     label: item.name ?? `#${item.id}`,
-    value: item.id,
-  })),
+    meta: item.code ?? item.type ?? '-',
+    value: item.id as number,
+  })) satisfies UserSelectOption[],
 );
 
 const tablePagination = computed<TablePaginationConfig>(() => ({
@@ -634,7 +642,14 @@ onMounted(async () => {
               :options="orgSelectOptions"
               :placeholder="$t('page.user.selectOrgUnit')"
               show-search
-            />
+            >
+              <template #option="{ label, meta }">
+                <div class="user-option">
+                  <span class="user-option-main">{{ label }}</span>
+                  <span class="user-option-meta">{{ meta }}</span>
+                </div>
+              </template>
+            </Select>
           </Form.Item>
           <Form.Item
             class="admin-user-search__item"
@@ -648,7 +663,14 @@ onMounted(async () => {
               :options="positionSelectOptions"
               :placeholder="$t('page.user.selectPosition')"
               show-search
-            />
+            >
+              <template #option="{ label, meta }">
+                <div class="user-option">
+                  <span class="user-option-main">{{ label }}</span>
+                  <span class="user-option-meta">{{ meta }}</span>
+                </div>
+              </template>
+            </Select>
           </Form.Item>
           <Form.Item
             class="admin-user-search__item"
@@ -662,7 +684,14 @@ onMounted(async () => {
               :options="roleSelectOptions"
               :placeholder="$t('page.user.selectRole')"
               show-search
-            />
+            >
+              <template #option="{ label, meta }">
+                <div class="user-option">
+                  <span class="user-option-main">{{ label }}</span>
+                  <span class="user-option-meta">{{ meta }}</span>
+                </div>
+              </template>
+            </Select>
           </Form.Item>
           <Form.Item
             class="admin-user-search__item"
@@ -910,7 +939,14 @@ onMounted(async () => {
               :options="orgSelectOptions"
               :placeholder="$t('page.user.selectOrgUnit')"
               show-search
-            />
+            >
+              <template #option="{ label, meta }">
+                <div class="user-option">
+                  <span class="user-option-main">{{ label }}</span>
+                  <span class="user-option-meta">{{ meta }}</span>
+                </div>
+              </template>
+            </Select>
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
@@ -924,7 +960,14 @@ onMounted(async () => {
               :options="positionSelectOptions"
               :placeholder="$t('page.user.selectPosition')"
               show-search
-            />
+            >
+              <template #option="{ label, meta }">
+                <div class="user-option">
+                  <span class="user-option-main">{{ label }}</span>
+                  <span class="user-option-meta">{{ meta }}</span>
+                </div>
+              </template>
+            </Select>
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
@@ -938,7 +981,14 @@ onMounted(async () => {
               :options="roleSelectOptions"
               :placeholder="$t('page.user.selectRole')"
               show-search
-            />
+            >
+              <template #option="{ label, meta }">
+                <div class="user-option">
+                  <span class="user-option-main">{{ label }}</span>
+                  <span class="user-option-meta">{{ meta }}</span>
+                </div>
+              </template>
+            </Select>
           </Form.Item>
           <Form.Item
             class="admin-user-form-grid--full"
@@ -1099,6 +1149,23 @@ onMounted(async () => {
 .admin-user-search__actions {
   display: flex;
   align-items: flex-end;
+}
+
+.user-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.4;
+}
+
+.user-option-main {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.user-option-meta {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
 }
 
 .admin-user-table {

@@ -80,6 +80,19 @@ interface AdminPermissionGroupFormModel extends AdminPermissionGroupSaveInput {
 }
 
 type PermissionRecord = AdminPermission | Record<string, any>;
+type GroupSelectOption = {
+  label: string;
+  meta: string;
+  value: number;
+};
+type TreeSelectOption = {
+  children?: TreeSelectOption[];
+  disabled?: boolean;
+  selectable?: boolean;
+  subtitle?: string;
+  title: string;
+  value: number | string;
+};
 type AdminTableChangeSorter = Parameters<
   NonNullable<InstanceType<typeof Table>['$props']['onChange']>
 >[2];
@@ -291,17 +304,13 @@ const tablePagination = computed<TablePaginationConfig>(() => ({
 const groupOptions = computed(() =>
   groups.value.map((group) => ({
     label: group.name ?? `#${group.id}`,
-    value: group.id,
-  })),
+    meta: group.module?.trim() || '-',
+    value: group.id as number,
+  })) satisfies GroupSelectOption[],
 );
 
-const parentGroupOptions = computed(() =>
-  groups.value
-    .filter((group) => group.id !== editingGroupId.value)
-    .map((group) => ({
-      label: group.name ?? `#${group.id}`,
-      value: group.id,
-    })),
+const parentGroupTreeOptions = computed(() =>
+  buildParentGroupTreeOptions(groupTree.value, editingGroupId.value),
 );
 
 const treeData = computed<TreeProps['treeData']>(() => [
@@ -335,14 +344,15 @@ function toTreeNode(
 }
 
 function buildMenuTreeSelectData(items: AdminMenu[]) {
-  const nodeMap = new Map<number, any>();
-  const roots: any[] = [];
+  const nodeMap = new Map<number, TreeSelectOption>();
+  const roots: TreeSelectOption[] = [];
 
   for (const item of items) {
     if (item.id === undefined) {
       continue;
     }
     nodeMap.set(item.id, {
+      subtitle: item.path ?? item.name ?? `#${item.id}`,
       title: item.meta?.title ?? item.name ?? item.path ?? `#${item.id}`,
       value: item.id,
       children: [],
@@ -358,7 +368,8 @@ function buildMenuTreeSelectData(items: AdminMenu[]) {
       continue;
     }
     if (item.parentId !== undefined && nodeMap.has(item.parentId)) {
-      nodeMap.get(item.parentId).children.push(node);
+      const parentNode = nodeMap.get(item.parentId);
+      parentNode?.children?.push(node);
     } else {
       roots.push(node);
     }
@@ -368,25 +379,42 @@ function buildMenuTreeSelectData(items: AdminMenu[]) {
 }
 
 function buildApiTreeSelectData(items: AdminApi[]) {
-  const groupMap = new Map<string, any>();
+  const groupMap = new Map<string, TreeSelectOption>();
 
   for (const item of items) {
     const moduleName = item.module?.trim() || 'default';
     if (!groupMap.has(moduleName)) {
       groupMap.set(moduleName, {
+        subtitle: moduleName,
         title: item.moduleDescription?.trim() || moduleName,
         value: `module-${moduleName}`,
         selectable: false,
         children: [],
       });
     }
-    groupMap.get(moduleName).children.push({
+    const moduleNode = groupMap.get(moduleName);
+    moduleNode?.children?.push({
+      subtitle: item.operation?.trim() || (item.path ?? ''),
       title: `${item.method ?? 'API'} ${item.path ?? ''}`,
-      value: item.id,
+      value: item.id ?? `${moduleName}-${item.path ?? 'api'}`,
     });
   }
 
   return [...groupMap.values()];
+}
+
+function buildParentGroupTreeOptions(
+  items: AdminPermissionGroup[],
+  excludedId?: number,
+): TreeSelectOption[] {
+  return items
+    .filter((item) => item.id && item.id !== excludedId)
+    .map((item) => ({
+      children: buildParentGroupTreeOptions(item.children ?? [], excludedId),
+      subtitle: item.module?.trim() || '-',
+      title: item.name ?? `#${item.id}`,
+      value: item.id as number,
+    }));
 }
 
 async function loadResourceOptions() {
@@ -925,7 +953,14 @@ onMounted(() => {
             allow-clear
             :options="groupOptions"
             :placeholder="$t('page.permission.placeholderGroup')"
-          />
+          >
+            <template #option="{ label, meta }">
+              <div class="permission-option">
+                <span class="permission-option-main">{{ label }}</span>
+                <span class="permission-option-meta">{{ meta }}</span>
+              </div>
+            </template>
+          </Select>
         </Form.Item>
         <Form.Item :label="$t('page.permission.status')" name="status">
           <Select v-model:value="formModel.status" :options="statusOptions" />
@@ -948,7 +983,16 @@ onMounted(() => {
             :tree-data="menuTreeSelectData"
             tree-default-expand-all
             tree-node-filter-prop="title"
-          />
+          >
+            <template #title="{ title, subtitle }">
+              <div class="permission-option">
+                <span class="permission-option-main">{{ title }}</span>
+                <span v-if="subtitle" class="permission-option-meta">{{
+                  subtitle
+                }}</span>
+              </div>
+            </template>
+          </TreeSelect>
         </Form.Item>
         <Form.Item :label="$t('page.permission.apiIds')" name="apiIds">
           <TreeSelect
@@ -968,7 +1012,16 @@ onMounted(() => {
             :tree-data="apiTreeSelectData"
             tree-default-expand-all
             tree-node-filter-prop="title"
-          />
+          >
+            <template #title="{ title, subtitle }">
+              <div class="permission-option">
+                <span class="permission-option-main">{{ title }}</span>
+                <span v-if="subtitle" class="permission-option-meta">{{
+                  subtitle
+                }}</span>
+              </div>
+            </template>
+          </TreeSelect>
         </Form.Item>
         <Form.Item
           :label="$t('page.permission.description')"
@@ -997,12 +1050,28 @@ onMounted(() => {
         layout="vertical"
       >
         <Form.Item :label="$t('page.permission.groupParentId')" name="parentId">
-          <Select
+          <TreeSelect
             v-model:value="groupFormModel.parentId"
             allow-clear
-            :options="parentGroupOptions"
+            class="full-width-control"
+            :field-names="{
+              label: 'title',
+              value: 'value',
+              children: 'children',
+            }"
             :placeholder="$t('page.permission.placeholderGroupParent')"
-          />
+            show-search
+            :tree-data="parentGroupTreeOptions"
+            tree-default-expand-all
+            tree-node-filter-prop="title"
+          >
+            <template #title="{ title, subtitle }">
+              <div class="permission-option">
+                <span class="permission-option-main">{{ title }}</span>
+                <span class="permission-option-meta">{{ subtitle }}</span>
+              </div>
+            </template>
+          </TreeSelect>
         </Form.Item>
         <Form.Item :label="$t('page.permission.groupName')" name="name">
           <Input
@@ -1124,6 +1193,23 @@ onMounted(() => {
 }
 
 .permission-sub {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.permission-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.4;
+}
+
+.permission-option-main {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.permission-option-meta {
   font-size: 12px;
   color: hsl(var(--muted-foreground));
 }
