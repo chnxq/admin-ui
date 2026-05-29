@@ -1,3 +1,5 @@
+import type { AdminSorting } from './paging';
+
 import type {
   permissionservicev1_ListPermissionGroupResponse,
   permissionservicev1_ListPermissionResponse,
@@ -7,7 +9,6 @@ import type {
 
 import { permissionClient, permissionGroupClient } from './clients';
 import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
-import type { AdminSorting } from './paging';
 
 export type AdminPermission = permissionservicev1_Permission;
 export type AdminPermissionGroup = permissionservicev1_PermissionGroup;

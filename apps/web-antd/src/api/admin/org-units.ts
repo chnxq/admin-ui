@@ -1,3 +1,5 @@
+import type { AdminSorting } from './paging';
+
 import type {
   identityservicev1_ListOrgUnitResponse,
   identityservicev1_OrgUnit,
@@ -5,7 +7,6 @@ import type {
 
 import { orgUnitClient } from './clients';
 import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
-import type { AdminSorting } from './paging';
 
 export type AdminOrgUnit = identityservicev1_OrgUnit;
 export type AdminOrgUnitStatus = NonNullable<AdminOrgUnit['status']>;

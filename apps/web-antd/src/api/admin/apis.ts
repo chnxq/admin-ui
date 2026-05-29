@@ -1,3 +1,5 @@
+import type { AdminSorting } from './paging';
+
 import type {
   resourceservicev1_Api,
   resourceservicev1_ListApiResponse,
@@ -5,7 +7,6 @@ import type {
 
 import { apiClient } from './clients';
 import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
-import type { AdminSorting } from './paging';
 
 export type AdminApi = resourceservicev1_Api;
 export type AdminApiScope = NonNullable<resourceservicev1_Api['scope']>;

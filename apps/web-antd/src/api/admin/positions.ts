@@ -1,3 +1,5 @@
+import type { AdminSorting } from './paging';
+
 import type {
   identityservicev1_ListPositionResponse,
   identityservicev1_Position,
@@ -5,7 +7,6 @@ import type {
 
 import { positionClient } from './clients';
 import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
-import type { AdminSorting } from './paging';
 
 export type AdminPosition = identityservicev1_Position;
 export type AdminPositionStatus = NonNullable<AdminPosition['status']>;

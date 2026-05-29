@@ -49,9 +49,9 @@ function resolveErrorMessage(error: any, fallbackMessage: string) {
   const rawMessage =
     typeof responseData?.error === 'string'
       ? responseData.error.trim()
-      : typeof responseData?.message === 'string'
+      : (typeof responseData?.message === 'string'
         ? responseData.message.trim()
-        : '';
+        : '');
   if (rawMessage) {
     const normalizedMessage = rawMessage.toLowerCase();
     const mappedKey = messageToI18nKey[normalizedMessage];

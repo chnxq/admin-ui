@@ -1,3 +1,5 @@
+import type { AdminSorting } from './paging';
+
 import type {
   identityservicev1_ListTenantResponse,
   identityservicev1_Tenant,
@@ -5,7 +7,6 @@ import type {
 
 import { tenantClient } from './clients';
 import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
-import type { AdminSorting } from './paging';
 
 export type AdminTenant = identityservicev1_Tenant;
 export type AdminTenantAuditStatus = NonNullable<AdminTenant['auditStatus']>;

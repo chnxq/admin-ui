@@ -1,3 +1,5 @@
+import type { AdminSorting } from './paging';
+
 import type {
   permissionservicev1_ListRoleResponse,
   permissionservicev1_Role,
@@ -5,7 +7,6 @@ import type {
 
 import { roleClient } from './clients';
 import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
-import type { AdminSorting } from './paging';
 
 export type AdminRole = permissionservicev1_Role;
 export type AdminRoleStatus = NonNullable<permissionservicev1_Role['status']>;

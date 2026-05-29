@@ -1171,7 +1171,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   gap: 16px;
-  align-items: center;
+  align-items: start;
   min-height: 100%;
 }
 

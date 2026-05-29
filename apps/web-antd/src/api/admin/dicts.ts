@@ -142,9 +142,9 @@ export async function listAdminDictTypesApi(
           value:
             params.isEnabled === undefined
               ? undefined
-              : params.isEnabled
+              : (params.isEnabled
                 ? 1
-                : 0,
+                : 0),
         },
       ],
       page: params.page,
@@ -203,9 +203,9 @@ export async function listAdminDictEntriesApi(
           value:
             params.isEnabled === undefined
               ? undefined
-              : params.isEnabled
+              : (params.isEnabled
                 ? 1
-                : 0,
+                : 0),
         },
       ],
       page: params.page,
