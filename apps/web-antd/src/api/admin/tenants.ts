@@ -4,12 +4,8 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { tenantClient } from './clients';
-import {
-  getAdminList,
-  toAdminTotal,
-  toPagingRequest,
-  type AdminSorting,
-} from './paging';
+import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
+import type { AdminSorting } from './paging';
 
 export type AdminTenant = identityservicev1_Tenant;
 export type AdminTenantAuditStatus = NonNullable<AdminTenant['auditStatus']>;

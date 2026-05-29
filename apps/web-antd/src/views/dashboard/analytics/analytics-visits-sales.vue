@@ -23,7 +23,7 @@ const chartRef = ref<EchartsUIType>();
 const { renderEcharts } = useEcharts(chartRef);
 
 function renderChart() {
-  const sortedData = [...props.items].sort((a, b) => a.value - b.value);
+  const sortedData = [...props.items].toSorted((a, b) => a.value - b.value);
   renderEcharts({
     series: [
       {

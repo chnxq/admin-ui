@@ -4,12 +4,8 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { orgUnitClient } from './clients';
-import {
-  getAdminList,
-  toAdminTotal,
-  toPagingRequest,
-  type AdminSorting,
-} from './paging';
+import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
+import type { AdminSorting } from './paging';
 
 export type AdminOrgUnit = identityservicev1_OrgUnit;
 export type AdminOrgUnitStatus = NonNullable<AdminOrgUnit['status']>;

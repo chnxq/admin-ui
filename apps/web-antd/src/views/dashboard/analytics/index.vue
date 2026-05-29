@@ -137,8 +137,8 @@ async function loadAnalyticsDashboard() {
     trendActives.value = (response.trend?.actives ?? []).map((item) =>
       Number(item ?? 0),
     );
-    visitLabels.value = (response.visits?.labels ?? []).map((label) =>
-      `${label}${$t('page.analytics.month')}`,
+    visitLabels.value = (response.visits?.labels ?? []).map(
+      (label) => `${label}${$t('page.analytics.month')}`,
     );
     visitAccesses.value = (response.visits?.accesses ?? []).map((item) =>
       Number(item ?? 0),

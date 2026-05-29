@@ -4,12 +4,8 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { positionClient } from './clients';
-import {
-  getAdminList,
-  toAdminTotal,
-  toPagingRequest,
-  type AdminSorting,
-} from './paging';
+import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
+import type { AdminSorting } from './paging';
 
 export type AdminPosition = identityservicev1_Position;
 export type AdminPositionStatus = NonNullable<AdminPosition['status']>;

@@ -144,15 +144,15 @@ export function applyAdminTableSorting<T>(
 export function toAdminTableSorting<T>(
   sorter?: AdminTableSorterLike<T> | AdminTableSorterLike<T>[],
 ) {
-  const items = Array.isArray(sorter) ? sorter : (sorter ? [sorter] : []);
+  const items = Array.isArray(sorter) ? sorter : sorter ? [sorter] : [];
 
   return items.flatMap((item) => {
     const direction =
       item.order === 'ascend'
         ? 'ASC'
-        : (item.order === 'descend'
+        : item.order === 'descend'
           ? 'DESC'
-          : undefined);
+          : undefined;
     if (!direction) {
       return [];
     }

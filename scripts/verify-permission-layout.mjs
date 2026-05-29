@@ -95,7 +95,8 @@ async function main() {
             groupBeforeY: beforeGroup.y,
             paginationAfterBottom: afterPagination.y + afterPagination.height,
             paginationAfterY: afterPagination.y,
-            paginationBeforeBottom: beforePagination.y + beforePagination.height,
+            paginationBeforeBottom:
+              beforePagination.y + beforePagination.height,
             paginationBeforeY: beforePagination.y,
             paginationReachedViewport,
             stickyDelta,

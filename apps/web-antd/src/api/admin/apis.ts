@@ -4,12 +4,8 @@ import type {
 } from '#/api/generated/admin/service/v1';
 
 import { apiClient } from './clients';
-import {
-  getAdminList,
-  toAdminTotal,
-  toPagingRequest,
-  type AdminSorting,
-} from './paging';
+import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
+import type { AdminSorting } from './paging';
 
 export type AdminApi = resourceservicev1_Api;
 export type AdminApiScope = NonNullable<resourceservicev1_Api['scope']>;

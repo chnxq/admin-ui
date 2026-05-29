@@ -90,7 +90,12 @@ describe('admin-table-toolbar shared', () => {
 
   it('converts table sorter state to backend sorting fields', () => {
     const columns = [
-      { dataIndex: 'createdAt', sorter: true, sortable: true, title: 'Created' },
+      {
+        dataIndex: 'createdAt',
+        sorter: true,
+        sortable: true,
+        title: 'Created',
+      },
       { dataIndex: 'sortOrder', sorter: true, sortable: true, title: 'Sort' },
       { key: 'identity', sortField: 'username', sortable: true, title: 'User' },
     ];
@@ -108,7 +113,12 @@ describe('admin-table-toolbar shared', () => {
 
   it('applies controlled sort order back onto visible columns', () => {
     const columns = [
-      { dataIndex: 'createdAt', sorter: true, sortable: true, title: 'Created' },
+      {
+        dataIndex: 'createdAt',
+        sorter: true,
+        sortable: true,
+        title: 'Created',
+      },
       { dataIndex: 'sortOrder', sorter: true, sortable: true, title: 'Sort' },
     ];
 
@@ -116,7 +126,9 @@ describe('admin-table-toolbar shared', () => {
       { direction: 'ASC', field: 'sort_order' },
     ]);
 
-    expect(sorted[0]!.sortOrder).toBeNull();
-    expect(sorted[1]!.sortOrder).toBe('ascend');
+    const [first, second] = sorted;
+
+    expect(first?.sortOrder).toBeNull();
+    expect(second?.sortOrder).toBe('ascend');
   });
 });

@@ -84,7 +84,10 @@ function appendFilterExpr(
   }
 }
 
-function appendSorting(params: URLSearchParams, sorting?: pagination_Sorting[]) {
+function appendSorting(
+  params: URLSearchParams,
+  sorting?: pagination_Sorting[],
+) {
   for (const item of sorting ?? []) {
     appendParam(params, 'sorting.field', item.field);
     appendParam(params, 'sorting.direction', item.direction);
