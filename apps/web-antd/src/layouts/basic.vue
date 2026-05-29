@@ -267,7 +267,7 @@ async function loadInbox(page = 1, pageSize = 20) {
     const result = await listAdminInboxMessagesApi({ page, pageSize });
     notifications.value = (result.items || [])
       .map((item) => buildNotificationItem(item))
-      .filter((item): item is InboxNotificationItem => Boolean(item));
+      .filter(Boolean);
   } catch {
     notifications.value = [];
   }
@@ -312,6 +312,7 @@ async function markRead(id: number | string) {
   }
   try {
     await markAdminInboxMessagesReadApi([numericId]);
+    await loadInbox(1, 20);
   } catch {
     // Ignore transient failures; next reload will reconcile.
   }
@@ -325,6 +326,7 @@ async function remove(id: number | string) {
   }
   try {
     await deleteAdminInboxMessagesApi([numericId]);
+    await loadInbox(1, 20);
   } catch {
     // Ignore transient failures; next reload will reconcile.
   }
@@ -345,6 +347,7 @@ async function handleMakeAll() {
   }
   try {
     await markAdminInboxMessagesReadApi(unreadIds);
+    await loadInbox(1, 20);
   } catch {
     // Ignore transient failures; next reload will reconcile.
   }
@@ -356,7 +359,10 @@ const viewAll = () => {
   });
 };
 
-const handleClick = (item: NotificationItem) => {
+const handleClick = async (item: NotificationItem) => {
+  if (item.id) {
+    await markRead(item.id);
+  }
   if (item.link) {
     navigateTo(item.link, item.query, item.state);
   }

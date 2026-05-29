@@ -157,7 +157,7 @@ const columns: AdminTableColumn<AdminPermission>[] = [
   },
   {
     key: 'scope',
-    title: '资源归属',
+    title: $t('page.tenant.resourceOwnership'),
     width: 100,
   },
   {

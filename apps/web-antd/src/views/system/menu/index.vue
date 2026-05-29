@@ -166,7 +166,7 @@ const columns: AdminTableColumn<AdminMenu>[] = [
   },
   {
     key: 'scope',
-    title: '资源归属',
+    title: $t('page.tenant.resourceOwnership'),
     width: 120,
   },
   {
@@ -274,10 +274,10 @@ const parentTreeOptions = computed<MenuTreeOption[]>(() =>
 const componentOptions = computed<ComponentOption[]>(() => {
   const existingComponents = menuItems.value
     .map((item) => item.component?.trim())
-    .filter((value): value is string => Boolean(value));
+    .filter(Boolean);
   const fileComponents = Object.keys(pageComponentMap)
     .map((filePath) => normalizeComponentPathFromFile(filePath))
-    .filter((value): value is string => Boolean(value));
+    .filter(Boolean);
   const merged = [...new Set([...existingComponents, ...fileComponents])];
 
   return merged

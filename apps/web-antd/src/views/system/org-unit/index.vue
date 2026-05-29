@@ -167,7 +167,7 @@ const columns: AdminTableColumn<AdminOrgUnit>[] = [
     sortField: 'tenant_id',
     sortable: true,
     sorter: true,
-    title: '资源归属',
+    title: $t('page.tenant.resourceOwnership'),
     width: 180,
   },
   {

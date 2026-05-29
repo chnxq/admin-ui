@@ -314,6 +314,8 @@
     "moduleName": "Tenant Management",
     "id": "ID",
     "tenant": "Tenant",
+    "resourceOwnership": "Resource Ownership",
+    "messageOwnership": "Message Ownership",
     "domain": "Domain",
     "type": "Type",
     "status": "Status",

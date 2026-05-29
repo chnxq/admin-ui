@@ -300,6 +300,8 @@
     "moduleName": "租户管理",
     "id": "ID",
     "tenant": "租户",
+    "resourceOwnership": "资源归属",
+    "messageOwnership": "消息归属",
     "domain": "域名",
     "type": "类型",
     "status": "状态",

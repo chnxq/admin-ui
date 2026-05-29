@@ -170,7 +170,7 @@ const typeColumns: AdminTableColumn<AdminDictType>[] = [
     title: $t('page.dictType.createdAt'),
     width: 160,
   },
-  { key: 'scope', title: '资源归属', width: 120 },
+  { key: 'scope', title: $t('page.tenant.resourceOwnership'), width: 120 },
   { fixed: 'right', key: 'action', title: $t('ui.table.action'), width: 140 },
 ];
 
@@ -227,7 +227,7 @@ const entryColumns: AdminTableColumn<AdminDictEntry>[] = [
     title: $t('page.dictEntry.createdAt'),
     width: 160,
   },
-  { key: 'scope', title: '资源归属', width: 120 },
+  { key: 'scope', title: $t('page.tenant.resourceOwnership'), width: 120 },
   { fixed: 'right', key: 'action', title: $t('ui.table.action'), width: 140 },
 ];
 

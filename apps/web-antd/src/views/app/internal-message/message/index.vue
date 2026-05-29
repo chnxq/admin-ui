@@ -142,7 +142,7 @@ const columns: AdminTableColumn<AdminInternalMessage>[] = [
   },
   {
     key: 'tenant',
-    title: '消息归属',
+    title: $t('page.tenant.messageOwnership'),
     width: 160,
   },
   {

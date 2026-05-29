@@ -5,14 +5,24 @@ import type {
   internal_messageservicev1_InternalMessage_Status,
   internal_messageservicev1_InternalMessage_Type,
   internal_messageservicev1_InternalMessageRecipient,
+  internal_messageservicev1_RevokeMessageRequest,
   internal_messageservicev1_SendMessageResponse,
 } from '#/api/generated/admin/service/v1';
+
+import { useAccessStore } from '@vben/stores';
+
+import { baseRequestClient } from '#/api/request';
 
 import {
   internalMessageClient,
   internalMessageRecipientClient,
 } from './clients';
-import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
+import {
+  getAdminList,
+  toAdminTotal,
+  toPagingRequest,
+  unwrapAdminEnvelope,
+} from './paging';
 
 export type AdminInboxMessage =
   internal_messageservicev1_InternalMessageRecipient;
@@ -112,10 +122,24 @@ export async function sendAdminInternalMessageApi(
 }
 
 export async function revokeAdminInternalMessageApi(messageId: number) {
-  await internalMessageClient.RevokeMessage({
-    messageId,
-    userId: 0,
-  });
+  const accessStore = useAccessStore();
+  const accessToken = accessStore.accessToken;
+  const response = await baseRequestClient.request<unknown>(
+    '/admin/v1/internal-message/revoke',
+    {
+      headers: {
+        Authorization: accessToken ? `Bearer ${accessToken}` : '',
+        'Accept-Language': navigator.language,
+      },
+      data: {
+        messageId,
+        userId: 0,
+      } satisfies internal_messageservicev1_RevokeMessageRequest,
+      method: 'POST',
+      responseReturn: 'body',
+    },
+  );
+  await unwrapAdminEnvelope(response);
 }
 
 export async function markAdminInboxMessagesReadApi(
