@@ -166,7 +166,7 @@ const columns: AdminTableColumn<AdminMenu>[] = [
   },
   {
     key: 'scope',
-    title: '租户',
+    title: '资源归属',
     width: 120,
   },
   {
@@ -936,7 +936,7 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
 }
 

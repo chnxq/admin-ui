@@ -157,7 +157,7 @@ const columns: AdminTableColumn<AdminPermission>[] = [
   },
   {
     key: 'scope',
-    title: '租户',
+    title: '资源归属',
     width: 100,
   },
   {
@@ -1171,7 +1171,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   gap: 16px;
-  align-items: start;
+  align-items: center;
   min-height: 100%;
 }
 
@@ -1215,7 +1215,7 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
 }
 

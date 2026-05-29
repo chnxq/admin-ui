@@ -142,7 +142,7 @@ const columns: AdminTableColumn<AdminInternalMessage>[] = [
   },
   {
     key: 'tenant',
-    title: $t('page.tenant.tenant'),
+    title: '消息归属',
     width: 160,
   },
   {
@@ -238,7 +238,7 @@ function formatTime(value?: string) {
 }
 
 function getTenantScopeText(record: AdminInternalMessage) {
-  return record.tenantName || 'XAdmin平台';
+  return record.tenantName || '-';
 }
 
 function toAdminMessage(record: AdminInternalMessageTableRecord) {
@@ -704,7 +704,7 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
 }
 

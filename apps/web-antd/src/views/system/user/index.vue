@@ -96,7 +96,7 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(
-  () => userStore.userInfo?.tenantName || 'XAdmin平台',
+  () => userStore.userInfo?.tenantName || '-',
 );
 const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
 
@@ -382,7 +382,7 @@ function formatTime(value?: string) {
 
 function getTenantText(record: AdminUserTableRecord) {
   const user = toAdminUser(record);
-  return user.tenantName || 'XAdmin平台';
+  return user.tenantName || '-';
 }
 
 function getStatusText(status?: AdminUserStatus) {
@@ -1132,7 +1132,7 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
 }
 

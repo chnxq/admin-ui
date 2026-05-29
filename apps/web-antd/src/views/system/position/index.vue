@@ -82,7 +82,7 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(
-  () => userStore.userInfo?.tenantName || 'XAdmin平台',
+  () => userStore.userInfo?.tenantName || '-',
 );
 
 const defaultSorting: AdminTableSorting[] = [
@@ -310,7 +310,7 @@ function statusColor(status?: AdminPositionStatus) {
 
 function getPositionScopeText(record: AdminPositionTableRecord) {
   const position = toAdminPosition(record);
-  return position.tenantName || 'XAdmin平台';
+  return position.tenantName || '-';
 }
 
 async function loadPositions() {

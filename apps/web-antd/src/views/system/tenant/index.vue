@@ -78,7 +78,7 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(
-  () => userStore.userInfo?.tenantName || 'XAdmin平台',
+  () => userStore.userInfo?.tenantName || '-',
 );
 
 const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];

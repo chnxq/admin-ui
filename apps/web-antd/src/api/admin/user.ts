@@ -7,14 +7,13 @@ import { useAccessStore } from '@vben/stores';
 import { userProfileClient } from './clients';
 
 const DEFAULT_HOME_PATH = '/analytics';
-const DEFAULT_PLATFORM_TENANT_NAME = 'XAdmin平台';
 
 function toUserInfo(user: identityservicev1_User): UserInfo {
   const accessStore = useAccessStore();
   const username = user.username || '';
   const realName = user.nickname || user.realname || username;
   const tenantId = user.tenantId;
-  const tenantName = user.tenantName || (tenantId ? undefined : DEFAULT_PLATFORM_TENANT_NAME);
+  const tenantName = user.tenantName;
 
   return {
     avatar: user.avatar || '',

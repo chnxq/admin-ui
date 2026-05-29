@@ -294,7 +294,7 @@
     "placeholderName": "请输入角色名称",
     "placeholderCode": "请输入角色编码",
     "placeholderPermissions": "选择权限点",
-    "protectedDeleteBlocked": "?????????"
+    "protectedDeleteBlocked": "受保护角色不可删除"
   },
   "tenant": {
     "moduleName": "租户管理",
@@ -559,12 +559,12 @@
     "statusArchived": "已归档",
     "statusDeleted": "已删除",
     "total": "共",
-    "revokeFailed": "??????",
-    "revokeFailedAfterThirtyMinutes": "?????? 30 ???????",
-    "revokeFailedAfterRead": "??????????????",
-    "revokeFailedNotSender": "???????????",
-    "revokeFailedAlreadyRevoked": "???????",
-    "placeholderTargetUsers": "?????????"
+    "revokeFailed": "撤销消息失败",
+    "revokeFailedAfterThirtyMinutes": "消息发送超过 30 分钟后不可撤销",
+    "revokeFailedAfterRead": "消息在任一接收人已读后不可撤销",
+    "revokeFailedNotSender": "仅消息发送人可以撤销该消息",
+    "revokeFailedAlreadyRevoked": "该消息已被撤销",
+    "placeholderTargetUsers": "搜索并选择目标用户"
   },
   "sse": {
     "connectFailed": "实时消息连接失败"
