@@ -1,8 +1,8 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, extname } from 'node:path';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { extname, join } from 'node:path';
 
 const root = join(process.cwd(), 'apps', 'web-antd', 'src');
-const exts = new Set(['.ts', '.tsx', '.js', '.jsx', '.vue', '.json', '.md']);
+const exts = new Set(['.js', '.json', '.jsx', '.md', '.ts', '.tsx', '.vue']);
 const mojibakePatterns = ['绉熸', '骞冲', '褰撳', '鍙', '?????'];
 
 const suspicious = [];

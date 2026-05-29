@@ -5,6 +5,7 @@ import { AuthPageLayout } from '@vben/layouts';
 import { preferences } from '@vben/preferences';
 
 import { $t } from '#/locales';
+
 import loginHero from './assets/login-hero.svg';
 
 const appName = computed(() => preferences.app.name);

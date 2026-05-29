@@ -22,7 +22,7 @@ async function login(page) {
   await password.fill('123456');
   await password.press('Enter');
   await page.waitForURL((url) => !url.pathname.includes('/auth/login'), {
-    timeout: 20000,
+    timeout: 20_000,
     waitUntil: 'networkidle',
   });
 }

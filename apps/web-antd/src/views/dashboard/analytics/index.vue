@@ -16,6 +16,7 @@ import {
   SvgDownloadIcon,
 } from '@vben/icons';
 import { $t } from '@vben/locales';
+
 import { message } from 'ant-design-vue';
 
 import { getAnalyticsDashboardApi } from '#/api/admin/portal';
@@ -48,11 +49,11 @@ function normalizeSourceName(raw?: string) {
     case 'email': {
       return 'Email';
     }
-    case 'search': {
-      return 'Search';
-    }
     case 'other': {
       return 'Other';
+    }
+    case 'search': {
+      return 'Search';
     }
     default: {
       return raw || '-';
@@ -80,14 +81,14 @@ function normalizePlatformName(raw?: string) {
     case 'mobile': {
       return 'Mobile';
     }
+    case 'other': {
+      return 'Other';
+    }
     case 'tablet': {
       return 'Tablet';
     }
     case 'web': {
       return 'Web';
-    }
-    case 'other': {
-      return 'Other';
     }
     default: {
       return raw || '-';
