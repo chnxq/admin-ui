@@ -44,6 +44,12 @@ const messageToI18nKey: Record<string, string> = {
 
 let unauthorizedLogoutPromise: null | Promise<void> = null;
 
+const publicRequestPaths = new Set([
+  '/admin/v1/captcha',
+  '/admin/v1/login',
+  '/admin/v1/refresh-token',
+]);
+
 function resolveErrorMessage(error: any, fallbackMessage: string) {
   const responseData = error?.response?.data ?? {};
   const rawMessage =
@@ -136,12 +142,24 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     return token ? `Bearer ${token}` : null;
   }
 
+  function shouldAttachAccessToken(url?: string) {
+    if (!url) {
+      return true;
+    }
+    const normalizedUrl = url.split('?')[0] || '';
+    return !publicRequestPaths.has(normalizedUrl);
+  }
+
   // 请求头处理
   client.addRequestInterceptor({
     fulfilled: async (config) => {
       const accessStore = useAccessStore();
 
-      config.headers.Authorization = formatToken(accessStore.accessToken);
+      if (shouldAttachAccessToken(config.url)) {
+        config.headers.Authorization = formatToken(accessStore.accessToken);
+      } else if (config.headers.Authorization) {
+        delete config.headers.Authorization;
+      }
       config.headers['Accept-Language'] = preferences.app.locale;
       return config;
     },
