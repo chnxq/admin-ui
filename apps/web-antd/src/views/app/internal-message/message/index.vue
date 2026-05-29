@@ -238,7 +238,7 @@ function formatTime(value?: string) {
 }
 
 function getTenantScopeText(record: AdminInternalMessage) {
-  return record.tenantName || $t('page.tenant.tenant');
+  return record.tenantName || 'XAdmin平台';
 }
 
 function toAdminMessage(record: AdminInternalMessageTableRecord) {
