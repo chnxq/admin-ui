@@ -12,6 +12,8 @@ function toUserInfo(user: identityservicev1_User): UserInfo {
   const accessStore = useAccessStore();
   const username = user.username || '';
   const realName = user.nickname || user.realname || username;
+  const tenantId = user.tenantId;
+  const tenantName = user.tenantName;
 
   return {
     avatar: user.avatar || '',
@@ -19,6 +21,9 @@ function toUserInfo(user: identityservicev1_User): UserInfo {
     homePath: DEFAULT_HOME_PATH,
     realName,
     roles: user.roles ?? [],
+    sessionScope: tenantId ? 'tenant' : 'platform',
+    tenantId,
+    tenantName,
     token: accessStore.accessToken || '',
     userId: String(user.id ?? ''),
     username,

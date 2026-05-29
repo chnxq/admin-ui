@@ -22,6 +22,7 @@ import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
+import { useUserStore } from '@vben/stores';
 
 import {
   Button,
@@ -71,6 +72,14 @@ const TENANT_ACCESS = {
   edit: ['tenants:edit'],
   export: ['tenants:export'],
 } as const;
+
+const userStore = useUserStore();
+const isTenantSession = computed(
+  () => userStore.userInfo?.sessionScope === 'tenant',
+);
+const sessionTenantLabel = computed(
+  () => userStore.userInfo?.tenantName || '租户',
+);
 
 const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
 
@@ -341,6 +350,10 @@ function handleTableChange(
 }
 
 async function openCreateModal() {
+  if (isTenantSession.value) {
+    message.warning('租户会话下不可创建租户');
+    return;
+  }
   editingId.value = undefined;
   resetFormModel();
   modalOpen.value = true;
@@ -349,6 +362,10 @@ async function openCreateModal() {
 }
 
 async function openEditModal(record: AdminTenantTableRecord) {
+  if (isTenantSession.value) {
+    message.warning('租户会话下不可编辑租户');
+    return;
+  }
   const tenant = toAdminTenant(record);
   editingId.value = tenant.id;
   Object.assign(formModel, {
@@ -387,6 +404,10 @@ async function handleSubmit() {
 }
 
 async function handleDelete(record: AdminTenantTableRecord) {
+  if (isTenantSession.value) {
+    message.warning('租户会话下不可删除租户');
+    return;
+  }
   const tenant = toAdminTenant(record);
   if (!tenant.id) {
     return;
@@ -404,6 +425,12 @@ onMounted(() => {
 <template>
   <Page auto-content-height :title="$t('menu.system.tenant')">
     <div ref="tableSurfaceRef" class="admin-tenant-surface">
+      <div v-if="isTenantSession" class="tenant-session-banner">
+        <Tag color="blue">租户会话</Tag>
+        <span class="tenant-session-banner__text">
+          当前不可维护租户主数据。所属租户：{{ sessionTenantLabel }}
+        </span>
+      </div>
       <div class="admin-tenant-toolbar">
         <Space wrap>
           <Input
@@ -446,6 +473,7 @@ onMounted(() => {
           />
           <Button
             v-access:code="TENANT_ACCESS.create"
+            :disabled="isTenantSession"
             type="primary"
             @click="openCreateModal"
           >
@@ -501,6 +529,7 @@ onMounted(() => {
             <Space>
               <Button
                 v-access:code="TENANT_ACCESS.edit"
+                :disabled="isTenantSession"
                 size="small"
                 type="link"
                 @click="openEditModal(record)"
@@ -516,7 +545,7 @@ onMounted(() => {
                 "
                 @confirm="handleDelete(record)"
               >
-                <Button danger size="small" type="link">
+                <Button danger :disabled="isTenantSession" size="small" type="link">
                   {{ $t('common.delete') }}
                 </Button>
               </Popconfirm>
@@ -616,6 +645,26 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.tenant-session-banner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.08),
+    hsl(var(--accent) / 0.28)
+  );
+  border: 1px solid hsl(var(--primary) / 0.16);
+  border-radius: 10px;
+}
+
+.tenant-session-banner__text {
+  font-size: 13px;
+  color: hsl(var(--foreground) / 0.82);
 }
 
 .admin-tenant-table {

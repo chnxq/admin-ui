@@ -24,6 +24,7 @@ import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
+import { useUserStore } from '@vben/stores';
 
 import {
   Button,
@@ -90,6 +91,13 @@ const USER_ACCESS = {
   export: ['users:export'],
 } as const;
 
+const userStore = useUserStore();
+const isTenantSession = computed(
+  () => userStore.userInfo?.sessionScope === 'tenant',
+);
+const sessionTenantLabel = computed(
+  () => userStore.userInfo?.tenantName || '租户',
+);
 const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
 
 const statusOptions = [
@@ -163,6 +171,15 @@ const columns: AdminTableColumn<AdminUser>[] = [
     key: 'roles',
     title: $t('page.user.roles'),
     width: 220,
+  },
+  {
+    dataIndex: 'tenantName',
+    key: 'tenant',
+    sortField: 'tenant_id',
+    sortable: true,
+    sorter: true,
+    title: '租户',
+    width: 180,
   },
   {
     dataIndex: 'status',
@@ -361,6 +378,11 @@ function displayPositions(record: AdminUserTableRecord) {
 
 function formatTime(value?: string) {
   return value ? dayjs(value).format('YYYY-MM-DD HH:mm') : '-';
+}
+
+function getTenantText(record: AdminUserTableRecord) {
+  const user = toAdminUser(record);
+  return user.tenantName || '??';
 }
 
 function getStatusText(status?: AdminUserStatus) {
@@ -582,6 +604,12 @@ onMounted(async () => {
 <template>
   <Page auto-content-height :title="$t('menu.system.user')">
     <div ref="tableSurfaceRef" class="admin-user-surface">
+      <div v-if="isTenantSession" class="tenant-session-banner">
+        <Tag color="blue">租户会话</Tag>
+        <span class="tenant-session-banner__text">
+          当前仅查看租户内用户数据，所属租户：{{ sessionTenantLabel }}
+        </span>
+      </div>
       <div class="admin-user-toolbar">
         <Form
           class="admin-user-search"
@@ -797,6 +825,12 @@ onMounted(async () => {
               </Tag>
             </Space>
             <span v-else>-</span>
+          </template>
+
+          <template v-else-if="column.key === 'tenant'">
+            <Tag :color="record.tenantId ? 'blue' : 'default'">
+              {{ getTenantText(record) }}
+            </Tag>
           </template>
 
           <template v-else-if="column.key === 'status'">
@@ -1100,6 +1134,25 @@ onMounted(async () => {
   gap: 12px;
   align-items: flex-start;
   justify-content: space-between;
+}
+
+.tenant-session-banner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.08),
+    hsl(var(--accent) / 0.28)
+  );
+  border: 1px solid hsl(var(--primary) / 0.16);
+  border-radius: 10px;
+}
+
+.tenant-session-banner__text {
+  font-size: 13px;
+  color: hsl(var(--foreground) / 0.82);
 }
 
 .admin-user-autofill-guard {

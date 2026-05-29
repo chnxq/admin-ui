@@ -21,6 +21,7 @@ import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
+import { useUserStore } from '@vben/stores';
 
 import {
   Button,
@@ -75,6 +76,14 @@ const POSITION_ACCESS = {
   edit: ['positions:edit'],
   export: ['positions:export'],
 } as const;
+
+const userStore = useUserStore();
+const isTenantSession = computed(
+  () => userStore.userInfo?.sessionScope === 'tenant',
+);
+const sessionTenantLabel = computed(
+  () => userStore.userInfo?.tenantName || '租户',
+);
 
 const defaultSorting: AdminTableSorting[] = [
   { direction: 'ASC', field: 'sort_order' },
@@ -131,6 +140,15 @@ const columns: AdminTableColumn<AdminPosition>[] = [
     sortable: true,
     sorter: true,
     title: $t('page.position.orgUnitName'),
+    width: 180,
+  },
+  {
+    dataIndex: 'tenantName',
+    key: 'tenant',
+    sortField: 'tenant_id',
+    sortable: true,
+    sorter: true,
+    title: '资源归属',
     width: 180,
   },
   {
@@ -290,6 +308,11 @@ function statusColor(status?: AdminPositionStatus) {
   return status === 'ON' ? 'success' : 'default';
 }
 
+function getPositionScopeText(record: AdminPositionTableRecord) {
+  const position = toAdminPosition(record);
+  return position.tenantName || '??';
+}
+
 async function loadPositions() {
   loading.value = true;
   try {
@@ -399,6 +422,12 @@ onMounted(() => {
 <template>
   <Page auto-content-height :title="$t('menu.system.position')">
     <div ref="tableSurfaceRef" class="admin-position-surface">
+      <div v-if="isTenantSession" class="tenant-session-banner">
+        <Tag color="blue">租户会话</Tag>
+        <span class="tenant-session-banner__text">
+          当前职位数据已按租户隔离。所属租户：{{ sessionTenantLabel }}
+        </span>
+      </div>
       <div class="admin-position-toolbar">
         <Space wrap>
           <Input
@@ -471,6 +500,11 @@ onMounted(() => {
           </template>
           <template v-else-if="column.key === 'type'">
             {{ typeTextMap[toAdminPosition(record).type ?? 'OTHER'] }}
+          </template>
+          <template v-else-if="column.key === 'tenant'">
+            <Tag :color="toAdminPosition(record).tenantId ? 'blue' : 'default'">
+              {{ getPositionScopeText(record) }}
+            </Tag>
           </template>
           <template v-else-if="column.key === 'status'">
             <Tag :color="statusColor(toAdminPosition(record).status)">
@@ -600,6 +634,26 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.tenant-session-banner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.08),
+    hsl(var(--accent) / 0.28)
+  );
+  border: 1px solid hsl(var(--primary) / 0.16);
+  border-radius: 10px;
+}
+
+.tenant-session-banner__text {
+  font-size: 13px;
+  color: hsl(var(--foreground) / 0.82);
 }
 
 .admin-position-table {

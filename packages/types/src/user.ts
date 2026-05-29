@@ -15,6 +15,18 @@ interface UserInfo extends BasicUserInfo {
    * accessToken
    */
   token: string;
+  /**
+   * 当前会话租户ID，平台态为空
+   */
+  tenantId?: number;
+  /**
+   * 当前会话租户名称，平台态为空
+   */
+  tenantName?: string;
+  /**
+   * 当前会话范围
+   */
+  sessionScope?: 'platform' | 'tenant';
 }
 
 export type { UserInfo };

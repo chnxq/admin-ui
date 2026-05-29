@@ -26,6 +26,7 @@ import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
+import { useUserStore } from '@vben/stores';
 
 import {
   Button,
@@ -108,6 +109,14 @@ const PERMISSION_ACCESS = {
   sync: ['permissions:sync:perms:create'],
 } as const;
 
+const userStore = useUserStore();
+const isTenantSession = computed(
+  () => userStore.userInfo?.sessionScope === 'tenant',
+);
+const sessionTenantLabel = computed(
+  () => userStore.userInfo?.tenantName || '租户',
+);
+
 const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
 
 const statusOptions = [
@@ -144,6 +153,11 @@ const columns: AdminTableColumn<AdminPermission>[] = [
     sortable: true,
     sorter: true,
     title: $t('page.permission.status'),
+    width: 100,
+  },
+  {
+    key: 'scope',
+    title: '资源归属',
     width: 100,
   },
   {
@@ -482,6 +496,10 @@ function getStatusColor(status?: AdminPermissionStatus) {
   return status === 'ON' ? 'success' : 'error';
 }
 
+function getPermissionScopeText() {
+  return '平台';
+}
+
 async function loadGroups() {
   groupLoading.value = true;
   try {
@@ -556,6 +574,10 @@ async function handleTreeSelect(keys: (number | string)[]) {
 }
 
 async function openCreate() {
+  if (isTenantSession.value) {
+    message.warning('租户会话下权限定义只读');
+    return;
+  }
   editingId.value = undefined;
   resetFormModel();
   modalOpen.value = true;
@@ -564,6 +586,10 @@ async function openCreate() {
 }
 
 async function openEdit(record: PermissionRecord) {
+  if (isTenantSession.value) {
+    message.warning('租户会话下权限定义只读');
+    return;
+  }
   const permission = toPermission(record);
   if (!permission.id) {
     message.warning($t('page.permission.missingId'));
@@ -605,6 +631,10 @@ async function submitPermission() {
 }
 
 async function handleDelete(record: PermissionRecord) {
+  if (isTenantSession.value) {
+    message.warning('租户会话下权限定义只读');
+    return;
+  }
   const permission = toPermission(record);
   if (!permission.id) {
     message.warning($t('page.permission.missingId'));
@@ -617,6 +647,10 @@ async function handleDelete(record: PermissionRecord) {
 }
 
 async function handleSync() {
+  if (isTenantSession.value) {
+    message.warning('租户会话下不可同步权限点');
+    return;
+  }
   syncing.value = true;
   try {
     await syncAdminPermissionsApi();
@@ -760,6 +794,12 @@ onMounted(() => {
       </aside>
 
       <section ref="tableSurfaceRef" class="admin-permission-surface">
+        <div v-if="isTenantSession" class="tenant-session-banner">
+          <Tag color="blue">租户会话</Tag>
+          <span class="tenant-session-banner__text">
+            当前权限定义仅可查看，不可编辑。所属租户：{{ sessionTenantLabel }}
+          </span>
+        </div>
         <div class="admin-permission-toolbar">
           <Form :model="searchForm" layout="inline" @finish="handleSearch">
             <Form.Item :label="$t('page.permission.name')" name="name">
@@ -807,6 +847,7 @@ onMounted(() => {
             />
             <Button
               v-access:code="PERMISSION_ACCESS.sync"
+              :disabled="isTenantSession"
               :loading="syncing"
               @click="handleSync"
             >
@@ -817,6 +858,7 @@ onMounted(() => {
             </Button>
             <Button
               v-access:code="PERMISSION_ACCESS.create"
+              :disabled="isTenantSession"
               type="primary"
               @click="openCreate"
             >
@@ -860,6 +902,10 @@ onMounted(() => {
               </Tag>
             </template>
 
+            <template v-else-if="column.key === 'scope'">
+              <Tag color="gold">{{ getPermissionScopeText() }}</Tag>
+            </template>
+
             <template v-else-if="column.key === 'resource'">
               <Space :size="4">
                 <Tag>
@@ -887,6 +933,7 @@ onMounted(() => {
               <Space>
                 <Button
                   v-access:code="PERMISSION_ACCESS.edit"
+                  :disabled="isTenantSession"
                   size="small"
                   type="link"
                   @click="openEdit(record)"
@@ -897,6 +944,7 @@ onMounted(() => {
                   {{ $t('common.edit') }}
                 </Button>
                 <Popconfirm
+                  :disabled="isTenantSession"
                   :title="
                     $t('ui.actionMessage.deleteConfirm', [
                       $t('page.permission.moduleName'),
@@ -907,6 +955,7 @@ onMounted(() => {
                   <Button
                     v-access:code="PERMISSION_ACCESS.delete"
                     danger
+                    :disabled="isTenantSession"
                     size="small"
                     type="link"
                   >
@@ -1168,6 +1217,25 @@ onMounted(() => {
   gap: 12px;
   align-items: flex-start;
   justify-content: space-between;
+}
+
+.tenant-session-banner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.08),
+    hsl(var(--accent) / 0.28)
+  );
+  border: 1px solid hsl(var(--primary) / 0.16);
+  border-radius: 10px;
+}
+
+.tenant-session-banner__text {
+  font-size: 13px;
+  color: hsl(var(--foreground) / 0.82);
 }
 
 .permission-context {

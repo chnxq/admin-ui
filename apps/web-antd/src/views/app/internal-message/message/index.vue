@@ -141,6 +141,11 @@ const columns: AdminTableColumn<AdminInternalMessage>[] = [
     width: 150,
   },
   {
+    key: 'tenant',
+    title: $t('page.tenant.tenant'),
+    width: 160,
+  },
+  {
     dataIndex: 'createdAt',
     key: 'createdAt',
     sortField: 'created_at',
@@ -230,6 +235,10 @@ const formRules = computed<Record<string, Rule[]>>(() => ({
 
 function formatTime(value?: string) {
   return value ? dayjs(value).format('YYYY-MM-DD HH:mm') : '-';
+}
+
+function getTenantScopeText(record: AdminInternalMessage) {
+  return record.tenantName || $t('page.tenant.tenant');
 }
 
 function toAdminMessage(record: AdminInternalMessageTableRecord) {
@@ -581,6 +590,12 @@ onMounted(() => {
           <template v-else-if="column.key === 'status'">
             <Tag :color="getStatusColor(record.status)">
               {{ getStatusText(record.status) }}
+            </Tag>
+          </template>
+
+          <template v-else-if="column.key === 'tenant'">
+            <Tag :color="record.tenantId ? 'blue' : 'gold'">
+              {{ getTenantScopeText(record) }}
             </Tag>
           </template>
 

@@ -23,6 +23,7 @@ import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 import { IconPicker, Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { $t, $te } from '@vben/locales';
+import { useUserStore } from '@vben/stores';
 
 import {
   AutoComplete,
@@ -96,6 +97,14 @@ const MENU_ACCESS = {
   sync: ['menus:sync:create', 'menus:create'],
 } as const;
 
+const userStore = useUserStore();
+const isTenantSession = computed(
+  () => userStore.userInfo?.sessionScope === 'tenant',
+);
+const sessionTenantLabel = computed(
+  () => userStore.userInfo?.tenantName || '租户',
+);
+
 const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
 
 const statusOptions = [
@@ -154,6 +163,11 @@ const columns: AdminTableColumn<AdminMenu>[] = [
     sorter: true,
     title: $t('page.menu.type'),
     width: 100,
+  },
+  {
+    key: 'scope',
+    title: '资源归属',
+    width: 120,
   },
   {
     dataIndex: 'status',
@@ -318,6 +332,14 @@ function getTypeText(type?: AdminMenuType) {
   return type ? typeTextMap[type] : '-';
 }
 
+function ensurePlatformWritable() {
+  if (!isTenantSession.value) {
+    return true;
+  }
+  message.warning(`租户会话 ${sessionTenantLabel.value} 仅可查看平台菜单`);
+  return false;
+}
+
 function getDisplayTitle(title?: string) {
   const normalizedTitle = title?.trim();
   if (!normalizedTitle) {
@@ -456,6 +478,9 @@ async function handleTableChange(
 }
 
 async function openCreate(parent?: AdminMenuTableRecord) {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   editingId.value = undefined;
   resetFormModel();
   const menu = parent ? toAdminMenu(parent) : undefined;
@@ -469,6 +494,9 @@ async function openCreate(parent?: AdminMenuTableRecord) {
 }
 
 async function openEdit(record: AdminMenuTableRecord) {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   const menu = toAdminMenu(record);
   if (!menu.id) {
     message.warning($t('page.menu.missingId'));
@@ -500,6 +528,9 @@ async function openEdit(record: AdminMenuTableRecord) {
 }
 
 async function submitMenu() {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   await formRef.value?.validate();
 
   submitting.value = true;
@@ -528,6 +559,9 @@ async function submitMenu() {
 }
 
 async function handleDelete(record: AdminMenuTableRecord) {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   const menu = toAdminMenu(record);
   if (!menu.id) {
     message.warning($t('page.menu.missingId'));
@@ -540,6 +574,9 @@ async function handleDelete(record: AdminMenuTableRecord) {
 }
 
 async function handleSync() {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   syncing.value = true;
   try {
     await syncAdminMenusApi();
@@ -558,6 +595,13 @@ onMounted(() => {
 <template>
   <Page auto-content-height :title="$t('menu.system.menu')">
     <div ref="tableSurfaceRef" class="admin-menu-surface">
+      <div v-if="isTenantSession" class="tenant-session-banner">
+        <IconifyIcon icon="lucide:building-2" />
+        <span class="tenant-session-banner__text">
+          当前为租户会话 {{ sessionTenantLabel }}，菜单属于平台租户，仅支持查看。
+        </span>
+      </div>
+
       <div class="admin-menu-toolbar">
         <Form :model="searchForm" layout="inline" @finish="handleSearch">
           <Form.Item :label="$t('page.menu.name')" name="name">
@@ -616,6 +660,7 @@ onMounted(() => {
           </Popconfirm>
           <Button
             v-access:code="MENU_ACCESS.create"
+            :disabled="isTenantSession"
             type="primary"
             @click="openCreate()"
           >
@@ -653,6 +698,10 @@ onMounted(() => {
             <Tag>{{ getTypeText(record.type) }}</Tag>
           </template>
 
+          <template v-else-if="column.key === 'scope'">
+            <Tag color="gold">平台</Tag>
+          </template>
+
           <template v-else-if="column.key === 'status'">
             <Tag :color="getStatusColor(record.status)">
               {{ getStatusText(record.status) }}
@@ -667,6 +716,7 @@ onMounted(() => {
             <Space>
               <Button
                 v-access:code="MENU_ACCESS.create"
+                :disabled="isTenantSession"
                 size="small"
                 type="link"
                 @click="openCreate(record)"
@@ -678,6 +728,7 @@ onMounted(() => {
               </Button>
               <Button
                 v-access:code="MENU_ACCESS.edit"
+                :disabled="isTenantSession"
                 size="small"
                 type="link"
                 @click="openEdit(record)"
@@ -688,6 +739,7 @@ onMounted(() => {
                 {{ $t('common.edit') }}
               </Button>
               <Popconfirm
+                :disabled="isTenantSession"
                 :title="
                   $t('ui.actionMessage.deleteConfirm', [
                     $t('page.menu.moduleName'),
@@ -698,6 +750,7 @@ onMounted(() => {
                 <Button
                   v-access:code="MENU_ACCESS.delete"
                   danger
+                  :disabled="isTenantSession"
                   size="small"
                   type="link"
                 >
@@ -884,6 +937,25 @@ onMounted(() => {
   gap: 12px;
   align-items: flex-start;
   justify-content: space-between;
+}
+
+.tenant-session-banner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.08),
+    hsl(var(--accent) / 0.28)
+  );
+  border: 1px solid hsl(var(--primary) / 0.16);
+  border-radius: 10px;
+}
+
+.tenant-session-banner__text {
+  font-size: 13px;
+  color: hsl(var(--foreground) / 0.82);
 }
 
 .admin-menu-table {

@@ -21,6 +21,7 @@ import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
+import { useUserStore } from '@vben/stores';
 
 import {
   Button,
@@ -79,6 +80,14 @@ const ORG_UNIT_ACCESS = {
   edit: ['org:units:edit'],
   export: ['org:units:export'],
 } as const;
+
+const userStore = useUserStore();
+const isTenantSession = computed(
+  () => userStore.userInfo?.sessionScope === 'tenant',
+);
+const sessionTenantLabel = computed(
+  () => userStore.userInfo?.tenantName || '租户',
+);
 
 const defaultSorting: AdminTableSorting[] = [
   { direction: 'ASC', field: 'sort_order' },
@@ -151,6 +160,15 @@ const columns: AdminTableColumn<AdminOrgUnit>[] = [
     sorter: true,
     title: $t('page.orgUnit.sortOrder'),
     width: 90,
+  },
+  {
+    dataIndex: 'tenantName',
+    key: 'tenant',
+    sortField: 'tenant_id',
+    sortable: true,
+    sorter: true,
+    title: '资源归属',
+    width: 180,
   },
   {
     dataIndex: 'status',
@@ -297,6 +315,11 @@ function statusColor(status?: AdminOrgUnitStatus) {
   return status === 'ON' ? 'success' : 'default';
 }
 
+function getOrgUnitScopeText(record: AdminOrgUnitTableRecord) {
+  const orgUnit = toAdminOrgUnit(record);
+  return orgUnit.tenantName || '租户';
+}
+
 async function loadOrgUnits() {
   loading.value = true;
   try {
@@ -399,6 +422,12 @@ onMounted(() => {
 <template>
   <Page auto-content-height :title="$t('menu.system.orgUnit')">
     <div ref="tableSurfaceRef" class="admin-org-unit-surface">
+      <div v-if="isTenantSession" class="tenant-session-banner">
+        <Tag color="blue">租户会话</Tag>
+        <span class="tenant-session-banner__text">
+          当前组织数据已按租户隔离。所属租户：{{ sessionTenantLabel }}
+        </span>
+      </div>
       <div class="admin-org-unit-toolbar">
         <Space wrap>
           <Input
@@ -471,6 +500,11 @@ onMounted(() => {
           </template>
           <template v-else-if="column.key === 'type'">
             {{ typeTextMap[toAdminOrgUnit(record).type ?? 'OTHER'] }}
+          </template>
+          <template v-else-if="column.key === 'tenant'">
+            <Tag :color="toAdminOrgUnit(record).tenantId ? 'blue' : 'default'">
+              {{ getOrgUnitScopeText(record) }}
+            </Tag>
           </template>
           <template v-else-if="column.key === 'status'">
             <Tag :color="statusColor(toAdminOrgUnit(record).status)">
@@ -625,6 +659,26 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.tenant-session-banner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.08),
+    hsl(var(--accent) / 0.28)
+  );
+  border: 1px solid hsl(var(--primary) / 0.16);
+  border-radius: 10px;
+}
+
+.tenant-session-banner__text {
+  font-size: 13px;
+  color: hsl(var(--foreground) / 0.82);
 }
 
 .admin-org-unit-table {

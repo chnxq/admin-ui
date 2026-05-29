@@ -22,6 +22,7 @@ import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
+import { useUserStore } from '@vben/stores';
 
 import {
   Button,
@@ -96,6 +97,14 @@ const DICT_ENTRY_ACCESS = {
   view: ['dict:entries:view'],
 } as const;
 
+const userStore = useUserStore();
+const isTenantSession = computed(
+  () => userStore.userInfo?.sessionScope === 'tenant',
+);
+const sessionTenantLabel = computed(() => {
+  return userStore.userInfo?.tenantName || '租户';
+});
+
 const defaultTypeSorting: AdminTableSorting[] = [
   { direction: 'ASC', field: 'sort_order' },
 ];
@@ -161,6 +170,7 @@ const typeColumns: AdminTableColumn<AdminDictType>[] = [
     title: $t('page.dictType.createdAt'),
     width: 160,
   },
+  { key: 'scope', title: '资源归属', width: 120 },
   { fixed: 'right', key: 'action', title: $t('ui.table.action'), width: 140 },
 ];
 
@@ -217,6 +227,7 @@ const entryColumns: AdminTableColumn<AdminDictEntry>[] = [
     title: $t('page.dictEntry.createdAt'),
     width: 160,
   },
+  { key: 'scope', title: '资源归属', width: 120 },
   { fixed: 'right', key: 'action', title: $t('ui.table.action'), width: 140 },
 ];
 
@@ -435,6 +446,14 @@ function resolveEntryLabel(record: AdminDictEntry) {
   );
 }
 
+function ensurePlatformWritable() {
+  if (!isTenantSession.value) {
+    return true;
+  }
+  message.warning(`租户会话 ${sessionTenantLabel.value} 仅可查看平台字典`);
+  return false;
+}
+
 async function loadTypeData() {
   typeLoading.value = true;
   try {
@@ -546,6 +565,9 @@ function handleSelectType(record: AdminDictTypeTableRecord) {
 }
 
 async function openTypeCreateModal() {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   editingTypeId.value = undefined;
   resetTypeFormModel();
   typeModalOpen.value = true;
@@ -554,6 +576,9 @@ async function openTypeCreateModal() {
 }
 
 async function openTypeEditModal(record: AdminDictTypeTableRecord) {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   const item = toAdminDictType(record);
   editingTypeId.value = item.id;
   Object.assign(typeFormModel, {
@@ -568,6 +593,9 @@ async function openTypeEditModal(record: AdminDictTypeTableRecord) {
 }
 
 async function openEntryCreateModal() {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   editingEntryId.value = undefined;
   resetEntryFormModel();
   entryModalOpen.value = true;
@@ -576,6 +604,9 @@ async function openEntryCreateModal() {
 }
 
 async function openEntryEditModal(record: AdminDictEntryTableRecord) {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   const item = toAdminDictEntry(record);
   editingEntryId.value = item.id;
   Object.assign(entryFormModel, {
@@ -594,6 +625,9 @@ async function openEntryEditModal(record: AdminDictEntryTableRecord) {
 }
 
 async function handleTypeSubmit() {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   await typeFormRef.value?.validate();
   typeSubmitting.value = true;
   try {
@@ -612,6 +646,9 @@ async function handleTypeSubmit() {
 }
 
 async function handleEntrySubmit() {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   await entryFormRef.value?.validate();
   entrySubmitting.value = true;
   try {
@@ -638,6 +675,9 @@ async function handleEntrySubmit() {
 }
 
 async function handleTypeDelete(record: AdminDictTypeTableRecord) {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   const item = toAdminDictType(record);
   if (!item.id) {
     return;
@@ -649,6 +689,9 @@ async function handleTypeDelete(record: AdminDictTypeTableRecord) {
 }
 
 async function handleEntryDelete(record: AdminDictEntryTableRecord) {
+  if (!ensurePlatformWritable()) {
+    return;
+  }
   const item = toAdminDictEntry(record);
   if (!item.id) {
     return;
@@ -672,6 +715,13 @@ onMounted(async () => {
 <template>
   <Page auto-content-height :title="$t('menu.system.dict')">
     <div class="dict-page">
+      <div v-if="isTenantSession" class="tenant-session-banner">
+        <IconifyIcon icon="lucide:building-2" />
+        <span class="tenant-session-banner__text">
+          ??????? {{ sessionTenantLabel }}????????????????
+        </span>
+      </div>
+
       <div ref="typeSurfaceRef" class="dict-panel">
         <div class="dict-panel-header">
           <div>
@@ -693,6 +743,7 @@ onMounted(async () => {
             />
             <Button
               v-access:code="DICT_TYPE_ACCESS.create"
+              :disabled="isTenantSession"
               type="primary"
               @click="openTypeCreateModal"
             >
@@ -767,10 +818,14 @@ onMounted(async () => {
             <template v-else-if="column.key === 'createdAt'">
               {{ formatTime(toAdminDictType(record).createdAt) }}
             </template>
+            <template v-else-if="column.key === 'scope'">
+              <Tag color="gold">??</Tag>
+            </template>
             <template v-else-if="column.key === 'action'">
               <Space>
                 <Button
                   v-access:code="DICT_TYPE_ACCESS.edit"
+                  :disabled="isTenantSession"
                   size="small"
                   type="link"
                   @click.stop="openTypeEditModal(record)"
@@ -779,6 +834,7 @@ onMounted(async () => {
                 </Button>
                 <Popconfirm
                   v-access:code="DICT_TYPE_ACCESS.delete"
+                  :disabled="isTenantSession"
                   :title="
                     $t('ui.actionMessage.deleteConfirm', [
                       $t('page.dictType.moduleName'),
@@ -786,7 +842,13 @@ onMounted(async () => {
                   "
                   @confirm="handleTypeDelete(record)"
                 >
-                  <Button danger size="small" type="link" @click.stop>
+                  <Button
+                    danger
+                    :disabled="isTenantSession"
+                    size="small"
+                    type="link"
+                    @click.stop
+                  >
                     {{ $t('common.delete') }}
                   </Button>
                 </Popconfirm>
@@ -823,7 +885,7 @@ onMounted(async () => {
             />
             <Button
               v-access:code="DICT_ENTRY_ACCESS.create"
-              :disabled="!selectedTypeId"
+              :disabled="!selectedTypeId || isTenantSession"
               type="primary"
               @click="openEntryCreateModal"
             >
@@ -886,10 +948,14 @@ onMounted(async () => {
             <template v-else-if="column.key === 'createdAt'">
               {{ formatTime(toAdminDictEntry(record).createdAt) }}
             </template>
+            <template v-else-if="column.key === 'scope'">
+              <Tag color="gold">??</Tag>
+            </template>
             <template v-else-if="column.key === 'action'">
               <Space>
                 <Button
                   v-access:code="DICT_ENTRY_ACCESS.edit"
+                  :disabled="isTenantSession"
                   size="small"
                   type="link"
                   @click="openEntryEditModal(record)"
@@ -898,6 +964,7 @@ onMounted(async () => {
                 </Button>
                 <Popconfirm
                   v-access:code="DICT_ENTRY_ACCESS.delete"
+                  :disabled="isTenantSession"
                   :title="
                     $t('ui.actionMessage.deleteConfirm', [
                       $t('page.dictEntry.moduleName'),
@@ -905,7 +972,12 @@ onMounted(async () => {
                   "
                   @confirm="handleEntryDelete(record)"
                 >
-                  <Button danger size="small" type="link">
+                  <Button
+                    danger
+                    :disabled="isTenantSession"
+                    size="small"
+                    type="link"
+                  >
                     {{ $t('common.delete') }}
                   </Button>
                 </Popconfirm>
@@ -1030,6 +1102,25 @@ onMounted(async () => {
 .dict-page {
   display: grid;
   gap: 16px;
+}
+
+.tenant-session-banner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.08),
+    hsl(var(--accent) / 0.28)
+  );
+  border: 1px solid hsl(var(--primary) / 0.16);
+  border-radius: 10px;
+}
+
+.tenant-session-banner__text {
+  font-size: 13px;
+  color: hsl(var(--foreground) / 0.82);
 }
 
 .dict-panel {

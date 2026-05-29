@@ -27,6 +27,7 @@ import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
+import { useUserStore } from '@vben/stores';
 
 import {
   Button,
@@ -99,6 +100,14 @@ const ROLE_ACCESS = {
   export: ['roles:export'],
 } as const;
 
+const userStore = useUserStore();
+const isTenantSession = computed(
+  () => userStore.userInfo?.sessionScope === 'tenant',
+);
+const sessionTenantLabel = computed(
+  () => userStore.userInfo?.tenantName || '租户',
+);
+
 const defaultSorting: AdminTableSorting[] = [
   { direction: 'ASC', field: 'sort_order' },
 ];
@@ -149,6 +158,14 @@ const columns: AdminTableColumn<AdminRole>[] = [
     sorter: true,
     title: $t('page.role.type'),
     width: 120,
+  },
+  {
+    key: 'scope',
+    sortField: 'tenant_id',
+    sortable: true,
+    sorter: true,
+    title: '资源归属',
+    width: 180,
   },
   {
     dataIndex: 'sortOrder',
@@ -412,6 +429,14 @@ function getTypeText(type?: AdminRoleType) {
   return type ? typeTextMap[type] : '-';
 }
 
+function canMutateRole(role: AdminRole) {
+  return !isTenantSession.value || Boolean(role.tenantId);
+}
+
+function getRoleScopeText(role: AdminRole) {
+  return role.tenantName || '租户';
+}
+
 function uniqueNumbers(values: Array<null | number | undefined>) {
   return [
     ...new Set(
@@ -615,6 +640,9 @@ async function handleTableChange(
 async function openCreate() {
   editingId.value = undefined;
   resetFormModel();
+  if (isTenantSession.value) {
+    formModel.type = 'TENANT';
+  }
   editTreeCheckedKeys.value = [];
   editTreeSearchValue.value = '';
   editExpandedKeys.value = [];
@@ -625,6 +653,10 @@ async function openCreate() {
 
 async function openEdit(record: AdminRoleTableRecord) {
   const role = toAdminRole(record);
+  if (!canMutateRole(role)) {
+    message.warning('租户会话不可编辑全局角色');
+    return;
+  }
   if (!role.id) {
     message.warning($t('page.role.missingId'));
     return;
@@ -642,6 +674,10 @@ async function openEdit(record: AdminRoleTableRecord) {
 
 async function openAuthorize(record: AdminRoleTableRecord) {
   const role = toAdminRole(record);
+  if (!canMutateRole(role)) {
+    message.warning('租户会话不可维护全局角色授权');
+    return;
+  }
   if (!role.id) {
     message.warning($t('page.role.missingId'));
     return;
@@ -905,6 +941,12 @@ onMounted(async () => {
 <template>
   <Page auto-content-height :title="$t('menu.system.role')">
     <div ref="tableSurfaceRef" class="admin-role-surface">
+      <div v-if="isTenantSession" class="tenant-session-banner">
+        <Tag color="blue">租户会话</Tag>
+        <span class="tenant-session-banner__text">
+          当前仅可维护租户角色，所属租户：{{ sessionTenantLabel }}
+        </span>
+      </div>
       <div class="admin-role-toolbar">
         <Form :model="searchForm" layout="inline" @finish="handleSearch">
           <Form.Item :label="$t('page.role.name')" name="name">
@@ -985,6 +1027,12 @@ onMounted(async () => {
             <Tag>{{ getTypeText(record.type) }}</Tag>
           </template>
 
+          <template v-else-if="column.key === 'scope'">
+            <Tag :color="toAdminRole(record).tenantId ? 'blue' : 'gold'">
+              {{ getRoleScopeText(toAdminRole(record)) }}
+            </Tag>
+          </template>
+
           <template v-else-if="column.key === 'status'">
             <Tag :color="getStatusColor(record.status)">
               {{ getStatusText(record.status) }}
@@ -999,6 +1047,7 @@ onMounted(async () => {
             <Space>
               <Button
                 v-access:code="ROLE_ACCESS.authorize"
+                :disabled="!canMutateRole(toAdminRole(record))"
                 size="small"
                 type="link"
                 @click="openAuthorize(record)"
@@ -1010,6 +1059,7 @@ onMounted(async () => {
               </Button>
               <Button
                 v-access:code="ROLE_ACCESS.edit"
+                :disabled="!canMutateRole(toAdminRole(record))"
                 size="small"
                 type="link"
                 @click="openEdit(record)"
@@ -1031,7 +1081,9 @@ onMounted(async () => {
                 <Button
                   v-access:code="ROLE_ACCESS.delete"
                   danger
-                  :disabled="record.isProtected"
+                  :disabled="
+                    record.isProtected || !canMutateRole(toAdminRole(record))
+                  "
                   size="small"
                   type="link"
                 >
@@ -1078,7 +1130,11 @@ onMounted(async () => {
             </Form.Item>
             <div class="form-row-grid-2">
               <Form.Item :label="$t('page.role.type')" name="type">
-                <Select v-model:value="formModel.type" :options="typeOptions" />
+                <Select
+                  v-model:value="formModel.type"
+                  :disabled="isTenantSession"
+                  :options="typeOptions"
+                />
               </Form.Item>
               <Form.Item :label="$t('page.role.status')" name="status">
                 <Select
@@ -1379,6 +1435,25 @@ onMounted(async () => {
   gap: 12px;
   align-items: flex-start;
   justify-content: space-between;
+}
+
+.tenant-session-banner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.08),
+    hsl(var(--accent) / 0.28)
+  );
+  border: 1px solid hsl(var(--primary) / 0.16);
+  border-radius: 10px;
+}
+
+.tenant-session-banner__text {
+  font-size: 13px;
+  color: hsl(var(--foreground) / 0.82);
 }
 
 .admin-role-table {
