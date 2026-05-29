@@ -102,7 +102,7 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(
-  () => userStore.userInfo?.tenantName || '租户',
+  () => userStore.userInfo?.tenantName || 'XAdmin平台',
 );
 
 const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
@@ -166,7 +166,7 @@ const columns: AdminTableColumn<AdminMenu>[] = [
   },
   {
     key: 'scope',
-    title: '资源归属',
+    title: '租户',
     width: 120,
   },
   {
@@ -274,10 +274,10 @@ const parentTreeOptions = computed<MenuTreeOption[]>(() =>
 const componentOptions = computed<ComponentOption[]>(() => {
   const existingComponents = menuItems.value
     .map((item) => item.component?.trim())
-    .filter((item): item is string => Boolean(item));
+    .filter((value): value is string => Boolean(value));
   const fileComponents = Object.keys(pageComponentMap)
     .map((filePath) => normalizeComponentPathFromFile(filePath))
-    .filter((item): item is string => Boolean(item));
+    .filter((value): value is string => Boolean(value));
   const merged = [...new Set([...existingComponents, ...fileComponents])];
 
   return merged
@@ -598,7 +598,8 @@ onMounted(() => {
       <div v-if="isTenantSession" class="tenant-session-banner">
         <IconifyIcon icon="lucide:building-2" />
         <span class="tenant-session-banner__text">
-          当前为租户会话 {{ sessionTenantLabel }}，菜单属于平台租户，仅支持查看。
+          当前为租户会话
+          {{ sessionTenantLabel }}，菜单属于平台租户，仅支持查看。
         </span>
       </div>
 
@@ -699,7 +700,7 @@ onMounted(() => {
           </template>
 
           <template v-else-if="column.key === 'scope'">
-            <Tag color="gold">平台</Tag>
+            <Tag color="gold">XAdmin平台</Tag>
           </template>
 
           <template v-else-if="column.key === 'status'">
@@ -946,16 +947,16 @@ onMounted(() => {
   padding: 12px 14px;
   background: linear-gradient(
     135deg,
-    hsl(var(--primary) / 0.08),
-    hsl(var(--accent) / 0.28)
+    hsl(var(--primary) / 8%),
+    hsl(var(--accent) / 28%)
   );
-  border: 1px solid hsl(var(--primary) / 0.16);
+  border: 1px solid hsl(var(--primary) / 16%);
   border-radius: 10px;
 }
 
 .tenant-session-banner__text {
   font-size: 13px;
-  color: hsl(var(--foreground) / 0.82);
+  color: hsl(var(--foreground) / 82%);
 }
 
 .admin-menu-table {

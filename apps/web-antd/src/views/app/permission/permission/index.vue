@@ -114,7 +114,7 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(
-  () => userStore.userInfo?.tenantName || '租户',
+  () => userStore.userInfo?.tenantName || 'XAdmin平台',
 );
 
 const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
@@ -157,7 +157,7 @@ const columns: AdminTableColumn<AdminPermission>[] = [
   },
   {
     key: 'scope',
-    title: '资源归属',
+    title: '租户',
     width: 100,
   },
   {
@@ -497,7 +497,7 @@ function getStatusColor(status?: AdminPermissionStatus) {
 }
 
 function getPermissionScopeText() {
-  return '平台';
+  return 'XAdmin平台';
 }
 
 async function loadGroups() {
@@ -1226,16 +1226,16 @@ onMounted(() => {
   padding: 12px 14px;
   background: linear-gradient(
     135deg,
-    hsl(var(--primary) / 0.08),
-    hsl(var(--accent) / 0.28)
+    hsl(var(--primary) / 8%),
+    hsl(var(--accent) / 28%)
   );
-  border: 1px solid hsl(var(--primary) / 0.16);
+  border: 1px solid hsl(var(--primary) / 16%);
   border-radius: 10px;
 }
 
 .tenant-session-banner__text {
   font-size: 13px;
-  color: hsl(var(--foreground) / 0.82);
+  color: hsl(var(--foreground) / 82%);
 }
 
 .permission-context {

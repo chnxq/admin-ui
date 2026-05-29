@@ -102,7 +102,7 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(() => {
-  return userStore.userInfo?.tenantName || '租户';
+  return userStore.userInfo?.tenantName || 'XAdmin平台';
 });
 
 const defaultTypeSorting: AdminTableSorting[] = [
@@ -170,7 +170,7 @@ const typeColumns: AdminTableColumn<AdminDictType>[] = [
     title: $t('page.dictType.createdAt'),
     width: 160,
   },
-  { key: 'scope', title: '资源归属', width: 120 },
+  { key: 'scope', title: '租户', width: 120 },
   { fixed: 'right', key: 'action', title: $t('ui.table.action'), width: 140 },
 ];
 
@@ -227,7 +227,7 @@ const entryColumns: AdminTableColumn<AdminDictEntry>[] = [
     title: $t('page.dictEntry.createdAt'),
     width: 160,
   },
-  { key: 'scope', title: '资源归属', width: 120 },
+  { key: 'scope', title: '租户', width: 120 },
   { fixed: 'right', key: 'action', title: $t('ui.table.action'), width: 140 },
 ];
 
@@ -718,7 +718,7 @@ onMounted(async () => {
       <div v-if="isTenantSession" class="tenant-session-banner">
         <IconifyIcon icon="lucide:building-2" />
         <span class="tenant-session-banner__text">
-          ??????? {{ sessionTenantLabel }}????????????????
+          当前仅可查看平台字典。所属租户：{{ sessionTenantLabel }}
         </span>
       </div>
 
@@ -819,7 +819,7 @@ onMounted(async () => {
               {{ formatTime(toAdminDictType(record).createdAt) }}
             </template>
             <template v-else-if="column.key === 'scope'">
-              <Tag color="gold">??</Tag>
+              <Tag color="gold">XAdmin平台</Tag>
             </template>
             <template v-else-if="column.key === 'action'">
               <Space>
@@ -949,7 +949,7 @@ onMounted(async () => {
               {{ formatTime(toAdminDictEntry(record).createdAt) }}
             </template>
             <template v-else-if="column.key === 'scope'">
-              <Tag color="gold">??</Tag>
+              <Tag color="gold">XAdmin平台</Tag>
             </template>
             <template v-else-if="column.key === 'action'">
               <Space>
@@ -1111,16 +1111,16 @@ onMounted(async () => {
   padding: 12px 14px;
   background: linear-gradient(
     135deg,
-    hsl(var(--primary) / 0.08),
-    hsl(var(--accent) / 0.28)
+    hsl(var(--primary) / 8%),
+    hsl(var(--accent) / 28%)
   );
-  border: 1px solid hsl(var(--primary) / 0.16);
+  border: 1px solid hsl(var(--primary) / 16%);
   border-radius: 10px;
 }
 
 .tenant-session-banner__text {
   font-size: 13px;
-  color: hsl(var(--foreground) / 0.82);
+  color: hsl(var(--foreground) / 82%);
 }
 
 .dict-panel {

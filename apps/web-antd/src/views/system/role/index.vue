@@ -105,7 +105,7 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(
-  () => userStore.userInfo?.tenantName || '租户',
+  () => userStore.userInfo?.tenantName || 'XAdmin平台',
 );
 
 const defaultSorting: AdminTableSorting[] = [
@@ -164,7 +164,7 @@ const columns: AdminTableColumn<AdminRole>[] = [
     sortField: 'tenant_id',
     sortable: true,
     sorter: true,
-    title: '资源归属',
+    title: '租户',
     width: 180,
   },
   {
@@ -434,7 +434,7 @@ function canMutateRole(role: AdminRole) {
 }
 
 function getRoleScopeText(role: AdminRole) {
-  return role.tenantName || '租户';
+  return role.tenantName || 'XAdmin平台';
 }
 
 function uniqueNumbers(values: Array<null | number | undefined>) {
@@ -1444,16 +1444,16 @@ onMounted(async () => {
   padding: 12px 14px;
   background: linear-gradient(
     135deg,
-    hsl(var(--primary) / 0.08),
-    hsl(var(--accent) / 0.28)
+    hsl(var(--primary) / 8%),
+    hsl(var(--accent) / 28%)
   );
-  border: 1px solid hsl(var(--primary) / 0.16);
+  border: 1px solid hsl(var(--primary) / 16%);
   border-radius: 10px;
 }
 
 .tenant-session-banner__text {
   font-size: 13px;
-  color: hsl(var(--foreground) / 0.82);
+  color: hsl(var(--foreground) / 82%);
 }
 
 .admin-role-table {
