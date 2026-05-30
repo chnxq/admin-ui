@@ -7,8 +7,8 @@
     "api": "API管理",
     "apiDocs": "API文档",
     "dict": "字典管理",
-    "dictType": "字典类型",
-    "dictEntry": "字典项",
+    "dictType": "字典分类",
+    "dictEntry": "字典标签",
     "tenant": "租户管理",
     "orgUnit": "组织管理",
     "position": "岗位管理"

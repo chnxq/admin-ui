@@ -1,63 +1,85 @@
 import type { AdminSorting } from './paging';
 
 import type {
-  dictservicev1_DictEntry,
-  dictservicev1_DictEntryI18n,
-  dictservicev1_DictType,
-  dictservicev1_ListDictEntryResponse,
-  dictservicev1_ListDictTypeResponse,
+  dictservicev1_DictCategory,
+  dictservicev1_DictLabel,
+  dictservicev1_DictLabelI18n,
+  dictservicev1_ListDictCategoryResponse,
+  dictservicev1_ListDictLabelResponse,
 } from '#/api/generated/admin/service/v1';
 
-import { dictEntryClient, dictTypeClient } from './clients';
+import { dictCategoryClient, dictLabelClient } from './clients';
 import { getAdminList, toAdminTotal, toPagingRequest } from './paging';
 
-export type AdminDictType = dictservicev1_DictType;
-export type AdminDictEntry = dictservicev1_DictEntry;
-export type AdminDictEntryI18n = dictservicev1_DictEntryI18n;
+export type AdminDictCategory = dictservicev1_DictCategory;
+export type AdminDictLabel = dictservicev1_DictLabel;
+export type AdminDictLabelI18n = dictservicev1_DictLabelI18n;
 
-export interface AdminDictTypeListParams {
+export type AdminDictCategoryLevel =
+  dictservicev1_DictCategory['categoryLevel'];
+export type AdminDictCategoryScene = dictservicev1_DictCategory['scene'];
+export type AdminDictLabelKind = dictservicev1_DictLabel['labelKind'];
+export type AdminDictLabelStatus = dictservicev1_DictLabel['status'];
+
+export interface AdminDictCategoryListParams {
+  categoryKey?: string;
+  categoryName?: string;
   isEnabled?: boolean;
   page?: number;
   pageSize?: number;
+  scene?: AdminDictCategoryScene;
   sorting?: AdminSorting[];
-  typeCode?: string;
-  typeName?: string;
 }
 
-export interface AdminDictEntryListParams {
-  entryValue?: string;
+export interface AdminDictLabelListParams {
+  categoryId?: number;
   isEnabled?: boolean;
+  labelCode?: string;
+  labelKey?: string;
   page?: number;
   pageSize?: number;
   sorting?: AdminSorting[];
-  typeId?: number;
 }
 
-export interface AdminDictTypeListResult {
-  items: AdminDictType[];
+export interface AdminDictCategoryListResult {
+  items: AdminDictCategory[];
   total: number;
 }
 
-export interface AdminDictEntryListResult {
-  items: AdminDictEntry[];
+export interface AdminDictLabelListResult {
+  items: AdminDictLabel[];
   total: number;
 }
 
-export interface AdminDictTypeSaveInput {
+export interface AdminDictCategorySaveInput {
+  categoryKey?: string;
+  categoryLevel?: AdminDictCategoryLevel;
+  categoryName?: string;
+  description?: string;
+  isBuiltin?: boolean;
   isEnabled?: boolean;
+  parentId?: number;
+  scene?: AdminDictCategoryScene;
   sortOrder?: number;
-  typeCode?: string;
-  typeName?: string;
 }
 
-export interface AdminDictEntrySaveInput {
-  currentI18n?: AdminDictEntryI18n;
-  entryValue?: string;
-  i18n?: Record<string, AdminDictEntryI18n>;
+export interface AdminDictLabelSaveInput {
+  categoryId?: number;
+  defaultText?: string;
+  description?: string;
+  i18nItems?: AdminDictLabelI18n[];
+  isBuiltin?: boolean;
   isEnabled?: boolean;
-  numericValue?: number;
+  labelCode?: string;
+  labelKey?: string;
+  labelKind?: AdminDictLabelKind;
+  payloadJson?: string;
+  shortTextEn?: string;
+  shortTextZh?: string;
   sortOrder?: number;
-  typeId?: number;
+  status?: AdminDictLabelStatus;
+  textEn?: string;
+  textZh?: string;
 }
 
 function cleanText(value?: string) {
@@ -65,76 +87,101 @@ function cleanText(value?: string) {
   return text || undefined;
 }
 
-function toDictTypeData(input: AdminDictTypeSaveInput): AdminDictType {
+function normalizePayloadJson(value?: string) {
+  const text = cleanText(value);
+  return text || undefined;
+}
+
+function normalizeI18nItems(
+  input: AdminDictLabelSaveInput,
+): AdminDictLabelI18n[] | undefined {
+  const items: AdminDictLabelI18n[] = [];
+
+  const zhText = cleanText(input.textZh);
+  const zhShortText = cleanText(input.shortTextZh);
+  if (zhText || zhShortText) {
+    items.push({
+      description: cleanText(input.description),
+      languageCode: 'zh-CN',
+      languageName: '简体中文',
+      shortText: zhShortText,
+      textValue: zhText,
+    });
+  }
+
+  const enText = cleanText(input.textEn);
+  const enShortText = cleanText(input.shortTextEn);
+  if (enText || enShortText) {
+    items.push({
+      description: cleanText(input.description),
+      languageCode: 'en-US',
+      languageName: 'English',
+      shortText: enShortText,
+      textValue: enText,
+    });
+  }
+
+  if (items.length > 0) {
+    return items;
+  }
+  return input.i18nItems?.length ? input.i18nItems : undefined;
+}
+
+function toDictCategoryData(
+  input: AdminDictCategorySaveInput,
+): AdminDictCategory {
   return {
+    categoryKey: cleanText(input.categoryKey),
+    categoryLevel: input.categoryLevel,
+    categoryName: cleanText(input.categoryName),
+    children: undefined,
+    description: cleanText(input.description),
+    isBuiltin: input.isBuiltin ?? true,
     isEnabled: input.isEnabled ?? true,
+    parentId: input.parentId,
+    scene: input.scene,
     sortOrder: input.sortOrder ?? 0,
-    typeCode: cleanText(input.typeCode),
-    typeName: cleanText(input.typeName),
   };
 }
 
-function cleanI18nMap(
-  value?: Record<string, AdminDictEntryI18n>,
-): Record<string, AdminDictEntryI18n> | undefined {
-  if (!value) {
-    return undefined;
-  }
-
-  const entries: Array<[string, AdminDictEntryI18n]> = [];
-  for (const [key, item] of Object.entries(value)) {
-    const entryLabel = cleanText(item?.entryLabel);
-    const description = cleanText(item?.description);
-    const languageCode = cleanText(item?.languageCode) ?? key;
-    const languageName = cleanText(item?.languageName);
-    if (!entryLabel && !description) {
-      continue;
-    }
-    entries.push([
-      key,
-      {
-        description,
-        entryLabel,
-        languageCode,
-        languageName,
-      },
-    ]);
-  }
-
-  if (entries.length === 0) {
-    return undefined;
-  }
-  return Object.fromEntries(entries);
-}
-
-function toDictEntryData(input: AdminDictEntrySaveInput): AdminDictEntry {
+function toDictLabelData(input: AdminDictLabelSaveInput): AdminDictLabel {
   return {
-    currentI18n: input.currentI18n,
-    entryValue: cleanText(input.entryValue),
-    i18n: cleanI18nMap(input.i18n),
+    categoryId: input.categoryId,
+    defaultText: cleanText(input.defaultText),
+    description: cleanText(input.description),
+    isBuiltin: input.isBuiltin ?? true,
     isEnabled: input.isEnabled ?? true,
-    numericValue: input.numericValue ?? 0,
+    itemsI18n: normalizeI18nItems(input),
+    labelCode: cleanText(input.labelCode),
+    labelKey: cleanText(input.labelKey),
+    labelKind: input.labelKind,
+    payloadJson: normalizePayloadJson(input.payloadJson),
     sortOrder: input.sortOrder ?? 0,
-    typeId: input.typeId,
+    status: input.status,
   };
 }
 
-export async function listAdminDictTypesApi(
-  params: AdminDictTypeListParams = {},
-): Promise<AdminDictTypeListResult> {
-  const response = await getAdminList<dictservicev1_ListDictTypeResponse>(
-    '/admin/v1/dict/types',
+export async function listAdminDictCategoriesApi(
+  params: AdminDictCategoryListParams = {},
+): Promise<AdminDictCategoryListResult> {
+  const response = await getAdminList<dictservicev1_ListDictCategoryResponse>(
+    '/admin/v1/dict/categories',
     toPagingRequest({
       conditions: [
         {
-          field: 'type_code',
+          field: 'category_key',
           op: 'CONTAINS',
-          value: cleanText(params.typeCode),
+          value: cleanText(params.categoryKey),
         },
         {
-          field: 'type_name',
+          field: 'category_name',
           op: 'CONTAINS',
-          value: cleanText(params.typeName),
+          value: cleanText(params.categoryName),
+        },
+        {
+          field: 'scene',
+          op: 'EQ',
+          value: cleanText(params.scene),
         },
         {
           field: 'is_enabled',
@@ -142,9 +189,9 @@ export async function listAdminDictTypesApi(
           value:
             params.isEnabled === undefined
               ? undefined
-              : (params.isEnabled
+              : params.isEnabled
                 ? 1
-                : 0),
+                : 0,
         },
       ],
       page: params.page,
@@ -159,91 +206,114 @@ export async function listAdminDictTypesApi(
   };
 }
 
-export async function createAdminDictTypeApi(input: AdminDictTypeSaveInput) {
-  return await dictTypeClient.Create({
-    data: toDictTypeData(input),
-  });
-}
-
-export async function updateAdminDictTypeApi(
-  id: number,
-  input: AdminDictTypeSaveInput,
+export async function createAdminDictCategoryApi(
+  input: AdminDictCategorySaveInput,
 ) {
-  return await dictTypeClient.Update({
-    data: toDictTypeData(input),
-    id,
-    updateMask: ['typeCode', 'typeName', 'isEnabled', 'sortOrder'].join(','),
+  return await dictCategoryClient.Create({
+    data: toDictCategoryData(input),
   });
 }
 
-export async function deleteAdminDictTypeApi(id: number) {
-  return await dictTypeClient.Delete({ ids: [id] });
-}
-
-export async function listAdminDictEntriesApi(
-  params: AdminDictEntryListParams = {},
-): Promise<AdminDictEntryListResult> {
-  const response = await getAdminList<dictservicev1_ListDictEntryResponse>(
-    '/admin/v1/dict/entries',
-    toPagingRequest({
-      conditions: [
-        {
-          field: 'type_id',
-          op: 'EQ',
-          value: params.typeId,
-        },
-        {
-          field: 'entry_value',
-          op: 'CONTAINS',
-          value: cleanText(params.entryValue),
-        },
-        {
-          field: 'is_enabled',
-          op: 'EQ',
-          value:
-            params.isEnabled === undefined
-              ? undefined
-              : (params.isEnabled
-                ? 1
-                : 0),
-        },
-      ],
-      page: params.page,
-      pageSize: params.pageSize,
-      sorting: params.sorting,
-    }),
-  );
-
-  return {
-    items: response.items ?? [],
-    total: toAdminTotal(response.total),
-  };
-}
-
-export async function createAdminDictEntryApi(input: AdminDictEntrySaveInput) {
-  return await dictEntryClient.Create({
-    data: toDictEntryData(input),
-  });
-}
-
-export async function updateAdminDictEntryApi(
+export async function updateAdminDictCategoryApi(
   id: number,
-  input: AdminDictEntrySaveInput,
+  input: AdminDictCategorySaveInput,
 ) {
-  return await dictEntryClient.Update({
-    data: toDictEntryData(input),
+  return await dictCategoryClient.Update({
+    data: toDictCategoryData(input),
     id,
     updateMask: [
-      'typeId',
-      'entryValue',
-      'numericValue',
+      'parentId',
+      'categoryKey',
+      'categoryName',
+      'categoryLevel',
+      'scene',
+      'isBuiltin',
       'isEnabled',
       'sortOrder',
-      'i18n',
+      'description',
     ].join(','),
   });
 }
 
-export async function deleteAdminDictEntryApi(id: number) {
-  return await dictEntryClient.Delete({ ids: [id] });
+export async function deleteAdminDictCategoryApi(id: number) {
+  return await dictCategoryClient.Delete({ ids: [id] });
+}
+
+export async function listAdminDictLabelsApi(
+  params: AdminDictLabelListParams = {},
+): Promise<AdminDictLabelListResult> {
+  const response = await getAdminList<dictservicev1_ListDictLabelResponse>(
+    '/admin/v1/dict/labels',
+    toPagingRequest({
+      conditions: [
+        {
+          field: 'category_id',
+          op: 'EQ',
+          value: params.categoryId,
+        },
+        {
+          field: 'label_key',
+          op: 'CONTAINS',
+          value: cleanText(params.labelKey),
+        },
+        {
+          field: 'label_code',
+          op: 'CONTAINS',
+          value: cleanText(params.labelCode),
+        },
+        {
+          field: 'is_enabled',
+          op: 'EQ',
+          value:
+            params.isEnabled === undefined
+              ? undefined
+              : params.isEnabled
+                ? 1
+                : 0,
+        },
+      ],
+      page: params.page,
+      pageSize: params.pageSize,
+      sorting: params.sorting,
+    }),
+  );
+
+  return {
+    items: response.items ?? [],
+    total: toAdminTotal(response.total),
+  };
+}
+
+export async function createAdminDictLabelApi(input: AdminDictLabelSaveInput) {
+  return await dictLabelClient.Create({
+    data: toDictLabelData(input),
+  });
+}
+
+export async function updateAdminDictLabelApi(
+  id: number,
+  input: AdminDictLabelSaveInput,
+) {
+  return await dictLabelClient.Update({
+    data: toDictLabelData(input),
+    id,
+    updateMask: [
+      'categoryId',
+      'labelKey',
+      'labelCode',
+      'labelKind',
+      'defaultText',
+      'payloadJson',
+      'isBuiltin',
+      'isEnabled',
+      'status',
+      'sortOrder',
+      'description',
+      'itemsI18n',
+    ].join(','),
+  });
+}
+
+export async function deleteAdminDictLabelApi(id: number) {
+  return await dictLabelClient.Delete({ ids: [id] });
 }
