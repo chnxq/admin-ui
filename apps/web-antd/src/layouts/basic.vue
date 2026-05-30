@@ -467,6 +467,7 @@ onBeforeUnmount(() => {
         description="ann.vben@gmail.com"
         tag-text="Pro"
         @logout="handleLogout"
+        @clear-preferences-and-logout="handleLogout"
       />
     </template>
     <template #notification>
