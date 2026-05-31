@@ -20,12 +20,13 @@ import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 
 import {
+  Alert,
   Button,
   Drawer,
   Empty,
   Form,
-  Alert,
   Input,
+  message,
   Modal,
   Popconfirm,
   Select,
@@ -34,7 +35,6 @@ import {
   Tag,
   TypographyParagraph,
   Upload,
-  message,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
@@ -167,8 +167,8 @@ const currentPreviewObjectUrl = ref('');
 const previewText = ref('');
 const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
 const visibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(columns).filter((key): key is string =>
-    Boolean(key),
+  getDefaultVisibleColumnKeys(columns).filter(
+    (key): key is string => key !== undefined,
   ),
 );
 const uploadFormRef = ref<FormInstance>();
@@ -450,9 +450,9 @@ function handlePreviewDrawerClose(open: boolean) {
           </Form.Item>
           <Form.Item>
             <Space>
-              <Button html-type="submit" type="primary">{{
-                $t('common.query')
-              }}</Button>
+              <Button html-type="submit" type="primary">
+                {{ $t('common.query') }}
+              </Button>
               <Button @click="handleReset">{{ $t('common.reset') }}</Button>
             </Space>
           </Form.Item>
@@ -684,13 +684,15 @@ function handlePreviewDrawerClose(open: boolean) {
 
 .file-page__toolbar {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
 }
 
 .file-page__toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
 }
 
@@ -704,10 +706,10 @@ function handlePreviewDrawerClose(open: boolean) {
 
 .file-preview__frame {
   min-height: 72vh;
+  overflow: hidden;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: 12px;
-  overflow: hidden;
 }
 
 .file-preview__image {
@@ -719,8 +721,8 @@ function handlePreviewDrawerClose(open: boolean) {
 .file-preview__iframe {
   width: 100%;
   min-height: 72vh;
-  border: none;
   background: transparent;
+  border: none;
 }
 
 .file-preview__text {
@@ -731,9 +733,10 @@ function handlePreviewDrawerClose(open: boolean) {
 }
 
 .file-preview__text pre {
-  white-space: pre-wrap;
-  word-break: break-word;
   color: hsl(var(--foreground));
+  word-break: normal;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .file-form-help {
@@ -750,13 +753,13 @@ function handlePreviewDrawerClose(open: boolean) {
 
   .file-page__hero,
   .file-page__toolbar {
-    align-items: stretch;
     flex-direction: column;
+    align-items: stretch;
   }
 
   .file-page__toolbar-actions {
-    width: 100%;
     justify-content: space-between;
+    width: 100%;
   }
 }
 </style>

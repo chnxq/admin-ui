@@ -189,9 +189,7 @@ export async function listAdminDictCategoriesApi(
           value:
             params.isEnabled === undefined
               ? undefined
-              : params.isEnabled
-                ? 1
-                : 0,
+              : Number(params.isEnabled),
         },
       ],
       page: params.page,
@@ -267,9 +265,7 @@ export async function listAdminDictLabelsApi(
           value:
             params.isEnabled === undefined
               ? undefined
-              : params.isEnabled
-                ? 1
-                : 0,
+              : Number(params.isEnabled),
         },
       ],
       page: params.page,

@@ -52,12 +52,12 @@ const publicRequestPaths = new Set([
 
 function resolveErrorMessage(error: any, fallbackMessage: string) {
   const responseData = error?.response?.data ?? {};
-  const rawMessage =
-    typeof responseData?.error === 'string'
-      ? responseData.error.trim()
-      : (typeof responseData?.message === 'string'
-        ? responseData.message.trim()
-        : '');
+  let rawMessage = '';
+  if (typeof responseData?.error === 'string') {
+    rawMessage = responseData.error.trim();
+  } else if (typeof responseData?.message === 'string') {
+    rawMessage = responseData.message.trim();
+  }
   if (rawMessage) {
     const normalizedMessage = rawMessage.toLowerCase();
     const mappedKey = messageToI18nKey[normalizedMessage];

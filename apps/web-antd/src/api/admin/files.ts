@@ -83,7 +83,7 @@ function buildAdminFileApiPath(id: number, action: 'download' | 'preview') {
   return `/api/admin/v1/files/${id}/${action}`;
 }
 
-function parseContentDispositionFileName(value: string | null) {
+function parseContentDispositionFileName(value: null | string) {
   if (!value) {
     return undefined;
   }

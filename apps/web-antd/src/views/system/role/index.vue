@@ -220,7 +220,11 @@ const permissionOptionLoading = ref(false);
 const resourceOptionLoading = ref(false);
 const authorizeResourcesLoaded = ref(false);
 const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
+const visibleColumnKeys = ref<string[]>(
+  getDefaultVisibleColumnKeys(columns).filter(
+    (key): key is string => key !== undefined,
+  ),
+);
 
 const treeSearchValue = ref('');
 const treeCheckedKeys = ref<Array<number | string>>([]);

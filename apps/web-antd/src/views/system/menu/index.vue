@@ -204,7 +204,11 @@ const tableSurfaceRef = ref<HTMLElement>();
 const menuItems = ref<AdminMenu[]>([]);
 const menuTree = ref<AdminMenu[]>([]);
 const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
+const visibleColumnKeys = ref<string[]>(
+  getDefaultVisibleColumnKeys(columns).filter(
+    (key): key is string => key !== undefined,
+  ),
+);
 
 const searchForm = reactive({
   name: '',
@@ -274,10 +278,10 @@ const parentTreeOptions = computed<MenuTreeOption[]>(() =>
 const componentOptions = computed<ComponentOption[]>(() => {
   const existingComponents = menuItems.value
     .map((item) => item.component?.trim())
-    .filter(Boolean);
+    .filter((value): value is string => value !== undefined && value !== '');
   const fileComponents = Object.keys(pageComponentMap)
     .map((filePath) => normalizeComponentPathFromFile(filePath))
-    .filter(Boolean);
+    .filter((value): value is string => value !== undefined && value !== '');
   const merged = [...new Set([...existingComponents, ...fileComponents])];
 
   return merged

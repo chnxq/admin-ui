@@ -296,8 +296,8 @@ const categoryItems = ref<AdminDictCategory[]>([]);
 const labelItems = ref<AdminDictLabel[]>([]);
 const labelSorting = ref<AdminTableSorting[]>([...defaultLabelSorting]);
 const labelVisibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(labelColumns.value).filter((key): key is string =>
-    Boolean(key),
+  getDefaultVisibleColumnKeys(labelColumns.value).filter(
+    (key): key is string => key !== undefined,
   ),
 );
 
@@ -526,11 +526,11 @@ function resolveLabelText(record: AdminDictLabel) {
 
 function getCategoryLevelText(level?: AdminDictCategoryLevel) {
   switch (level) {
-    case 'ROOT': {
-      return $t('page.dict.categoryLevelRoot');
-    }
     case 'CHILD': {
       return $t('page.dict.categoryLevelChild');
+    }
+    case 'ROOT': {
+      return $t('page.dict.categoryLevelRoot');
     }
     default: {
       return '-';
@@ -540,20 +540,20 @@ function getCategoryLevelText(level?: AdminDictCategoryLevel) {
 
 function getCategorySceneText(scene?: AdminDictCategoryScene) {
   switch (scene) {
-    case 'PAGE': {
-      return $t('page.dict.scenePage');
+    case 'DEVICE': {
+      return $t('page.dict.sceneDevice');
     }
     case 'MENU': {
       return $t('page.dict.sceneMenu');
     }
-    case 'PROMPT': {
-      return $t('page.dict.scenePrompt');
-    }
-    case 'DEVICE': {
-      return $t('page.dict.sceneDevice');
-    }
     case 'OTHER': {
       return $t('page.dict.sceneOther');
+    }
+    case 'PAGE': {
+      return $t('page.dict.scenePage');
+    }
+    case 'PROMPT': {
+      return $t('page.dict.scenePrompt');
     }
     default: {
       return '-';
@@ -563,14 +563,8 @@ function getCategorySceneText(scene?: AdminDictCategoryScene) {
 
 function getLabelKindText(kind?: AdminDictLabelKind) {
   switch (kind) {
-    case 'TEXT': {
-      return $t('page.dict.labelKindText');
-    }
-    case 'MENU': {
-      return $t('page.dict.labelKindMenu');
-    }
-    case 'MESSAGE': {
-      return $t('page.dict.labelKindMessage');
+    case 'BADGE': {
+      return $t('page.dict.labelKindBadge');
     }
     case 'ENUM': {
       return $t('page.dict.labelKindEnum');
@@ -578,8 +572,14 @@ function getLabelKindText(kind?: AdminDictLabelKind) {
     case 'HINT': {
       return $t('page.dict.labelKindHint');
     }
-    case 'BADGE': {
-      return $t('page.dict.labelKindBadge');
+    case 'MENU': {
+      return $t('page.dict.labelKindMenu');
+    }
+    case 'MESSAGE': {
+      return $t('page.dict.labelKindMessage');
+    }
+    case 'TEXT': {
+      return $t('page.dict.labelKindText');
     }
     default: {
       return '-';
@@ -589,11 +589,11 @@ function getLabelKindText(kind?: AdminDictLabelKind) {
 
 function getLabelStatusText(status?: AdminDictLabelStatus) {
   switch (status) {
-    case 'ON': {
-      return $t('page.dict.labelStatusOn');
-    }
     case 'OFF': {
       return $t('page.dict.labelStatusOff');
+    }
+    case 'ON': {
+      return $t('page.dict.labelStatusOn');
     }
     default: {
       return '-';
@@ -671,7 +671,7 @@ async function loadCategoryData() {
     categoryItems.value = result.items;
     expandedCategoryKeys.value = result.items
       .map((item) => item.id)
-      .filter((id): id is number => Boolean(id));
+      .filter((id): id is number => id !== undefined);
 
     if (!selectedCategoryId.value && result.items.length > 0) {
       selectedCategoryId.value = result.items[0]?.id;
@@ -991,9 +991,9 @@ onMounted(async () => {
                 type="primary"
                 @click="openCategoryCreateModal()"
               >
-                <template #icon
-                  ><IconifyIcon icon="lucide:folder-plus"
-                /></template>
+                <template #icon>
+                  <IconifyIcon icon="lucide:folder-plus" />
+                </template>
                 {{ $t('page.dict.createRootCategory') }}
               </Button>
             </Space>
@@ -1152,15 +1152,15 @@ onMounted(async () => {
             </div>
             <Space wrap>
               <Button @click="handleImportSeed">
-                <template #icon
-                  ><IconifyIcon icon="lucide:database-zap"
-                /></template>
+                <template #icon>
+                  <IconifyIcon icon="lucide:database-zap" />
+                </template>
                 {{ $t('page.dict.importSeedButton') }}
               </Button>
               <Button @click="handleRunSql">
-                <template #icon
-                  ><IconifyIcon icon="lucide:terminal-square"
-                /></template>
+                <template #icon>
+                  <IconifyIcon icon="lucide:terminal-square" />
+                </template>
                 {{ $t('page.dict.runSqlButton') }}
               </Button>
             </Space>
@@ -1604,10 +1604,10 @@ onMounted(async () => {
 
 .dict-summary-item {
   padding: 12px 14px;
+  color: hsl(var(--foreground));
   background: hsl(var(--accent) / 25%);
   border: 1px solid hsl(var(--border));
   border-radius: 10px;
-  color: hsl(var(--foreground));
 }
 
 .dict-summary-item__label {

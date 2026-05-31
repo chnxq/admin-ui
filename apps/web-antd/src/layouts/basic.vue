@@ -267,7 +267,7 @@ async function loadInbox(page = 1, pageSize = 20) {
     const result = await listAdminInboxMessagesApi({ page, pageSize });
     notifications.value = (result.items || [])
       .map((item) => buildNotificationItem(item))
-      .filter(Boolean);
+      .filter((item): item is InboxNotificationItem => item !== null);
   } catch {
     notifications.value = [];
   }

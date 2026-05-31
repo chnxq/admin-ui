@@ -205,7 +205,11 @@ const formRef = ref<FormInstance>();
 const tableSurfaceRef = ref<HTMLElement>();
 const tenants = ref<AdminTenant[]>([]);
 const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(getDefaultVisibleColumnKeys(columns));
+const visibleColumnKeys = ref<string[]>(
+  getDefaultVisibleColumnKeys(columns).filter(
+    (key): key is string => key !== undefined,
+  ),
+);
 
 const searchForm = reactive({
   code: '',
