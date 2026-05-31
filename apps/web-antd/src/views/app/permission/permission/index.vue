@@ -40,6 +40,7 @@ import {
   Space,
   Table,
   Tag,
+  Tooltip,
   Tree,
   TreeSelect,
 } from 'ant-design-vue';
@@ -348,6 +349,40 @@ const apiTreeSelectData = computed(() =>
   buildApiTreeSelectData(apiOptions.value),
 );
 
+const menuTitleMap = computed(() => {
+  const map = new Map<number, string>();
+  for (const item of menuOptions.value) {
+    if (item.id === undefined) {
+      continue;
+    }
+    const title =
+      item.meta?.title?.trim() ||
+      item.name?.trim() ||
+      item.path?.trim() ||
+      `#${item.id}`;
+    const subtitle = item.path?.trim();
+    map.set(item.id, subtitle ? `${title} (${subtitle})` : title);
+  }
+  return map;
+});
+
+const apiTitleMap = computed(() => {
+  const map = new Map<number, string>();
+  for (const item of apiOptions.value) {
+    if (item.id === undefined) {
+      continue;
+    }
+    const method = item.method?.trim() || 'API';
+    const path = item.path?.trim() || `#${item.id}`;
+    const operation = item.operation?.trim();
+    map.set(
+      item.id,
+      operation ? `${method} ${path} (${operation})` : `${method} ${path}`,
+    );
+  }
+  return map;
+});
+
 function toTreeNode(
   group: AdminPermissionGroup,
 ): NonNullable<TreeProps['treeData']>[number] {
@@ -494,6 +529,20 @@ function getStatusText(status?: AdminPermissionStatus) {
 
 function getStatusColor(status?: AdminPermissionStatus) {
   return status === 'ON' ? 'success' : 'error';
+}
+
+function getPermissionBoundMenuTitles(record: PermissionRecord) {
+  const permission = toPermission(record);
+  return (permission.menuIds ?? []).map(
+    (id) => menuTitleMap.value.get(id) || `#${id}`,
+  );
+}
+
+function getPermissionBoundApiTitles(record: PermissionRecord) {
+  const permission = toPermission(record);
+  return (permission.apiIds ?? []).map(
+    (id) => apiTitleMap.value.get(id) || `#${id}`,
+  );
 }
 
 function getPermissionScopeText() {
@@ -908,20 +957,58 @@ onMounted(() => {
 
             <template v-else-if="column.key === 'resource'">
               <Space :size="4">
-                <Tag>
-                  {{
-                    $t('page.permission.menuResourceCount', {
-                      count: record.menuIds?.length ?? 0,
-                    })
-                  }}
-                </Tag>
-                <Tag>
-                  {{
-                    $t('page.permission.apiResourceCount', {
-                      count: record.apiIds?.length ?? 0,
-                    })
-                  }}
-                </Tag>
+                <Tooltip placement="topLeft">
+                  <template #title>
+                    <div>
+                      <div>
+                        {{
+                          $t('page.permission.menuResourceCount', {
+                            count: record.menuIds?.length ?? 0,
+                          })
+                        }}
+                      </div>
+                      <div
+                        v-if="getPermissionBoundMenuTitles(record).length > 0"
+                      >
+                        {{ getPermissionBoundMenuTitles(record).join(' , ') }}
+                      </div>
+                      <div v-else>-</div>
+                    </div>
+                  </template>
+                  <Tag>
+                    {{
+                      $t('page.permission.menuResourceCount', {
+                        count: record.menuIds?.length ?? 0,
+                      })
+                    }}
+                  </Tag>
+                </Tooltip>
+                <Tooltip placement="topLeft">
+                  <template #title>
+                    <div>
+                      <div>
+                        {{
+                          $t('page.permission.apiResourceCount', {
+                            count: record.apiIds?.length ?? 0,
+                          })
+                        }}
+                      </div>
+                      <div
+                        v-if="getPermissionBoundApiTitles(record).length > 0"
+                      >
+                        {{ getPermissionBoundApiTitles(record).join(' , ') }}
+                      </div>
+                      <div v-else>-</div>
+                    </div>
+                  </template>
+                  <Tag>
+                    {{
+                      $t('page.permission.apiResourceCount', {
+                        count: record.apiIds?.length ?? 0,
+                      })
+                    }}
+                  </Tag>
+                </Tooltip>
               </Space>
             </template>
 

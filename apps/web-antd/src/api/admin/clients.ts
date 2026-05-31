@@ -5,6 +5,7 @@ import {
   createAuthenticationServiceClient,
   createDictCategoryServiceClient,
   createDictLabelServiceClient,
+  createFileServiceClient,
   createInternalMessageRecipientServiceClient,
   createInternalMessageServiceClient,
   createLoginAuditLogServiceClient,
@@ -38,6 +39,8 @@ export const dictCategoryClient =
 
 export const dictLabelClient =
   createDictLabelServiceClient(adminRequestHandler);
+
+export const fileClient = createFileServiceClient(adminRequestHandler);
 
 export const loginAuditLogClient =
   createLoginAuditLogServiceClient(adminRequestHandler);

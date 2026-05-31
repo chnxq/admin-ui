@@ -6,6 +6,7 @@
     "menu": "菜单管理",
     "api": "API管理",
     "apiDocs": "API文档",
+    "file": "文件管理",
     "dict": "字典管理",
     "dictType": "字典分类",
     "dictEntry": "字典标签",
