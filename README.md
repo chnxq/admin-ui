@@ -1,157 +1,119 @@
-<div align="center">
-  <a href="https://github.com/anncwb/vue-vben-admin">
-    <img alt="VbenAdmin Logo" width="215" src="https://unpkg.com/@vbenjs/static-source@0.1.7/source/logo-v1.webp">
-  </a>
-  <br>
-  <br>
+# XAdmin Admin UI
 
-[![license](https://img.shields.io/github/license/anncwb/vue-vben-admin.svg)](LICENSE)
+`admin-ui` is the frontend workspace for XAdmin. It is based on the VBen 5 monorepo structure, but the current branch is focused on integrating the XAdmin backend, tenant/platform permission model, dictionary management, internal messages, and file management.
 
-  <h1>Vue Vben Admin</h1>
-</div>
+This repository is not a generic upstream VBen distribution README. It documents the actual usage of the current XAdmin branch.
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=vbenjs_vue-vben-admin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=vbenjs_vue-vben-admin) [![codeql](https://github.com/vbenjs/vue-vben-admin/actions/workflows/codeql.yml/badge.svg)](https://github.com/vbenjs/vue-vben-admin/actions/workflows/codeql.yml) [![build](https://github.com/vbenjs/vue-vben-admin/actions/workflows/build.yml/badge.svg)](https://github.com/vbenjs/vue-vben-admin/actions/workflows/build.yml) [![ci](https://github.com/vbenjs/vue-vben-admin/actions/workflows/ci.yml/badge.svg)](https://github.com/vbenjs/vue-vben-admin/actions/workflows/ci.yml) [![deploy](https://github.com/vbenjs/vue-vben-admin/actions/workflows/deploy.yml/badge.svg)](https://github.com/vbenjs/vue-vben-admin/actions/workflows/deploy.yml)
+## Scope
 
-**English** | [中文](./README.zh-CN.md) | [日本語](./README.ja-JP.md)
+- Main app: `apps/web-antd`
+- Branch in active use: `xadmin-api-integration`
+- Backend target: XAdmin `admin`
+- UI stack: Vue 3 + Vite + TypeScript + Ant Design Vue
+- Workspace mode: `pnpm` + `turbo` monorepo
 
-## Introduction
+## Current Status
 
-Vue Vben Admin is a free and open source middle and back-end template. Using the latest `vue3`, `vite`, `TypeScript` and other mainstream technology development, the out-of-the-box middle and back-end front-end solutions can also be used for learning reference.
+The current branch has already been adapted for XAdmin-specific backend behavior, including:
 
-## Upgrade Notice
+- login and token refresh against XAdmin backend APIs
+- dynamic menu loading and permission filtering
+- platform/tenant-aware dictionary management
+- internal message inbox integration
+- file management with upload, preview, download, and delete
 
-This is the latest version, 5.0, and it is not compatible with previous versions. If you are starting a new project, it is recommended to use the latest version. If you wish to view the old version, please use the [v2 branch](https://github.com/vbenjs/vue-vben-admin/tree/v2).
+## Requirements
 
-## Features
+- Node.js `^22.18.0 || ^24.0.0`
+- `pnpm >= 11`
 
-- **Latest Technology Stack**: Developed with cutting-edge front-end technologies like Vue 3 and Vite
-- **TypeScript**: A language for application-scale JavaScript
-- **Themes**: Multiple theme colors available with customizable options
-- **Internationalization**: Comprehensive built-in internationalization support
-- **Permissions**: Built-in solution for dynamic route-based permission generation
-
-## Preview
-
-- [Vben Admin](https://vben.pro/) - Full version Chinese site
-
-Test Account: vben/123456
-
-<div align="center">
-  <img alt="VbenAdmin Logo" width="100%" src="https://anncwb.github.io/anncwb/images/preview1.png">
-  <img alt="VbenAdmin Logo" width="100%" src="https://anncwb.github.io/anncwb/images/preview2.png">
-  <img alt="VbenAdmin Logo" width="100%" src="https://anncwb.github.io/anncwb/images/preview3.png">
-</div>
-
-### Use Gitpod
-
-Open the project in Gitpod (free online dev environment for GitHub) and start coding immediately.
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/vbenjs/vue-vben-admin)
-
-## Documentation
-
-[Document](https://doc.vben.pro/)
-
-## Install and Use
-
-1. Get the project code
+## Install
 
 ```bash
-git clone https://github.com/vbenjs/vue-vben-admin.git
-```
-
-2. Install dependencies
-
-```bash
-cd vue-vben-admin
-npm i -g corepack
 pnpm install
 ```
 
-3. Run
+## Run
+
+Run the main XAdmin frontend:
 
 ```bash
-pnpm dev
+pnpm dev:antd
 ```
 
-4. Build
+Or directly:
 
 ```bash
-pnpm build
+pnpm -F @vben/web-antd run dev
 ```
 
-## Change Log
+## Build
 
-[CHANGELOG](https://github.com/vbenjs/vue-vben-admin/releases)
+```bash
+pnpm build:antd
+```
 
-## How to Contribute
+## Checks
 
-You are very welcome to join! [Raise an issue](https://github.com/anncwb/vue-vben-admin/issues/new/choose) or submit a Pull Request.
+Type check:
 
-**Pull Request Process:**
+```bash
+pnpm -F @vben/web-antd run typecheck
+```
 
-1. Fork the code
-2. Create your branch: `git checkout -b feat/xxxx`
-3. Submit your changes: `git commit -am 'feat(function): add xxxxx'`
-4. Push your branch: `git push origin feat/xxxx`
-5. Submit `pull request`
+Workspace type check:
 
-## Git Contribution Submission Specification
+```bash
+pnpm exec turbo run typecheck
+```
 
-Reference [vue](https://github.com/vuejs/vue/blob/dev/.github/COMMIT_CONVENTION.md) specification ([Angular](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-angular))
+Lint and format:
 
-- `feat` Add new features
-- `fix` Fix the problem/BUG
-- `style` The code style is related and does not affect the running result
-- `perf` Optimization/performance improvement
-- `refactor` Refactor
-- `revert` Undo edit
-- `test` Test related
-- `docs` Documentation/notes
-- `chore` Dependency update/scaffolding configuration modification etc.
-- `ci` Continuous integration
-- `types` Type definition file changes
+```bash
+pnpm lint
+pnpm format
+```
 
-## Browser Support
+Encoding check:
 
-The `Chrome 80+` browser is recommended for local development
+```bash
+pnpm check:encoding
+```
 
-Support modern browsers, not IE
+## Key Paths
 
-| [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Edge | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Firefox | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Chrome | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Safari |
-| :-: | :-: | :-: | :-: |
-| last 2 versions | last 2 versions | last 2 versions | last 2 versions |
+- Main app: `apps/web-antd`
+- Generated admin API client entry: `apps/web-antd/src/api/admin`
+- XAdmin layout integration: `apps/web-antd/src/layouts`
+- System pages: `apps/web-antd/src/views/system`
+- Permission pages: `apps/web-antd/src/views/app/permission`
+- Profile pages: `apps/web-antd/src/views/_core/profile`
 
-## Maintainer
+## Backend Coordination
 
-[@Vben](https://github.com/anncwb)
+This frontend is designed to work with the XAdmin backend repository under the sibling workspace:
 
-## Star History
+- backend repo: `../admin`
 
-[![Star History Chart](https://api.star-history.com/svg?repos=vbenjs/vue-vben-admin&type=Date)](https://star-history.com/#vbenjs/vue-vben-admin&Date)
+Typical local pairing:
 
-## Donate
+- frontend: `http://localhost:5666` or the current Vite port
+- backend REST: `http://localhost:7788`
 
-If you think this project is helpful to you, you can help the author buy a cup of coffee to show your support!
+Adjust actual ports according to local Vite and backend configuration.
 
-![donate](https://unpkg.com/@vbenjs/static-source@0.1.7/source/sponsor.png)
+## Notes For This Branch
 
-<a style="display: block;width: 100px;height: 50px;line-height: 50px; color: #fff;text-align: center; background: #408aee;border-radius: 4px;" href="https://www.paypal.com/paypalme/cvvben">Paypal Me</a>
+- Some upstream VBen demo content has been removed or replaced.
+- Menus, permissions, and page behavior are driven by XAdmin backend resources instead of static demo assumptions.
+- Do not treat this branch as an untouched upstream VBen template.
 
-## Contributors
+## Related Repositories
 
-<a href="https://openomy.app/github/vbenjs/vue-vben-admin" target="_blank" style="display: block; width: 100%;" align="center">
-  <img src="https://openomy.app/svg?repo=vbenjs/vue-vben-admin&chart=bubble&latestMonth=3" target="_blank" alt="Contribution Leaderboard" style="display: block; width: 100%;" />
- </a>
-
-<a href="https://github.com/vbenjs/vue-vben-admin/graphs/contributors">
-  <img alt="Contributors" src="https://contrib.rocks/image?repo=vbenjs/vue-vben-admin" />
-</a>
-
-## Discord
-
-- [Github Discussions](https://github.com/anncwb/vue-vben-admin/discussions)
+- XAdmin backend: `../admin`
+- XAdmin generator/tooling: `../xkit`
+- XAdmin template repo: `../xkit-template`
 
 ## License
 
-[MIT © Vben-2020](./LICENSE)
+This repository keeps the original upstream license base unless your project policy states otherwise. See [LICENSE](./LICENSE).
