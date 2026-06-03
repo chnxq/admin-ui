@@ -3,8 +3,8 @@ import {
   createApiAuditLogServiceClient,
   createApiServiceClient,
   createAuthenticationServiceClient,
-  createDictEntryServiceClient,
-  createDictTypeServiceClient,
+  createDictCategoryServiceClient,
+  createDictLabelServiceClient,
   createFileServiceClient,
   createInternalMessageRecipientServiceClient,
   createInternalMessageServiceClient,
@@ -35,10 +35,10 @@ export const authenticationClient =
   createAuthenticationServiceClient(adminRequestHandler);
 
 export const dictCategoryClient =
-  createDictTypeServiceClient(adminRequestHandler);
+  createDictCategoryServiceClient(adminRequestHandler);
 
 export const dictLabelClient =
-  createDictEntryServiceClient(adminRequestHandler);
+  createDictLabelServiceClient(adminRequestHandler);
 
 export const fileClient = createFileServiceClient(adminRequestHandler);
 
