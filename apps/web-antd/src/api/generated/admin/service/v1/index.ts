@@ -1522,31 +1522,37 @@ export type auditservicev1_GetDataAccessAuditLogRequest = {
   viewMask?: wellKnownFieldMask;
 };
 
-export interface DictCategoryService {
+// 数据字典条目管理服务
+export interface DictEntryService {
+  // 分页查询字典条目列表
   List(
     request: pagination_PagingRequest,
-  ): Promise<dictservicev1_ListDictCategoryResponse>;
-  Get(
-    request: dictservicev1_GetDictCategoryRequest,
-  ): Promise<dictservicev1_DictCategory>;
+  ): Promise<dictservicev1_ListDictEntryResponse>;
+  // 创建字典条目
   Create(
-    request: dictservicev1_CreateDictCategoryRequest,
+    request: dictservicev1_CreateDictEntryRequest,
   ): Promise<wellKnownEmpty>;
+  // 更新字典条目
   Update(
-    request: dictservicev1_UpdateDictCategoryRequest,
+    request: dictservicev1_UpdateDictEntryRequest,
   ): Promise<wellKnownEmpty>;
+  // 删除字典条目
   Delete(
-    request: dictservicev1_DeleteDictCategoryRequest,
+    request: dictservicev1_DeleteDictEntryRequest,
   ): Promise<wellKnownEmpty>;
+  // 查询启用的字典条目
+  ListByTypeCode(
+    request: dictservicev1_ListDictEntryByTypeCodeRequest,
+  ): Promise<dictservicev1_ListDictEntryByTypeCodeResponse>;
 }
 
-export function createDictCategoryServiceClient(
+export function createDictEntryServiceClient(
   handler: RequestHandler,
-): DictCategoryService {
+): DictEntryService {
   return {
     List(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/dict/categories`; // eslint-disable-line quotes
+      const path = `admin/v1/dict/entries`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
@@ -1660,48 +1666,14 @@ export function createDictCategoryServiceClient(
           body,
         },
         {
-          service: 'DictCategoryService',
+          service: 'DictEntryService',
           method: 'List',
         },
-      ) as Promise<dictservicev1_ListDictCategoryResponse>;
-    },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.id) {
-        throw new Error('missing required field request.id');
-      }
-      const path = `admin/v1/dict/categories/${request.id}`; // eslint-disable-line quotes
-      const body = null;
-      const queryParams: string[] = [];
-      if (request.categoryKey) {
-        queryParams.push(
-          `categoryKey=${encodeURIComponent(request.categoryKey.toString())}`,
-        );
-      }
-      if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
-      }
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
-      }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'DictCategoryService',
-          method: 'Get',
-        },
-      ) as Promise<dictservicev1_DictCategory>;
+      ) as Promise<dictservicev1_ListDictEntryResponse>;
     },
     Create(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/dict/categories`; // eslint-disable-line quotes
+      const path = `admin/v1/dict/entries`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
@@ -1715,7 +1687,7 @@ export function createDictCategoryServiceClient(
           body,
         },
         {
-          service: 'DictCategoryService',
+          service: 'DictEntryService',
           method: 'Create',
         },
       ) as Promise<wellKnownEmpty>;
@@ -1725,7 +1697,7 @@ export function createDictCategoryServiceClient(
       if (!request.id) {
         throw new Error('missing required field request.id');
       }
-      const path = `admin/v1/dict/categories/${request.id}`; // eslint-disable-line quotes
+      const path = `admin/v1/dict/entries/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
@@ -1739,14 +1711,14 @@ export function createDictCategoryServiceClient(
           body,
         },
         {
-          service: 'DictCategoryService',
+          service: 'DictEntryService',
           method: 'Update',
         },
       ) as Promise<wellKnownEmpty>;
     },
     Delete(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/dict/categories`; // eslint-disable-line quotes
+      const path = `admin/v1/dict/entries`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.ids) {
@@ -1765,199 +1737,24 @@ export function createDictCategoryServiceClient(
           body,
         },
         {
-          service: 'DictCategoryService',
+          service: 'DictEntryService',
           method: 'Delete',
         },
       ) as Promise<wellKnownEmpty>;
     },
-  };
-}
-export type dictservicev1_ListDictCategoryResponse = {
-  items: dictservicev1_DictCategory[] | undefined;
-  total: number | undefined;
-};
-
-export type dictservicev1_DictCategory = {
-  id?: number;
-  parentId?: number;
-  path?: string;
-  categoryKey?: string;
-  categoryName?: string;
-  categoryLevel?: dictservicev1_DictCategory_CategoryLevel;
-  scene?: dictservicev1_DictCategory_Scene;
-  isBuiltin?: boolean;
-  isEnabled?: boolean;
-  sortOrder?: number;
-  tenantId?: number;
-  tenantName?: string;
-  remark?: string;
-  description?: string;
-  children: dictservicev1_DictCategory[] | undefined;
-  createdBy?: number;
-  updatedBy?: number;
-  deletedBy?: number;
-  createdAt?: wellKnownTimestamp;
-  updatedAt?: wellKnownTimestamp;
-  deletedAt?: wellKnownTimestamp;
-};
-
-export type dictservicev1_DictCategory_CategoryLevel =
-  | 'CATEGORY_LEVEL_UNSPECIFIED'
-  | 'ROOT'
-  | 'CHILD';
-export type dictservicev1_DictCategory_Scene =
-  | 'SCENE_UNSPECIFIED'
-  | 'PAGE'
-  | 'MENU'
-  | 'PROMPT'
-  | 'DEVICE'
-  | 'OTHER';
-export type dictservicev1_GetDictCategoryRequest = {
-  id?: number;
-  categoryKey?: string;
-  viewMask?: wellKnownFieldMask;
-};
-
-export type dictservicev1_CreateDictCategoryRequest = {
-  data: dictservicev1_DictCategory | undefined;
-};
-
-export type dictservicev1_UpdateDictCategoryRequest = {
-  id: number | undefined;
-  data: dictservicev1_DictCategory | undefined;
-  updateMask: wellKnownFieldMask | undefined;
-  allowMissing?: boolean;
-};
-
-export type dictservicev1_DeleteDictCategoryRequest = {
-  ids: number[] | undefined;
-};
-
-export interface DictLabelService {
-  List(
-    request: pagination_PagingRequest,
-  ): Promise<dictservicev1_ListDictLabelResponse>;
-  Get(
-    request: dictservicev1_GetDictLabelRequest,
-  ): Promise<dictservicev1_DictLabel>;
-  Create(
-    request: dictservicev1_CreateDictLabelRequest,
-  ): Promise<wellKnownEmpty>;
-  Update(
-    request: dictservicev1_UpdateDictLabelRequest,
-  ): Promise<wellKnownEmpty>;
-  Delete(
-    request: dictservicev1_DeleteDictLabelRequest,
-  ): Promise<wellKnownEmpty>;
-}
-
-export function createDictLabelServiceClient(
-  handler: RequestHandler,
-): DictLabelService {
-  return {
-    List(request) {
+    ListByTypeCode(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/dict/labels`; // eslint-disable-line quotes
+      const path = `admin/v1/dict/entries/by-type-code`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
-      if (request.page) {
-        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
-      }
-      if (request.pageSize) {
+      if (request.typeCode) {
         queryParams.push(
-          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
+          `typeCode=${encodeURIComponent(request.typeCode.toString())}`,
         );
       }
-      if (request.offset) {
+      if (request.local) {
         queryParams.push(
-          `offset=${encodeURIComponent(request.offset.toString())}`,
-        );
-      }
-      if (request.limit) {
-        queryParams.push(
-          `limit=${encodeURIComponent(request.limit.toString())}`,
-        );
-      }
-      if (request.token) {
-        queryParams.push(
-          `token=${encodeURIComponent(request.token.toString())}`,
-        );
-      }
-      if (request.noPaging) {
-        queryParams.push(
-          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
-        );
-      }
-      if (request.query) {
-        queryParams.push(
-          `query=${encodeURIComponent(request.query.toString())}`,
-        );
-      }
-      if (request.filter) {
-        queryParams.push(
-          `filter=${encodeURIComponent(request.filter.toString())}`,
-        );
-      }
-      if (request.filterExpr?.type) {
-        queryParams.push(
-          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
-        );
-      }
-      if (request.filterExpr?.conditions?.field) {
-        queryParams.push(
-          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
-        );
-      }
-      if (request.filterExpr?.conditions?.op) {
-        queryParams.push(
-          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
-        );
-      }
-      if (request.filterExpr?.conditions?.value) {
-        queryParams.push(
-          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
-        );
-      }
-      if (request.filterExpr?.conditions?.jsonValue) {
-        queryParams.push(
-          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
-        );
-      }
-      if (request.filterExpr?.conditions?.values) {
-        request.filterExpr.conditions.values.forEach((x) => {
-          queryParams.push(
-            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
-          );
-        });
-      }
-      if (request.filterExpr?.conditions?.datePart) {
-        queryParams.push(
-          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
-        );
-      }
-      if (request.filterExpr?.conditions?.jsonPath) {
-        queryParams.push(
-          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
-        );
-      }
-      if (request.orderBy) {
-        queryParams.push(
-          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
-        );
-      }
-      if (request.sorting?.field) {
-        queryParams.push(
-          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
-        );
-      }
-      if (request.sorting?.direction) {
-        queryParams.push(
-          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
-        );
-      }
-      if (request.fieldMask) {
-        queryParams.push(
-          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
+          `local=${encodeURIComponent(request.local.toString())}`,
         );
       }
       let uri = path;
@@ -1971,142 +1768,31 @@ export function createDictLabelServiceClient(
           body,
         },
         {
-          service: 'DictLabelService',
-          method: 'List',
+          service: 'DictEntryService',
+          method: 'ListByTypeCode',
         },
-      ) as Promise<dictservicev1_ListDictLabelResponse>;
-    },
-    Get(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.id) {
-        throw new Error('missing required field request.id');
-      }
-      const path = `admin/v1/dict/labels/${request.id}`; // eslint-disable-line quotes
-      const body = null;
-      const queryParams: string[] = [];
-      if (request.labelKey) {
-        queryParams.push(
-          `labelKey=${encodeURIComponent(request.labelKey.toString())}`,
-        );
-      }
-      if (request.viewMask) {
-        queryParams.push(
-          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
-        );
-      }
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
-      }
-      return handler(
-        {
-          path: uri,
-          method: 'GET',
-          body,
-        },
-        {
-          service: 'DictLabelService',
-          method: 'Get',
-        },
-      ) as Promise<dictservicev1_DictLabel>;
-    },
-    Create(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/dict/labels`; // eslint-disable-line quotes
-      const body = JSON.stringify(request);
-      const queryParams: string[] = [];
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
-      }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'DictLabelService',
-          method: 'Create',
-        },
-      ) as Promise<wellKnownEmpty>;
-    },
-    Update(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.id) {
-        throw new Error('missing required field request.id');
-      }
-      const path = `admin/v1/dict/labels/${request.id}`; // eslint-disable-line quotes
-      const body = JSON.stringify(request);
-      const queryParams: string[] = [];
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
-      }
-      return handler(
-        {
-          path: uri,
-          method: 'PUT',
-          body,
-        },
-        {
-          service: 'DictLabelService',
-          method: 'Update',
-        },
-      ) as Promise<wellKnownEmpty>;
-    },
-    Delete(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/dict/labels`; // eslint-disable-line quotes
-      const body = null;
-      const queryParams: string[] = [];
-      if (request.ids) {
-        request.ids.forEach((x) => {
-          queryParams.push(`ids=${encodeURIComponent(x.toString())}`);
-        });
-      }
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
-      }
-      return handler(
-        {
-          path: uri,
-          method: 'DELETE',
-          body,
-        },
-        {
-          service: 'DictLabelService',
-          method: 'Delete',
-        },
-      ) as Promise<wellKnownEmpty>;
+      ) as Promise<dictservicev1_ListDictEntryByTypeCodeResponse>;
     },
   };
 }
-export type dictservicev1_ListDictLabelResponse = {
-  items: dictservicev1_DictLabel[] | undefined;
+// 查询字典项列表 - 回应
+export type dictservicev1_ListDictEntryResponse = {
+  items: dictservicev1_DictEntry[] | undefined;
   total: number | undefined;
 };
 
-export type dictservicev1_DictLabel = {
+// 字典项
+export type dictservicev1_DictEntry = {
   id?: number;
-  categoryId?: number;
-  categoryKey?: string;
-  labelKey?: string;
-  labelCode?: string;
-  labelKind?: dictservicev1_DictLabel_LabelKind;
-  defaultText?: string;
-  payloadJson?: string;
-  isBuiltin?: boolean;
+  typeId?: number;
+  entryValue?: string;
+  numericValue?: number;
   isEnabled?: boolean;
-  status?: dictservicev1_DictLabel_Status;
   sortOrder?: number;
+  i18n: { [key: string]: dictservicev1_DictEntryI18n } | undefined;
+  currentI18n?: dictservicev1_DictEntryI18n;
   tenantId?: number;
   tenantName?: string;
-  remark?: string;
-  description?: string;
-  itemsI18n: dictservicev1_DictLabelI18n[] | undefined;
-  currentI18n?: dictservicev1_DictLabelI18n;
   createdBy?: number;
   updatedBy?: number;
   deletedBy?: number;
@@ -2115,82 +1801,66 @@ export type dictservicev1_DictLabel = {
   deletedAt?: wellKnownTimestamp;
 };
 
-export type dictservicev1_DictLabel_LabelKind =
-  | 'LABEL_KIND_UNSPECIFIED'
-  | 'TEXT'
-  | 'MENU'
-  | 'MESSAGE'
-  | 'ENUM'
-  | 'HINT'
-  | 'BADGE';
-export type dictservicev1_DictLabel_Status =
-  | 'STATUS_UNSPECIFIED'
-  | 'OFF'
-  | 'ON';
-export type dictservicev1_DictLabelI18n = {
-  id?: number;
-  labelId?: number;
-  labelKey?: string;
+// 字典项多语言信息
+export type dictservicev1_DictEntryI18n = {
+  entryLabel: string | undefined;
+  description?: string;
   languageCode?: string;
   languageName?: string;
-  textValue?: string;
-  shortText?: string;
-  description?: string;
-  tenantId?: number;
-  createdBy?: number;
-  updatedBy?: number;
-  deletedBy?: number;
-  createdAt?: wellKnownTimestamp;
-  updatedAt?: wellKnownTimestamp;
-  deletedAt?: wellKnownTimestamp;
 };
 
-export type dictservicev1_GetDictLabelRequest = {
-  id?: number;
-  labelKey?: string;
-  viewMask?: wellKnownFieldMask;
+// 创建字典项 - 请求
+export type dictservicev1_CreateDictEntryRequest = {
+  data: dictservicev1_DictEntry | undefined;
 };
 
-export type dictservicev1_CreateDictLabelRequest = {
-  data: dictservicev1_DictLabel | undefined;
-};
-
-export type dictservicev1_UpdateDictLabelRequest = {
+// 更新字典项 - 请求
+export type dictservicev1_UpdateDictEntryRequest = {
   id: number | undefined;
-  data: dictservicev1_DictLabel | undefined;
+  data: dictservicev1_DictEntry | undefined;
   updateMask: wellKnownFieldMask | undefined;
   allowMissing?: boolean;
 };
 
-export type dictservicev1_DeleteDictLabelRequest = {
+// 批量删除字典 - 请求
+export type dictservicev1_DeleteDictEntryRequest = {
   ids: number[] | undefined;
 };
 
-export interface DictLabelI18nService {
+export type dictservicev1_ListDictEntryByTypeCodeRequest = {
+  typeCode: string | undefined;
+  local?: string;
+};
+
+export type dictservicev1_ListDictEntryByTypeCodeResponse = {
+  items: dictservicev1_DictEntry[] | undefined;
+};
+
+// 数据字典分类管理服务
+export interface DictTypeService {
+  // 分页查询字典类型列表
   List(
     request: pagination_PagingRequest,
-  ): Promise<dictservicev1_ListDictLabelI18nResponse>;
+  ): Promise<dictservicev1_ListDictTypeResponse>;
+  // 查询字典类型详情
   Get(
-    request: dictservicev1_GetDictLabelI18nRequest,
-  ): Promise<dictservicev1_DictLabelI18n>;
-  Create(
-    request: dictservicev1_CreateDictLabelI18nRequest,
-  ): Promise<wellKnownEmpty>;
-  Update(
-    request: dictservicev1_UpdateDictLabelI18nRequest,
-  ): Promise<wellKnownEmpty>;
-  Delete(
-    request: dictservicev1_DeleteDictLabelI18nRequest,
-  ): Promise<wellKnownEmpty>;
+    request: dictservicev1_GetDictTypeRequest,
+  ): Promise<dictservicev1_DictType>;
+  // 创建字典类型
+  Create(request: dictservicev1_CreateDictTypeRequest): Promise<wellKnownEmpty>;
+  // 更新字典类型
+  Update(request: dictservicev1_UpdateDictTypeRequest): Promise<wellKnownEmpty>;
+  // 删除字典类型
+  Delete(request: dictservicev1_DeleteDictTypeRequest): Promise<wellKnownEmpty>;
 }
 
-export function createDictLabelI18nServiceClient(
+export function createDictTypeServiceClient(
   handler: RequestHandler,
-): DictLabelI18nService {
+): DictTypeService {
   return {
     List(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/dict/label-i18n`; // eslint-disable-line quotes
+      const path = `admin/v1/dict/types`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.page) {
@@ -2304,19 +1974,22 @@ export function createDictLabelI18nServiceClient(
           body,
         },
         {
-          service: 'DictLabelI18nService',
+          service: 'DictTypeService',
           method: 'List',
         },
-      ) as Promise<dictservicev1_ListDictLabelI18nResponse>;
+      ) as Promise<dictservicev1_ListDictTypeResponse>;
     },
     Get(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.id) {
         throw new Error('missing required field request.id');
       }
-      const path = `admin/v1/dict/label-i18n/${request.id}`; // eslint-disable-line quotes
+      const path = `admin/v1/dict/types/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
+      if (request.code) {
+        queryParams.push(`code=${encodeURIComponent(request.code.toString())}`);
+      }
       if (request.viewMask) {
         queryParams.push(
           `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
@@ -2333,14 +2006,14 @@ export function createDictLabelI18nServiceClient(
           body,
         },
         {
-          service: 'DictLabelI18nService',
+          service: 'DictTypeService',
           method: 'Get',
         },
-      ) as Promise<dictservicev1_DictLabelI18n>;
+      ) as Promise<dictservicev1_DictType>;
     },
     Create(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/dict/label-i18n`; // eslint-disable-line quotes
+      const path = `admin/v1/dict/types`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
@@ -2354,7 +2027,7 @@ export function createDictLabelI18nServiceClient(
           body,
         },
         {
-          service: 'DictLabelI18nService',
+          service: 'DictTypeService',
           method: 'Create',
         },
       ) as Promise<wellKnownEmpty>;
@@ -2364,7 +2037,7 @@ export function createDictLabelI18nServiceClient(
       if (!request.id) {
         throw new Error('missing required field request.id');
       }
-      const path = `admin/v1/dict/label-i18n/${request.id}`; // eslint-disable-line quotes
+      const path = `admin/v1/dict/types/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
@@ -2378,14 +2051,14 @@ export function createDictLabelI18nServiceClient(
           body,
         },
         {
-          service: 'DictLabelI18nService',
+          service: 'DictTypeService',
           method: 'Update',
         },
       ) as Promise<wellKnownEmpty>;
     },
     Delete(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/dict/label-i18n`; // eslint-disable-line quotes
+      const path = `admin/v1/dict/types`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.ids) {
@@ -2404,35 +2077,58 @@ export function createDictLabelI18nServiceClient(
           body,
         },
         {
-          service: 'DictLabelI18nService',
+          service: 'DictTypeService',
           method: 'Delete',
         },
       ) as Promise<wellKnownEmpty>;
     },
   };
 }
-export type dictservicev1_ListDictLabelI18nResponse = {
-  items: dictservicev1_DictLabelI18n[] | undefined;
+// 查询字典类型列表 - 回应
+export type dictservicev1_ListDictTypeResponse = {
+  items: dictservicev1_DictType[] | undefined;
   total: number | undefined;
 };
 
-export type dictservicev1_GetDictLabelI18nRequest = {
+// 字典类型
+export type dictservicev1_DictType = {
   id?: number;
+  typeCode?: string;
+  typeName?: string;
+  isEnabled?: boolean;
+  sortOrder?: number;
+  tenantId?: number;
+  tenantName?: string;
+  createdBy?: number;
+  updatedBy?: number;
+  deletedBy?: number;
+  createdAt?: wellKnownTimestamp;
+  updatedAt?: wellKnownTimestamp;
+  deletedAt?: wellKnownTimestamp;
+};
+
+// 查询字典类型详情 - 请求
+export type dictservicev1_GetDictTypeRequest = {
+  id?: number;
+  code?: string;
   viewMask?: wellKnownFieldMask;
 };
 
-export type dictservicev1_CreateDictLabelI18nRequest = {
-  data: dictservicev1_DictLabelI18n | undefined;
+// 创建字典类型 - 请求
+export type dictservicev1_CreateDictTypeRequest = {
+  data: dictservicev1_DictType | undefined;
 };
 
-export type dictservicev1_UpdateDictLabelI18nRequest = {
+// 更新字典类型 - 请求
+export type dictservicev1_UpdateDictTypeRequest = {
   id: number | undefined;
-  data: dictservicev1_DictLabelI18n | undefined;
+  data: dictservicev1_DictType | undefined;
   updateMask: wellKnownFieldMask | undefined;
   allowMissing?: boolean;
 };
 
-export type dictservicev1_DeleteDictLabelI18nRequest = {
+// 批量删除字典 - 请求
+export type dictservicev1_DeleteDictTypeRequest = {
   ids: number[] | undefined;
 };
 
