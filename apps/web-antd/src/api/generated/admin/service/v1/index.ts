@@ -7406,36 +7406,26 @@ export type permissionservicev1_DeleteRoleRequest = {
   id?: number;
 };
 
-// 调度任务管理服务
+// 任务管理服务
 export interface TaskService {
-  // 查询调度任务列表
+  // 查询任务列表
   List(
     request: pagination_PagingRequest,
   ): Promise<taskservicev1_ListTaskResponse>;
-  // 查询调度任务详情
+  // 查询任务详情
   Get(request: taskservicev1_GetTaskRequest): Promise<taskservicev1_Task>;
-  // 创建调度任务
+  // 创建任务
   Create(request: taskservicev1_CreateTaskRequest): Promise<wellKnownEmpty>;
-  // 更新调度任务
+  // 更新任务
   Update(request: taskservicev1_UpdateTaskRequest): Promise<wellKnownEmpty>;
-  // 删除调度任务
+  // 删除任务
   Delete(request: taskservicev1_DeleteTaskRequest): Promise<wellKnownEmpty>;
-  // 任务类型名称列表
-  ListTaskTypeName(
-    request: wellKnownEmpty,
-  ): Promise<taskservicev1_ListTaskTypeNameResponse>;
-  // 重启所有的调度任务
-  RestartAllTask(
-    request: wellKnownEmpty,
-  ): Promise<taskservicev1_RestartAllTaskResponse>;
-  // 启动所有的调度任务
-  StartAllTask(request: wellKnownEmpty): Promise<wellKnownEmpty>;
-  // 停止所有的调度任务
-  StopAllTask(request: wellKnownEmpty): Promise<wellKnownEmpty>;
-  // 控制调度任务
-  ControlTask(
-    request: taskservicev1_ControlTaskRequest,
-  ): Promise<wellKnownEmpty>;
+  // 启动任务
+  Start(request: taskservicev1_StartTaskRequest): Promise<wellKnownEmpty>;
+  // 停止任务
+  Stop(request: taskservicev1_StopTaskRequest): Promise<wellKnownEmpty>;
+  // 立即执行一次任务
+  RunOnce(request: taskservicev1_RunTaskOnceRequest): Promise<wellKnownEmpty>;
 }
 
 export function createTaskServiceClient(handler: RequestHandler): TaskService {
@@ -7569,9 +7559,9 @@ export function createTaskServiceClient(handler: RequestHandler): TaskService {
       const path = `admin/v1/tasks/${request.id}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
-      if (request.typeName) {
+      if (request.taskName) {
         queryParams.push(
-          `typeName=${encodeURIComponent(request.typeName.toString())}`,
+          `taskName=${encodeURIComponent(request.taskName.toString())}`,
         );
       }
       if (request.viewMask) {
@@ -7642,12 +7632,14 @@ export function createTaskServiceClient(handler: RequestHandler): TaskService {
     },
     Delete(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.id) {
-        throw new Error('missing required field request.id');
-      }
-      const path = `admin/v1/tasks/${request.id}`; // eslint-disable-line quotes
+      const path = `admin/v1/tasks`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
+      if (request.ids) {
+        request.ids.forEach((x) => {
+          queryParams.push(`ids=${encodeURIComponent(x.toString())}`);
+        });
+      }
       let uri = path;
       if (queryParams.length > 0) {
         uri += `?${queryParams.join('&')}`;
@@ -7664,11 +7656,333 @@ export function createTaskServiceClient(handler: RequestHandler): TaskService {
         },
       ) as Promise<wellKnownEmpty>;
     },
-    ListTaskTypeName(request) {
+    Start(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/tasks:type-names`; // eslint-disable-line quotes
+      if (!request.id) {
+        throw new Error('missing required field request.id');
+      }
+      const path = `admin/v1/tasks/${request.id}:start`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'TaskService',
+          method: 'Start',
+        },
+      ) as Promise<wellKnownEmpty>;
+    },
+    Stop(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.id) {
+        throw new Error('missing required field request.id');
+      }
+      const path = `admin/v1/tasks/${request.id}:stop`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'TaskService',
+          method: 'Stop',
+        },
+      ) as Promise<wellKnownEmpty>;
+    },
+    RunOnce(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.id) {
+        throw new Error('missing required field request.id');
+      }
+      const path = `admin/v1/tasks/${request.id}:run-once`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'TaskService',
+          method: 'RunOnce',
+        },
+      ) as Promise<wellKnownEmpty>;
+    },
+  };
+}
+// 任务列表响应
+export type taskservicev1_ListTaskResponse = {
+  items: taskservicev1_Task[] | undefined;
+  total: number | undefined;
+};
+
+// 任务
+export type taskservicev1_Task = {
+  // 任务ID
+  id?: number;
+  // 任务名称
+  taskName?: string;
+  // 任务分组ID
+  groupId?: number;
+  // 任务类型
+  taskType?: taskservicev1_Task_TaskType;
+  // cron表达式
+  cronExpression?: string;
+  // 调用目标
+  invokeTarget?: string;
+  // 目标参数
+  args?: string;
+  // 重试次数
+  retry?: number;
+  // 是否并发
+  concurrent?: boolean;
+  // 启动时返回的ID
+  entryId?: number;
+  // 任务状态
+  status?: taskservicev1_Task_Status;
+  // 备注
+  remark?: string;
+  // 租户ID，0表示全局
+  tenantId?: number;
+  // 创建者ID
+  createdBy?: number;
+  // 更新者ID
+  updatedBy?: number;
+  // 删除者ID
+  deletedBy?: number;
+  // 创建时间
+  createdAt?: wellKnownTimestamp;
+  // 更新时间
+  updatedAt?: wellKnownTimestamp;
+  // 删除时间
+  deletedAt?: wellKnownTimestamp;
+};
+
+// 任务类型
+export type taskservicev1_Task_TaskType =
+  // 未指定
+  | 'TASK_TYPE_UNSPECIFIED'
+  // 函数
+  | 'FUNCTION'
+  // 接口
+  | 'API'
+  // 外部执行
+  | 'EXTERNAL';
+// 任务状态
+export type taskservicev1_Task_Status =
+  // 未指定
+  | 'STATUS_UNSPECIFIED'
+  // 已停止
+  | 'STOPPED'
+  // 运行中
+  | 'RUNNING'
+  // 已禁用
+  | 'DISABLED';
+// 查询任务请求
+export type taskservicev1_GetTaskRequest = {
+  // 按ID查询
+  id?: number;
+  // 按任务名称查询
+  taskName?: string;
+  // 返回字段掩码
+  viewMask?: wellKnownFieldMask;
+};
+
+// 创建任务请求
+export type taskservicev1_CreateTaskRequest = {
+  data: taskservicev1_Task | undefined;
+};
+
+// 更新任务请求
+export type taskservicev1_UpdateTaskRequest = {
+  id: number | undefined;
+  data: taskservicev1_Task | undefined;
+  updateMask: wellKnownFieldMask | undefined;
+  allowMissing?: boolean;
+};
+
+// 删除任务请求
+export type taskservicev1_DeleteTaskRequest = {
+  ids: number[] | undefined;
+};
+
+// 启动任务请求
+export type taskservicev1_StartTaskRequest = {
+  id: number | undefined;
+};
+
+// 停止任务请求
+export type taskservicev1_StopTaskRequest = {
+  id: number | undefined;
+};
+
+// 立即执行任务请求
+export type taskservicev1_RunTaskOnceRequest = {
+  id: number | undefined;
+  input?: string;
+};
+
+// 任务分组管理服务
+export interface TaskGroupService {
+  // 查询任务分组列表
+  List(
+    request: pagination_PagingRequest,
+  ): Promise<taskservicev1_ListTaskGroupResponse>;
+  // 查询任务分组详情
+  Get(
+    request: taskservicev1_GetTaskGroupRequest,
+  ): Promise<taskservicev1_TaskGroup>;
+  // 创建任务分组
+  Create(
+    request: taskservicev1_CreateTaskGroupRequest,
+  ): Promise<wellKnownEmpty>;
+  // 更新任务分组
+  Update(
+    request: taskservicev1_UpdateTaskGroupRequest,
+  ): Promise<wellKnownEmpty>;
+  // 删除任务分组
+  Delete(
+    request: taskservicev1_DeleteTaskGroupRequest,
+  ): Promise<wellKnownEmpty>;
+  // 启动分组下全部任务
+  Start(request: taskservicev1_StartTaskGroupRequest): Promise<wellKnownEmpty>;
+  // 停止分组下全部任务
+  Stop(request: taskservicev1_StopTaskGroupRequest): Promise<wellKnownEmpty>;
+  // 立即执行分组下全部任务
+  RunOnce(
+    request: taskservicev1_RunTaskGroupOnceRequest,
+  ): Promise<wellKnownEmpty>;
+}
+
+export function createTaskGroupServiceClient(
+  handler: RequestHandler,
+): TaskGroupService {
+  return {
+    List(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/task-groups`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
+      if (request.page) {
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+      }
+      if (request.pageSize) {
+        queryParams.push(
+          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
+        );
+      }
+      if (request.offset) {
+        queryParams.push(
+          `offset=${encodeURIComponent(request.offset.toString())}`,
+        );
+      }
+      if (request.limit) {
+        queryParams.push(
+          `limit=${encodeURIComponent(request.limit.toString())}`,
+        );
+      }
+      if (request.token) {
+        queryParams.push(
+          `token=${encodeURIComponent(request.token.toString())}`,
+        );
+      }
+      if (request.noPaging) {
+        queryParams.push(
+          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
+        );
+      }
+      if (request.query) {
+        queryParams.push(
+          `query=${encodeURIComponent(request.query.toString())}`,
+        );
+      }
+      if (request.filter) {
+        queryParams.push(
+          `filter=${encodeURIComponent(request.filter.toString())}`,
+        );
+      }
+      if (request.filterExpr?.type) {
+        queryParams.push(
+          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.field) {
+        queryParams.push(
+          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.op) {
+        queryParams.push(
+          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.value) {
+        queryParams.push(
+          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.jsonValue) {
+        queryParams.push(
+          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.values) {
+        request.filterExpr.conditions.values.forEach((x) => {
+          queryParams.push(
+            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
+          );
+        });
+      }
+      if (request.filterExpr?.conditions?.datePart) {
+        queryParams.push(
+          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.jsonPath) {
+        queryParams.push(
+          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
+        );
+      }
+      if (request.orderBy) {
+        queryParams.push(
+          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
+        );
+      }
+      if (request.sorting?.field) {
+        queryParams.push(
+          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
+        );
+      }
+      if (request.sorting?.direction) {
+        queryParams.push(
+          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
+        );
+      }
+      if (request.fieldMask) {
+        queryParams.push(
+          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
+        );
+      }
       let uri = path;
       if (queryParams.length > 0) {
         uri += `?${queryParams.join('&')}`;
@@ -7680,14 +7994,48 @@ export function createTaskServiceClient(handler: RequestHandler): TaskService {
           body,
         },
         {
-          service: 'TaskService',
-          method: 'ListTaskTypeName',
+          service: 'TaskGroupService',
+          method: 'List',
         },
-      ) as Promise<taskservicev1_ListTaskTypeNameResponse>;
+      ) as Promise<taskservicev1_ListTaskGroupResponse>;
     },
-    RestartAllTask(request) {
+    Get(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/tasks:restart`; // eslint-disable-line quotes
+      if (!request.id) {
+        throw new Error('missing required field request.id');
+      }
+      const path = `admin/v1/task-groups/${request.id}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.groupName) {
+        queryParams.push(
+          `groupName=${encodeURIComponent(request.groupName.toString())}`,
+        );
+      }
+      if (request.viewMask) {
+        queryParams.push(
+          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
+        );
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'GET',
+          body,
+        },
+        {
+          service: 'TaskGroupService',
+          method: 'Get',
+        },
+      ) as Promise<taskservicev1_TaskGroup>;
+    },
+    Create(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/task-groups`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
@@ -7701,35 +8049,17 @@ export function createTaskServiceClient(handler: RequestHandler): TaskService {
           body,
         },
         {
-          service: 'TaskService',
-          method: 'RestartAllTask',
-        },
-      ) as Promise<taskservicev1_RestartAllTaskResponse>;
-    },
-    StartAllTask(request) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/tasks:start`; // eslint-disable-line quotes
-      const body = JSON.stringify(request);
-      const queryParams: string[] = [];
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join('&')}`;
-      }
-      return handler(
-        {
-          path: uri,
-          method: 'POST',
-          body,
-        },
-        {
-          service: 'TaskService',
-          method: 'StartAllTask',
+          service: 'TaskGroupService',
+          method: 'Create',
         },
       ) as Promise<wellKnownEmpty>;
     },
-    StopAllTask(request) {
+    Update(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/tasks:stop`; // eslint-disable-line quotes
+      if (!request.id) {
+        throw new Error('missing required field request.id');
+      }
+      const path = `admin/v1/task-groups/${request.id}`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
@@ -7739,18 +8069,47 @@ export function createTaskServiceClient(handler: RequestHandler): TaskService {
       return handler(
         {
           path: uri,
-          method: 'POST',
+          method: 'PUT',
           body,
         },
         {
-          service: 'TaskService',
-          method: 'StopAllTask',
+          service: 'TaskGroupService',
+          method: 'Update',
         },
       ) as Promise<wellKnownEmpty>;
     },
-    ControlTask(request) {
+    Delete(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `admin/v1/tasks:control`; // eslint-disable-line quotes
+      const path = `admin/v1/task-groups`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.ids) {
+        request.ids.forEach((x) => {
+          queryParams.push(`ids=${encodeURIComponent(x.toString())}`);
+        });
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'DELETE',
+          body,
+        },
+        {
+          service: 'TaskGroupService',
+          method: 'Delete',
+        },
+      ) as Promise<wellKnownEmpty>;
+    },
+    Start(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.id) {
+        throw new Error('missing required field request.id');
+      }
+      const path = `admin/v1/task-groups/${request.id}:start`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
@@ -7764,139 +8123,376 @@ export function createTaskServiceClient(handler: RequestHandler): TaskService {
           body,
         },
         {
-          service: 'TaskService',
-          method: 'ControlTask',
+          service: 'TaskGroupService',
+          method: 'Start',
+        },
+      ) as Promise<wellKnownEmpty>;
+    },
+    Stop(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.id) {
+        throw new Error('missing required field request.id');
+      }
+      const path = `admin/v1/task-groups/${request.id}:stop`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'TaskGroupService',
+          method: 'Stop',
+        },
+      ) as Promise<wellKnownEmpty>;
+    },
+    RunOnce(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.id) {
+        throw new Error('missing required field request.id');
+      }
+      const path = `admin/v1/task-groups/${request.id}:run-once`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'TaskGroupService',
+          method: 'RunOnce',
         },
       ) as Promise<wellKnownEmpty>;
     },
   };
 }
-// 查询调度任务列表 - 回应
-export type taskservicev1_ListTaskResponse = {
-  items: taskservicev1_Task[] | undefined;
+// 任务分组列表响应
+export type taskservicev1_ListTaskGroupResponse = {
+  items: taskservicev1_TaskGroup[] | undefined;
   total: number | undefined;
 };
 
-// 调度任务
-export type taskservicev1_Task = {
-  //
-  // Behaviors: OPTIONAL
+// 任务分组
+export type taskservicev1_TaskGroup = {
+  // 分组ID
   id?: number;
-  //
-  // Behaviors: OPTIONAL
-  type?: taskservicev1_Task_Type;
-  //
-  // Behaviors: OPTIONAL
-  typeName?: string;
-  //
-  // Behaviors: OPTIONAL
-  taskPayload?: string;
-  //
-  // Behaviors: OPTIONAL
-  cronSpec?: string;
-  //
-  // Behaviors: OPTIONAL
-  taskOptions?: taskservicev1_TaskOption;
-  enable?: boolean;
+  // 分组名称
+  groupName?: string;
+  // 备注
   remark?: string;
+  // 租户ID，0表示全局
   tenantId?: number;
+  // 创建者ID
   createdBy?: number;
+  // 更新者ID
   updatedBy?: number;
+  // 删除者ID
   deletedBy?: number;
+  // 创建时间
   createdAt?: wellKnownTimestamp;
+  // 更新时间
   updatedAt?: wellKnownTimestamp;
+  // 删除时间
   deletedAt?: wellKnownTimestamp;
 };
 
-// 调度任务类型
-export type taskservicev1_Task_Type = 'PERIODIC' | 'DELAY' | 'WAIT_RESULT';
-// 任务选项
-export type taskservicev1_TaskOption = {
-  //
-  // Behaviors: OPTIONAL
-  maxRetry?: number;
-  //
-  // Behaviors: OPTIONAL
-  timeout?: wellKnownDuration;
-  //
-  // Behaviors: OPTIONAL
-  deadline?: wellKnownTimestamp;
-  //
-  // Behaviors: OPTIONAL
-  processIn?: wellKnownDuration;
-  //
-  // Behaviors: OPTIONAL
-  processAt?: wellKnownTimestamp;
-  //
-  // Behaviors: OPTIONAL
-  uniqueTTL?: wellKnownDuration;
-  //
-  // Behaviors: OPTIONAL
-  retention?: wellKnownDuration;
-  //
-  // Behaviors: OPTIONAL
-  group?: string;
-  //
-  // Behaviors: OPTIONAL
-  taskID?: string;
-};
-
-// Generated output always contains 0, 3, 6, or 9 fractional digits,
-// depending on required precision, followed by the suffix "s".
-// Accepted are any fractional digits (also none) as long as they fit
-// into nano-seconds precision and the suffix "s" is required.
-type wellKnownDuration = string;
-
-// 查询调度任务详情 - 请求
-export type taskservicev1_GetTaskRequest = {
+// 查询任务分组请求
+export type taskservicev1_GetTaskGroupRequest = {
+  // 按ID查询
   id?: number;
-  //
-  // Behaviors: OPTIONAL
-  typeName?: string;
+  // 按分组名称查询
+  groupName?: string;
+  // 返回字段掩码
   viewMask?: wellKnownFieldMask;
 };
 
-// 创建调度任务 - 请求
-export type taskservicev1_CreateTaskRequest = {
-  data: taskservicev1_Task | undefined;
+// 创建任务分组请求
+export type taskservicev1_CreateTaskGroupRequest = {
+  data: taskservicev1_TaskGroup | undefined;
 };
 
-// 更新调度任务 - 请求
-export type taskservicev1_UpdateTaskRequest = {
+// 更新任务分组请求
+export type taskservicev1_UpdateTaskGroupRequest = {
   id: number | undefined;
-  data: taskservicev1_Task | undefined;
+  data: taskservicev1_TaskGroup | undefined;
   updateMask: wellKnownFieldMask | undefined;
   allowMissing?: boolean;
 };
 
-// 删除调度任务 - 请求
-export type taskservicev1_DeleteTaskRequest = {
+// 删除任务分组请求
+export type taskservicev1_DeleteTaskGroupRequest = {
+  ids: number[] | undefined;
+};
+
+// 启动任务分组请求
+export type taskservicev1_StartTaskGroupRequest = {
+  id: number | undefined;
+};
+
+// 停止任务分组请求
+export type taskservicev1_StopTaskGroupRequest = {
+  id: number | undefined;
+};
+
+// 立即执行任务分组请求
+export type taskservicev1_RunTaskGroupOnceRequest = {
+  id: number | undefined;
+  input?: string;
+};
+
+// 任务执行日志服务
+export interface TaskLogService {
+  // 查询任务执行日志列表
+  List(
+    request: pagination_PagingRequest,
+  ): Promise<taskservicev1_ListTaskLogResponse>;
+  // 查询任务执行日志详情
+  Get(request: taskservicev1_GetTaskLogRequest): Promise<taskservicev1_TaskLog>;
+  // 删除任务执行日志
+  Delete(request: taskservicev1_DeleteTaskLogRequest): Promise<wellKnownEmpty>;
+}
+
+export function createTaskLogServiceClient(
+  handler: RequestHandler,
+): TaskLogService {
+  return {
+    List(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/task-logs`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.page) {
+        queryParams.push(`page=${encodeURIComponent(request.page.toString())}`);
+      }
+      if (request.pageSize) {
+        queryParams.push(
+          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
+        );
+      }
+      if (request.offset) {
+        queryParams.push(
+          `offset=${encodeURIComponent(request.offset.toString())}`,
+        );
+      }
+      if (request.limit) {
+        queryParams.push(
+          `limit=${encodeURIComponent(request.limit.toString())}`,
+        );
+      }
+      if (request.token) {
+        queryParams.push(
+          `token=${encodeURIComponent(request.token.toString())}`,
+        );
+      }
+      if (request.noPaging) {
+        queryParams.push(
+          `noPaging=${encodeURIComponent(request.noPaging.toString())}`,
+        );
+      }
+      if (request.query) {
+        queryParams.push(
+          `query=${encodeURIComponent(request.query.toString())}`,
+        );
+      }
+      if (request.filter) {
+        queryParams.push(
+          `filter=${encodeURIComponent(request.filter.toString())}`,
+        );
+      }
+      if (request.filterExpr?.type) {
+        queryParams.push(
+          `filterExpr.type=${encodeURIComponent(request.filterExpr.type.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.field) {
+        queryParams.push(
+          `filterExpr.conditions.field=${encodeURIComponent(request.filterExpr.conditions.field.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.op) {
+        queryParams.push(
+          `filterExpr.conditions.op=${encodeURIComponent(request.filterExpr.conditions.op.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.value) {
+        queryParams.push(
+          `filterExpr.conditions.value=${encodeURIComponent(request.filterExpr.conditions.value.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.jsonValue) {
+        queryParams.push(
+          `filterExpr.conditions.jsonValue=${encodeURIComponent(request.filterExpr.conditions.jsonValue.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.values) {
+        request.filterExpr.conditions.values.forEach((x) => {
+          queryParams.push(
+            `filterExpr.conditions.values=${encodeURIComponent(x.toString())}`,
+          );
+        });
+      }
+      if (request.filterExpr?.conditions?.datePart) {
+        queryParams.push(
+          `filterExpr.conditions.datePart=${encodeURIComponent(request.filterExpr.conditions.datePart.toString())}`,
+        );
+      }
+      if (request.filterExpr?.conditions?.jsonPath) {
+        queryParams.push(
+          `filterExpr.conditions.jsonPath=${encodeURIComponent(request.filterExpr.conditions.jsonPath.toString())}`,
+        );
+      }
+      if (request.orderBy) {
+        queryParams.push(
+          `orderBy=${encodeURIComponent(request.orderBy.toString())}`,
+        );
+      }
+      if (request.sorting?.field) {
+        queryParams.push(
+          `sorting.field=${encodeURIComponent(request.sorting.field.toString())}`,
+        );
+      }
+      if (request.sorting?.direction) {
+        queryParams.push(
+          `sorting.direction=${encodeURIComponent(request.sorting.direction.toString())}`,
+        );
+      }
+      if (request.fieldMask) {
+        queryParams.push(
+          `fieldMask=${encodeURIComponent(request.fieldMask.toString())}`,
+        );
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'GET',
+          body,
+        },
+        {
+          service: 'TaskLogService',
+          method: 'List',
+        },
+      ) as Promise<taskservicev1_ListTaskLogResponse>;
+    },
+    Get(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.id) {
+        throw new Error('missing required field request.id');
+      }
+      const path = `admin/v1/task-logs/${request.id}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.viewMask) {
+        queryParams.push(
+          `viewMask=${encodeURIComponent(request.viewMask.toString())}`,
+        );
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'GET',
+          body,
+        },
+        {
+          service: 'TaskLogService',
+          method: 'Get',
+        },
+      ) as Promise<taskservicev1_TaskLog>;
+    },
+    Delete(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/task-logs`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.ids) {
+        request.ids.forEach((x) => {
+          queryParams.push(`ids=${encodeURIComponent(x.toString())}`);
+        });
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'DELETE',
+          body,
+        },
+        {
+          service: 'TaskLogService',
+          method: 'Delete',
+        },
+      ) as Promise<wellKnownEmpty>;
+    },
+  };
+}
+// 任务执行日志列表响应
+export type taskservicev1_ListTaskLogResponse = {
+  items: taskservicev1_TaskLog[] | undefined;
+  total: number | undefined;
+};
+
+// 任务执行日志
+export type taskservicev1_TaskLog = {
+  // 日志ID
   id?: number;
+  // 任务ID
+  taskId?: number;
+  // 执行参数
+  input?: string;
+  // 输出结果
+  output?: string;
+  // 错误信息
+  error?: string;
+  // 状态
+  status?: taskservicev1_TaskLog_Status;
+  // 耗时(毫秒)
+  processTime?: number;
+  // 执行时间
+  executeTime?: wellKnownTimestamp;
+  // 租户ID，0表示全局
+  tenantId?: number;
 };
 
-// 任务类型名称列表 - 回应
-export type taskservicev1_ListTaskTypeNameResponse = {
-  typeNames: string[] | undefined;
+// 执行状态
+export type taskservicev1_TaskLog_Status =
+  // 未指定
+  | 'STATUS_UNSPECIFIED'
+  // 失败
+  | 'FAILURE'
+  // 成功
+  | 'SUCCESS';
+// 查询任务执行日志请求
+export type taskservicev1_GetTaskLogRequest = {
+  id: number | undefined;
+  viewMask?: wellKnownFieldMask;
 };
 
-// 重启调度任务 - 回应
-export type taskservicev1_RestartAllTaskResponse = {
-  count: number | undefined;
+// 删除任务执行日志请求
+export type taskservicev1_DeleteTaskLogRequest = {
+  ids: number[] | undefined;
 };
 
-// 控制调度任务 - 请求
-export type taskservicev1_ControlTaskRequest = {
-  controlType: taskservicev1_ControlTaskRequest_ControlType | undefined;
-  //
-  // Behaviors: OPTIONAL
-  typeName: string | undefined;
-};
-
-// 调度任务控制类型
-export type taskservicev1_ControlTaskRequest_ControlType =
-  | 'Start'
-  | 'Stop'
-  | 'Restart';
 // 租户管理服务
 export interface TenantService {
   // 获取租户列表
