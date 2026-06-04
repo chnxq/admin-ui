@@ -1,0 +1,11 @@
+{
+  "tableToolbar": {
+    "exportDialogTitle": "Export Settings",
+    "exportFileName": "File Name",
+    "exportFileNamePlaceholder": "Enter export file name",
+    "exportFileType": "File Type",
+    "exportColumnsTitle": "Export Columns",
+    "exportColumnCount": "Selected {0} / {1}",
+    "selectAll": "Select All"
+  }
+}

@@ -16,6 +16,9 @@ import {
   createPermissionServiceClient,
   createPositionServiceClient,
   createRoleServiceClient,
+  createTaskGroupServiceClient,
+  createTaskLogServiceClient,
+  createTaskServiceClient,
   createTenantServiceClient,
   createUserProfileServiceClient,
   createUserServiceClient,
@@ -67,6 +70,13 @@ export const permissionGroupClient =
 export const positionClient = createPositionServiceClient(adminRequestHandler);
 
 export const roleClient = createRoleServiceClient(adminRequestHandler);
+
+export const taskClient = createTaskServiceClient(adminRequestHandler);
+
+export const taskGroupClient =
+  createTaskGroupServiceClient(adminRequestHandler);
+
+export const taskLogClient = createTaskLogServiceClient(adminRequestHandler);
 
 export const tenantClient = createTenantServiceClient(adminRequestHandler);
 
