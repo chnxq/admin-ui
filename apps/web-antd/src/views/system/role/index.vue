@@ -956,7 +956,10 @@ onMounted(() => {
       </template>
 
       <template #role="{ row }">
-        <Tooltip :title="getRoleTooltip(row)">
+        <Tooltip
+          overlay-class-name="admin-multiline-tooltip"
+          :title="getRoleTooltip(row)"
+        >
           <span class="role-main">{{ row.name || '-' }}</span>
         </Tooltip>
       </template>
@@ -1389,6 +1392,10 @@ onMounted(() => {
 .admin-role-tool-prefix :deep(.ant-btn) {
   display: inline-flex;
   align-items: center;
+}
+
+:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
+  white-space: pre-line;
 }
 
 .role-main {

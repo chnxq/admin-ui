@@ -688,7 +688,10 @@ onMounted(() => {
       </template>
 
       <template #identity="{ row }">
-        <Tooltip :title="getUserIdentityTooltip(row)">
+        <Tooltip
+          overlay-class-name="admin-multiline-tooltip"
+          :title="getUserIdentityTooltip(row)"
+        >
           <span class="identity-main">
             {{ getUserIdentityText(row) }}
           </span>
@@ -1071,6 +1074,10 @@ onMounted(() => {
 .user-option-meta {
   font-size: 12px;
   color: hsl(var(--muted-foreground));
+}
+
+:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
+  white-space: pre-line;
 }
 
 .identity-main {

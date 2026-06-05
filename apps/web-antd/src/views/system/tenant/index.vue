@@ -312,8 +312,8 @@ function toTenantSortField(sortField: string) {
 
 function getTenantTooltip(record: AdminTenant) {
   return [
-    `${$t('page.tenant.code')}：${record.code || '-'}`,
-    `${$t('page.tenant.tenant')}：${record.name || '-'}`,
+    `${$t('page.tenant.code')}: ${record.code || '-'}`,
+    `${$t('page.tenant.tenant')}: ${record.name || '-'}`,
   ].join('\n');
 }
 
@@ -421,7 +421,10 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminTenant>({
       </template>
 
       <template #tenant="{ row }">
-        <Tooltip :title="getTenantTooltip(row)">
+        <Tooltip
+          overlay-class-name="admin-multiline-tooltip"
+          :title="getTenantTooltip(row)"
+        >
           <span class="admin-primary-main">{{ row.name || '-' }}</span>
         </Tooltip>
       </template>
@@ -624,6 +627,10 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminTenant>({
 .admin-tenant-tool-prefix :deep(.ant-btn) {
   display: inline-flex;
   align-items: center;
+}
+
+:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
+  white-space: pre-line;
 }
 
 .admin-primary-main {

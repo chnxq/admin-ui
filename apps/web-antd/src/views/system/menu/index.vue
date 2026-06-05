@@ -626,7 +626,10 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminMenu>({
       </template>
 
       <template #menu="{ row }">
-        <Tooltip :title="getMenuTooltip(row)">
+        <Tooltip
+          overlay-class-name="admin-multiline-tooltip"
+          :title="getMenuTooltip(row)"
+        >
           <span class="menu-main">
             {{ getDisplayTitle(row.meta?.title) }}
           </span>
@@ -935,6 +938,10 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminMenu>({
 .admin-menu-tool-prefix :deep(.ant-popover-open) {
   display: inline-flex;
   align-items: center;
+}
+
+:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
+  white-space: pre-line;
 }
 
 .menu-main {

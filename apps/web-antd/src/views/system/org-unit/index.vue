@@ -338,9 +338,9 @@ function getOrgUnitScopeText(record: AdminOrgUnit) {
 
 function getOrgUnitTooltip(record: AdminOrgUnit) {
   return [
-    `${$t('page.orgUnit.code')}：${record.code || '-'}`,
-    `${$t('page.orgUnit.name')}：${record.name || '-'}`,
-    `${$t('page.orgUnit.description')}：${record.description || '-'}`,
+    `${$t('page.orgUnit.code')}: ${record.code || '-'}`,
+    `${$t('page.orgUnit.name')}: ${record.name || '-'}`,
+    `${$t('page.orgUnit.description')}: ${record.description || '-'}`,
   ].join('\n');
 }
 
@@ -436,7 +436,10 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminOrgUnit>({
       </template>
 
       <template #orgUnit="{ row }">
-        <Tooltip :title="getOrgUnitTooltip(row)">
+        <Tooltip
+          overlay-class-name="admin-multiline-tooltip"
+          :title="getOrgUnitTooltip(row)"
+        >
           <span class="admin-primary-main">{{ row.name || '-' }}</span>
         </Tooltip>
       </template>
@@ -666,6 +669,10 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminOrgUnit>({
 .admin-org-unit-tool-prefix :deep(.ant-btn) {
   display: inline-flex;
   align-items: center;
+}
+
+:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
+  white-space: pre-line;
 }
 
 .admin-primary-main {
