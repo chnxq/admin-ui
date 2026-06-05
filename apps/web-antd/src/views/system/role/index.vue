@@ -1103,22 +1103,22 @@ onMounted(() => {
             </span>
             <Input.Search
               v-model:value="editTreeSearchValue"
-              placeholder="搜索权限名称或标识..."
+              :placeholder="$t('page.role.searchPermissionKeyword')"
               allow-clear
               size="middle"
             />
             <div class="panel-actions">
               <Button size="small" type="link" @click="editExpandAll">
-                展开全部
+                {{ $t('page.role.expandAll') }}
               </Button>
               <Button size="small" type="link" @click="editCollapseAll">
-                折叠全部
+                {{ $t('page.role.collapseAll') }}
               </Button>
               <Button size="small" type="link" @click="editSelectAll">
-                全选
+                {{ $t('page.role.selectAll') }}
               </Button>
               <Button size="small" type="link" danger @click="editClearAll">
-                清空
+                {{ $t('page.role.clearAll') }}
               </Button>
             </div>
           </div>
@@ -1193,22 +1193,22 @@ onMounted(() => {
             <div class="panel-header">
               <Input.Search
                 v-model:value="treeSearchValue"
-                placeholder="搜索权限名称或标识..."
+                :placeholder="$t('page.role.searchPermissionKeyword')"
                 allow-clear
                 size="middle"
               />
               <div class="panel-actions">
                 <Button size="small" type="link" @click="expandAll">
-                  展开全部
+                  {{ $t('page.role.expandAll') }}
                 </Button>
                 <Button size="small" type="link" @click="collapseAll">
-                  折叠全部
+                  {{ $t('page.role.collapseAll') }}
                 </Button>
                 <Button size="small" type="link" @click="selectAll">
-                  全选
+                  {{ $t('page.role.selectAll') }}
                 </Button>
                 <Button size="small" type="link" danger @click="clearAll">
-                  清空
+                  {{ $t('page.role.clearAll') }}
                 </Button>
               </div>
             </div>
@@ -1239,7 +1239,11 @@ onMounted(() => {
             <Tabs v-model:active-key="activeTabKey" size="middle">
               <TabPane
                 key="permissions"
-                :tab="`已选权限 (${selectedAuthorizePermissions.length})`"
+                :tab="
+                  $t('page.role.selectedPermissionsTab', [
+                    selectedAuthorizePermissions.length,
+                  ])
+                "
               >
                 <div class="preview-list">
                   <div
@@ -1279,7 +1283,11 @@ onMounted(() => {
 
               <TabPane
                 key="menus"
-                :tab="`关联页面 (${selectedAuthorizeMenus.length})`"
+                :tab="
+                  $t('page.role.relatedMenusTab', [
+                    selectedAuthorizeMenus.length,
+                  ])
+                "
               >
                 <div class="preview-list">
                   <div
@@ -1308,7 +1316,9 @@ onMounted(() => {
 
               <TabPane
                 key="apis"
-                :tab="`关联接口 (${selectedAuthorizeApis.length})`"
+                :tab="
+                  $t('page.role.relatedApisTab', [selectedAuthorizeApis.length])
+                "
               >
                 <div class="preview-list">
                   <div
