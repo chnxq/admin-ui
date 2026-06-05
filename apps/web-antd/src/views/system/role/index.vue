@@ -463,11 +463,10 @@ function getRoleScopeText(role: AdminRole) {
 
 function getRoleTooltip(role: AdminRole) {
   return [
-    `${$t('page.role.code')}：${role.code || '-'}`,
-    `${$t('page.role.role')}：${role.name || '-'}`,
+    `${$t('page.role.code')}: ${role.code || '-'}`,
+    `${$t('page.role.role')}: ${role.name || '-'}`,
   ].join('\n');
 }
-
 function uniqueNumbers(values: Array<null | number | undefined>) {
   return [
     ...new Set(

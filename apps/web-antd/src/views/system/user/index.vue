@@ -490,12 +490,11 @@ function getUserIdentityText(record: AdminUser) {
 
 function getUserIdentityTooltip(record: AdminUser) {
   return [
-    `${$t('page.user.username')}：${record.username || '-'}`,
-    `${$t('page.user.realname')}：${record.realname || '-'}`,
-    `${$t('page.user.nickname')}：${record.nickname || '-'}`,
+    `${$t('page.user.username')}: ${record.username || '-'}`,
+    `${$t('page.user.realname')}: ${record.realname || '-'}`,
+    `${$t('page.user.nickname')}: ${record.nickname || '-'}`,
   ].join('\n');
 }
-
 function getStatusText(status?: AdminUserStatus) {
   return status ? statusTextMap[status] : '-';
 }

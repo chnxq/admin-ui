@@ -375,11 +375,10 @@ function getDisplayTitle(title?: string) {
 
 function getMenuTooltip(menu: AdminMenu) {
   return [
-    `${$t('page.menu.name')}：${menu.name || '-'}`,
-    `${$t('page.menu.path')}：${menu.path || '-'}`,
+    `${$t('page.menu.name')}: ${menu.name || '-'}`,
+    `${$t('page.menu.path')}: ${menu.path || '-'}`,
   ].join('\n');
 }
-
 function buildParentTreeOptions(
   items: AdminMenu[],
   excludedId?: number,
