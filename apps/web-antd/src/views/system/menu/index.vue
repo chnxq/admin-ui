@@ -86,7 +86,7 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(
-  () => userStore.userInfo?.tenantName || 'XAdmin骞冲彴',
+  () => userStore.userInfo?.tenantName || 'XAdmin平台',
 );
 
 const statusOptions = [
@@ -356,9 +356,7 @@ function ensurePlatformWritable() {
   if (!isTenantSession.value) {
     return true;
   }
-  message.warning(
-    `绉熸埛浼氳瘽 ${sessionTenantLabel.value} 浠呭彲鏌ョ湅骞冲彴鑿滃崟`,
-  );
+  message.warning(`租户会话 ${sessionTenantLabel.value} 仅可查看平台菜单`);
   return false;
 }
 
@@ -587,8 +585,8 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminMenu>({
     <div v-if="isTenantSession" class="tenant-session-banner">
       <IconifyIcon icon="lucide:building-2" />
       <span class="tenant-session-banner__text">
-        褰撳墠涓虹鎴蜂細璇
-        {{ sessionTenantLabel }}锛岃彍鍗曞睘浜庡钩鍙扮鎴凤紝浠呮敮鎸佹煡鐪嬨
+        当前为租户会话
+        {{ sessionTenantLabel }}，菜单属于平台租户，仅支持查看。
       </span>
     </div>
 
@@ -637,7 +635,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminMenu>({
       </template>
 
       <template #scope>
-        <Tag color="gold">XAdmin骞冲彴</Tag>
+        <Tag color="gold">XAdmin平台</Tag>
       </template>
 
       <template #status="{ row }">

@@ -158,7 +158,7 @@ const modalTitle = computed(() =>
 
 const authorizeModalTitle = computed(() =>
   authorizeRole.value?.name
-    ? `${$t('page.role.authorizeTitle')} 路 ${authorizeRole.value.name}`
+    ? `${$t('page.role.authorizeTitle')} ${authorizeRole.value.name}`
     : $t('page.role.authorizeTitle'),
 );
 
@@ -641,7 +641,7 @@ async function openCreate() {
 
 async function openEdit(record: AdminRole) {
   if (!canMutateRole(record)) {
-    message.warning('绉熸埛浼氳瘽涓嶅彲缂栬緫鍏ㄥ眬瑙掕壊');
+    message.warning('租户会话不可编辑全局角色');
     return;
   }
   if (!record.id) {
@@ -661,7 +661,7 @@ async function openEdit(record: AdminRole) {
 
 async function openAuthorize(record: AdminRole) {
   if (!canMutateRole(record)) {
-    message.warning('绉熸埛浼氳瘽涓嶅彲缁存姢鍏ㄥ眬瑙掕壊鎺堟潈');
+    message.warning('租户会话不可维护全局角色授权');
     return;
   }
   if (!record.id) {
@@ -932,9 +932,9 @@ onMounted(() => {
 <template>
   <Page auto-content-height :title="$t('menu.system.role')">
     <div v-if="isTenantSession" class="tenant-session-banner">
-      <Tag color="blue">绉熸埛浼氳瘽</Tag>
+      <Tag color="blue">租户会话</Tag>
       <span class="tenant-session-banner__text">
-        褰撳墠浠呭彲缁存姢绉熸埛瑙掕壊锛屾墍灞炵鎴凤細{{ sessionTenantLabel }}
+        当前仅可维护租户角色，所属租户：{{ sessionTenantLabel }}
       </span>
     </div>
 
