@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { AdminTaskLog, AdminTaskLogStatus } from '#/api/admin/tasks';
+import type { taskservicev1_ListTaskResponse } from '#/api/generated/admin/service/v1';
 
 import { computed, reactive, ref } from 'vue';
 
@@ -23,6 +24,7 @@ import {
 import dayjs from 'dayjs';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { getAdminList, toPagingRequest } from '#/api/admin/paging';
 import { listAdminTaskLogsApi } from '#/api/admin/tasks';
 import { $t } from '#/locales';
 
@@ -37,6 +39,7 @@ const TASK_LOG_ACCESS = {
 const { hasAccessByCodes } = useAccess();
 const detailOpen = ref(false);
 const currentLog = ref<AdminTaskLogRow>();
+const taskNameMap = ref<Record<number, string>>({});
 
 const statusOptions: Array<{ label: string; value: AdminTaskLogStatus }> = [
   { label: $t('page.taskLog.statusSuccess'), value: 'SUCCESS' },
@@ -124,7 +127,7 @@ const gridOptions: VxeTableGridOptions<AdminTaskLogRow> = {
         const sortField = String(sort.field || 'executeTime');
         const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
 
-        return await listAdminTaskLogsApi({
+        const response = await listAdminTaskLogsApi({
           executeTimeEnd: toFilterTimeValue(
             searchForm.executeTimeRange?.[1],
             true,
@@ -144,6 +147,8 @@ const gridOptions: VxeTableGridOptions<AdminTaskLogRow> = {
           status: searchForm.status,
           taskId: searchForm.taskId,
         });
+        await loadTaskNames(response.items);
+        return response;
       },
     },
     sort: true,
@@ -193,15 +198,52 @@ function formatText(value?: string) {
   return text || '-';
 }
 
+async function loadTaskNames(logs: AdminTaskLogRow[]) {
+  const taskIds = [
+    ...new Set(
+      logs
+        .map((item) => item.taskId)
+        .filter((item): item is number => item !== undefined),
+    ),
+  ];
+
+  if (taskIds.length === 0) {
+    taskNameMap.value = {};
+    return;
+  }
+
+  const response = await getAdminList<taskservicev1_ListTaskResponse>(
+    '/admin/v1/tasks',
+    toPagingRequest({
+      conditions: [{ field: 'id', op: 'IN', values: taskIds }],
+      page: 1,
+      pageSize: taskIds.length,
+      sorting: [{ direction: 'ASC', field: 'id' }],
+    }),
+  );
+
+  const nextMap: Record<number, string> = {};
+  for (const item of response.items ?? []) {
+    if (typeof item.id === 'number' && item.taskName?.trim()) {
+      nextMap[item.id] = item.taskName.trim();
+    }
+  }
+  taskNameMap.value = nextMap;
+}
+
 function getTaskDisplayName(log?: AdminTaskLogRow) {
-  const taskName = log?.taskName?.trim();
+  const taskId = log?.taskId;
+  let taskName = log?.taskName?.trim();
+  if (!taskName && taskId !== undefined) {
+    taskName = taskNameMap.value[taskId];
+  }
   if (taskName) {
     return taskName;
   }
-  if (log?.taskId === undefined) {
+  if (taskId === undefined) {
     return '-';
   }
-  return `#${log.taskId}`;
+  return String(taskId);
 }
 
 function getTaskIdText(log?: AdminTaskLogRow) {
