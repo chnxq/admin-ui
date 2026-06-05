@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { AdminTableColumn } from './shared';
 
-import { computed, onBeforeUnmount, ref, toRef, watch } from 'vue';
+import { computed, ref, toRef, watch } from 'vue';
 
 import { AccessControl } from '@vben/access';
 import { IconifyIcon } from '@vben/icons';
@@ -9,16 +9,7 @@ import { $t } from '@vben/locales';
 import { downloadFileFromBlobPart } from '@vben/utils';
 
 import { useFullscreen } from '@vueuse/core';
-import {
-  Button,
-  Checkbox,
-  Dropdown,
-  Input,
-  Modal,
-  Space,
-  Tag,
-  Tooltip,
-} from 'ant-design-vue';
+import { Button, Checkbox, Dropdown, Space, Tooltip } from 'ant-design-vue';
 
 import {
   buildAdminTableCsv,
@@ -57,10 +48,7 @@ const emit = defineEmits<{
 
 const targetRef = toRef(props, 'fullscreenTarget');
 const checkedColumnKeys = ref<string[]>([]);
-const exportDialogOpen = ref(false);
-const exportFileName = ref('');
-const exportCheckedColumnKeys = ref<string[]>([]);
-const { exit, isFullscreen, toggle } = useFullscreen(targetRef);
+const { isFullscreen, toggle } = useFullscreen(targetRef);
 
 const storageId = computed(() => `admin-table-toolbar:${props.storageKey}`);
 
@@ -90,51 +78,20 @@ const columnOptions = computed(() =>
     ),
 );
 
-const exportRows = computed(() =>
-  flattenAdminTableData(props.dataSource ?? []).map((item) => ({ ...item })),
-);
+const exportColumns = computed(() => {
+  const visibleKeySet = new Set(checkedColumnKeys.value);
 
-const exportColumnOptions = computed(() =>
-  props.columns
-    .map((column) => {
-      const key = getAdminTableColumnKey(column);
-      const title = getAdminTableColumnTitle(column);
-
-      if (!key || !title || key === 'action' || column.exportDisabled) {
-        return undefined;
-      }
-
-      return { column, key, title };
-    })
-    .filter(
-      (
-        item,
-      ): item is {
-        column: AdminTableColumn<any>;
-        key: string;
-        title: string;
-      } => item !== undefined && Boolean(item.key && item.title),
-    ),
-);
-
-const exportSelectedColumns = computed(() => {
-  const selectedKeySet = new Set(exportCheckedColumnKeys.value);
-
-  return exportColumnOptions.value
-    .filter((column) => selectedKeySet.has(column.key))
-    .map((column) => column.column);
+  return props.columns.filter((column) => {
+    const key = getAdminTableColumnKey(column);
+    if (!key || key === 'action' || column.exportDisabled) {
+      return false;
+    }
+    return visibleKeySet.has(key);
+  });
 });
 
-const exportAllChecked = computed(
-  () =>
-    exportColumnOptions.value.length > 0 &&
-    exportCheckedColumnKeys.value.length === exportColumnOptions.value.length,
-);
-
-const exportIndeterminate = computed(
-  () =>
-    exportCheckedColumnKeys.value.length > 0 &&
-    exportCheckedColumnKeys.value.length < exportColumnOptions.value.length,
+const exportRows = computed(() =>
+  flattenAdminTableData(props.dataSource ?? []).map((item) => ({ ...item })),
 );
 
 function arraysEqual(left: string[], right: string[]) {
@@ -214,59 +171,20 @@ function handleColumnToggle(key: string, checked: boolean) {
   emitColumnKeys(sanitizeColumnKeys(nextKeys), true);
 }
 
-function openExportDialog() {
-  if (exportColumnOptions.value.length === 0) {
-    return;
-  }
-
-  exportFileName.value = props.fileName;
-  exportCheckedColumnKeys.value = exportColumnOptions.value.map(
-    (column) => column.key,
-  );
-  exportDialogOpen.value = true;
-}
-
-function handleExportCheckAll(checked: boolean) {
-  exportCheckedColumnKeys.value = checked
-    ? exportColumnOptions.value.map((column) => column.key)
-    : [];
-}
-
-function handleExportCheckAllChange(event: { target: { checked: boolean } }) {
-  handleExportCheckAll(event.target.checked);
-}
-
-function handleExportColumnToggle(key: string) {
-  if (exportCheckedColumnKeys.value.includes(key)) {
-    exportCheckedColumnKeys.value = exportCheckedColumnKeys.value.filter(
-      (item) => item !== key,
-    );
-    return;
-  }
-
-  exportCheckedColumnKeys.value = [...exportCheckedColumnKeys.value, key];
-}
-
 function handleExport() {
-  if (exportSelectedColumns.value.length === 0) {
+  if (exportColumns.value.length === 0) {
     return;
   }
 
-  const csvContent = buildAdminTableCsv(
-    exportSelectedColumns.value,
-    exportRows.value,
-  );
-  const normalizedFileName = exportFileName.value.trim() || props.fileName;
-  const fileName = normalizedFileName.endsWith('.csv')
-    ? normalizedFileName
-    : `${normalizedFileName}.csv`;
+  const csvContent = buildAdminTableCsv(exportColumns.value, exportRows.value);
+  const fileName = props.fileName.endsWith('.csv')
+    ? props.fileName
+    : `${props.fileName}.csv`;
 
   downloadFileFromBlobPart({
     fileName,
     source: new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }),
   });
-
-  exportDialogOpen.value = false;
 }
 
 watch(
@@ -289,12 +207,6 @@ watch(
   },
   { deep: true },
 );
-
-onBeforeUnmount(() => {
-  if (isFullscreen.value) {
-    void exit();
-  }
-});
 </script>
 
 <template>
@@ -307,8 +219,8 @@ onBeforeUnmount(() => {
       <Tooltip :title="$t('ui.tableToolbar.export')">
         <Button
           class="admin-table-toolbar__button"
-          :disabled="exportColumnOptions.length === 0"
-          @click="openExportDialog"
+          :disabled="exportColumns.length === 0"
+          @click="handleExport"
         >
           <template #icon>
             <IconifyIcon icon="lucide:download" />
@@ -319,8 +231,8 @@ onBeforeUnmount(() => {
     <Tooltip v-else :title="$t('ui.tableToolbar.export')">
       <Button
         class="admin-table-toolbar__button"
-        :disabled="exportColumnOptions.length === 0"
-        @click="openExportDialog"
+        :disabled="exportColumns.length === 0"
+        @click="handleExport"
       >
         <template #icon>
           <IconifyIcon icon="lucide:download" />
@@ -392,93 +304,6 @@ onBeforeUnmount(() => {
         </div>
       </template>
     </Dropdown>
-
-    <Modal
-      v-model:open="exportDialogOpen"
-      :cancel-text="$t('common.cancel')"
-      :ok-button-props="{ disabled: exportCheckedColumnKeys.length === 0 }"
-      :ok-text="$t('ui.tableToolbar.export')"
-      :title="$t('ui.tableToolbar.exportDialogTitle')"
-      width="660px"
-      @ok="handleExport"
-    >
-      <div class="admin-table-toolbar__export-panel">
-        <table
-          cellpadding="0"
-          cellspacing="0"
-          class="admin-table-toolbar__export-table"
-        >
-          <tbody>
-            <tr>
-              <td>{{ $t('ui.tableToolbar.exportFileName') }}</td>
-              <td>
-                <Input
-                  v-model:value="exportFileName"
-                  class="admin-table-toolbar__export-input"
-                  :placeholder="$t('ui.tableToolbar.exportFileNamePlaceholder')"
-                />
-              </td>
-            </tr>
-            <tr>
-              <td>{{ $t('ui.tableToolbar.exportFileType') }}</td>
-              <td>
-                <Tag class="admin-table-toolbar__export-type-tag" color="blue">
-                  CSV
-                </Tag>
-              </td>
-            </tr>
-            <tr>
-              <td>{{ $t('ui.tableToolbar.exportColumnsTitle') }}</td>
-              <td>
-                <div class="admin-table-toolbar__export-column-panel">
-                  <div class="admin-table-toolbar__export-column-header">
-                    <Checkbox
-                      :checked="exportAllChecked"
-                      :indeterminate="exportIndeterminate"
-                      @change="handleExportCheckAllChange"
-                    >
-                      {{ $t('ui.tableToolbar.selectAll') }}
-                    </Checkbox>
-                    <span class="admin-table-toolbar__dialog-count">
-                      {{
-                        $t('ui.tableToolbar.exportColumnCount', [
-                          exportCheckedColumnKeys.length,
-                          exportColumnOptions.length,
-                        ])
-                      }}
-                    </span>
-                  </div>
-                  <div class="admin-table-toolbar__export-column-body">
-                    <Checkbox.Group
-                      v-model:value="exportCheckedColumnKeys"
-                      class="admin-table-toolbar__dialog-columns"
-                    >
-                      <div
-                        v-for="column in exportColumnOptions"
-                        :key="column.key"
-                        class="admin-table-toolbar__dialog-column"
-                        :class="[
-                          {
-                            'is-selected': exportCheckedColumnKeys.includes(
-                              column.key,
-                            ),
-                          },
-                        ]"
-                        @click="handleExportColumnToggle(column.key)"
-                      >
-                        <Checkbox :value="column.key" @click.stop>
-                          {{ column.title }}
-                        </Checkbox>
-                      </div>
-                    </Checkbox.Group>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </Modal>
   </Space>
 </template>
 
@@ -508,94 +333,5 @@ onBeforeUnmount(() => {
 
 .admin-table-toolbar__option {
   padding: 4px 12px;
-}
-
-.admin-table-toolbar__export-panel {
-  width: 100%;
-}
-
-.admin-table-toolbar__export-table {
-  width: 100%;
-  table-layout: fixed;
-  border: 0;
-}
-
-.admin-table-toolbar__export-table td {
-  padding: 8px 10px;
-  vertical-align: top;
-}
-
-.admin-table-toolbar__export-table td:first-child {
-  width: 30%;
-  font-weight: 600;
-  color: hsl(var(--foreground));
-  text-align: right;
-}
-
-.admin-table-toolbar__export-table td:last-child {
-  width: 70%;
-}
-
-.admin-table-toolbar__export-input {
-  width: 80%;
-}
-
-.admin-table-toolbar__export-type-tag {
-  margin-inline-end: 0;
-}
-
-.admin-table-toolbar__dialog-count {
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
-}
-
-.admin-table-toolbar__export-column-panel {
-  width: 80%;
-  margin: 3px 0;
-  overflow: hidden;
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-}
-
-.admin-table-toolbar__export-column-header {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: hsl(var(--muted) / 55%);
-  border-bottom: 1px solid hsl(var(--border));
-}
-
-.admin-table-toolbar__export-column-body {
-  min-height: 160px;
-  max-height: 282px;
-  padding: 8px 0;
-  overflow: auto;
-}
-
-.admin-table-toolbar__dialog-columns {
-  display: block;
-}
-
-.admin-table-toolbar__dialog-column {
-  min-width: 0;
-  padding: 4px 16px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.admin-table-toolbar__dialog-column:hover {
-  background: hsl(var(--accent) / 45%);
-}
-
-.admin-table-toolbar__dialog-column.is-selected {
-  color: hsl(var(--foreground));
-  background: hsl(var(--accent) / 65%);
 }
 </style>

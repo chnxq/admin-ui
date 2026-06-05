@@ -123,6 +123,9 @@ const separatorBg = computed(() => {
 const slots: SetupContext['slots'] = useSlots();
 
 const [Form, formApi] = useTableForm({
+  actionLayout: 'rowEnd',
+  actionWrapperClass:
+    'min-w-[168px] flex-nowrap whitespace-nowrap md:justify-end',
   compact: true,
   handleSubmit: async () => {
     const formValues = await formApi.getValues();
@@ -143,12 +146,13 @@ const [Form, formApi] = useTableForm({
     componentProps: {
       class: 'w-full',
     },
+    formItemClass: 'min-w-[180px]',
   },
   showCollapseButton: true,
   submitButtonOptions: {
     content: computed(() => $t('common.search')),
   },
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5',
 });
 
 const showTableTitle = computed(() => {

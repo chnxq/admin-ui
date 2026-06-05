@@ -1,23 +1,15 @@
 <script lang="ts" setup>
-import type {
-  FormInstance,
-  TableColumnsType,
-  TablePaginationConfig,
-} from 'ant-design-vue';
-import type { Rule } from 'ant-design-vue/es/form';
+import type { VbenFormProps } from '@vben/common-ui';
 
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type {
   AdminApi,
   AdminApiSaveInput,
   AdminApiScope,
   AdminApiStatus,
 } from '#/api/admin/apis';
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
@@ -30,12 +22,11 @@ import {
   Modal,
   Popconfirm,
   Select,
-  Space,
-  Table,
   Tag,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   createAdminApiApi,
   deleteAdminApiApi,
@@ -43,13 +34,6 @@ import {
   syncAdminApisApi,
   updateAdminApiApi,
 } from '#/api/admin/apis';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 
 interface AdminApiFormModel extends AdminApiSaveInput {
@@ -59,11 +43,6 @@ interface AdminApiFormModel extends AdminApiSaveInput {
   status: AdminApiStatus;
 }
 
-type AdminApiTableRecord = AdminApi | Record<string, any>;
-type AdminTableChangeSorter = Parameters<
-  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
->[2];
-
 const API_ACCESS = {
   create: ['apis:create'],
   delete: ['apis:delete'],
@@ -71,8 +50,6 @@ const API_ACCESS = {
   export: ['apis:export'],
   sync: ['apis:sync:create'],
 } as const;
-
-const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
 
 const methodOptions = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(
   (value) => ({
@@ -98,111 +75,15 @@ const statusTextMap: Record<AdminApiStatus, string> = {
 
 const scopeTextMap: Record<AdminApiScope, string> = {
   ADMIN: $t('enum.api.scope.ADMIN'),
-  APP: $t('enum.api.scope.APP'),
   API_SCOPE_INVALID: $t('enum.api.scope.API_SCOPE_INVALID'),
+  APP: $t('enum.api.scope.APP'),
 };
 
-const columns: AdminTableColumn<AdminApi>[] = [
-  {
-    dataIndex: 'description',
-    sortable: true,
-    sorter: true,
-    title: $t('page.api.description'),
-    width: 220,
-  },
-  {
-    dataIndex: 'path',
-    sortable: true,
-    sorter: true,
-    title: $t('page.api.path'),
-    width: 260,
-  },
-  {
-    dataIndex: 'method',
-    key: 'method',
-    sortable: true,
-    sorter: true,
-    title: $t('page.api.method'),
-    width: 90,
-  },
-  {
-    dataIndex: 'module',
-    sortable: true,
-    sorter: true,
-    title: $t('page.api.module'),
-    width: 150,
-  },
-  {
-    dataIndex: 'moduleDescription',
-    title: $t('page.api.moduleDescription'),
-    width: 180,
-  },
-  {
-    dataIndex: 'operation',
-    sortable: true,
-    sorter: true,
-    title: $t('page.api.operation'),
-    width: 220,
-  },
-  {
-    dataIndex: 'scope',
-    key: 'scope',
-    sortable: true,
-    sorter: true,
-    title: $t('page.api.scope'),
-    width: 110,
-  },
-  {
-    dataIndex: 'status',
-    key: 'status',
-    sortable: true,
-    sorter: true,
-    title: $t('page.api.status'),
-    width: 90,
-  },
-  {
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    sortField: 'created_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.api.createdAt'),
-    width: 170,
-  },
-  {
-    fixed: 'right',
-    key: 'action',
-    title: $t('ui.table.action'),
-    width: 130,
-  },
-];
-
-const loading = ref(false);
+const syncing = ref(false);
 const modalOpen = ref(false);
 const submitting = ref(false);
-const syncing = ref(false);
 const editingId = ref<number>();
-const formRef = ref<FormInstance>();
-const tableSurfaceRef = ref<HTMLElement>();
-const apis = ref<AdminApi[]>([]);
-const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(columns).filter(
-    (key): key is string => key !== undefined,
-  ),
-);
-
-const searchForm = reactive({
-  method: undefined as string | undefined,
-  module: '',
-  path: '',
-});
-
-const pager = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-});
+const formRef = ref();
 
 const formModel = reactive<AdminApiFormModel>({
   description: '',
@@ -218,46 +99,161 @@ const formModel = reactive<AdminApiFormModel>({
 const modalTitle = computed(() =>
   editingId.value ? $t('page.api.editTitle') : $t('page.api.createTitle'),
 );
-const displayColumns = computed<TableColumnsType<AdminApi>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(columns, sorting.value),
-    visibleColumnKeys.value,
-  ),
-);
-const formRules = computed<Record<string, Rule[]>>(() => ({
-  method: [
-    {
-      message: $t('ui.formRules.selectRequired', [$t('page.api.method')]),
-      required: true,
-    },
-  ],
-  path: [
-    {
-      message: $t('ui.formRules.required', [$t('page.api.path')]),
-      required: true,
-    },
-  ],
-  scope: [
-    {
-      message: $t('ui.formRules.selectRequired', [$t('page.api.scope')]),
-      required: true,
-    },
-  ],
-  status: [
-    {
-      message: $t('ui.formRules.selectRequired', [$t('page.api.status')]),
-      required: true,
-    },
-  ],
-}));
 
-const tablePagination = computed<TablePaginationConfig>(() => ({
-  current: pager.page,
-  pageSize: pager.pageSize,
-  showSizeChanger: true,
-  showTotal: (total) => `${$t('page.api.total')} ${total}`,
-  total: pager.total,
-}));
+const formOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: methodOptions,
+        placeholder: $t('page.api.selectMethod'),
+      },
+      fieldName: 'method',
+      label: $t('page.api.method'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.api.searchModule'),
+      },
+      fieldName: 'module',
+      label: $t('page.api.module'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.api.searchPath'),
+      },
+      fieldName: 'path',
+      label: $t('page.api.path'),
+    },
+  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
+};
+
+const gridOptions: VxeTableGridOptions<AdminApi> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
+  },
+  columns: [
+    {
+      field: 'description',
+      sortable: true,
+      title: $t('page.api.description'),
+      width: 220,
+    },
+    {
+      field: 'path',
+      sortable: true,
+      title: $t('page.api.path'),
+      width: 260,
+    },
+    {
+      field: 'method',
+      slots: { default: 'method' },
+      sortable: true,
+      title: $t('page.api.method'),
+      width: 100,
+    },
+    {
+      field: 'module',
+      sortable: true,
+      title: $t('page.api.module'),
+      width: 150,
+    },
+    {
+      field: 'moduleDescription',
+      title: $t('page.api.moduleDescription'),
+      width: 180,
+    },
+    {
+      field: 'operation',
+      sortable: true,
+      title: $t('page.api.operation'),
+      width: 220,
+    },
+    {
+      field: 'scope',
+      slots: { default: 'scope' },
+      sortable: true,
+      title: $t('page.api.scope'),
+      width: 120,
+    },
+    {
+      field: 'status',
+      slots: { default: 'status' },
+      sortable: true,
+      title: $t('page.api.status'),
+      width: 100,
+    },
+    {
+      field: 'createdAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.api.createdAt'),
+      width: 170,
+    },
+    {
+      field: 'action',
+      fixed: 'right',
+      slots: { default: 'action' },
+      title: $t('ui.table.action'),
+      width: 150,
+    },
+  ],
+  exportConfig: {
+    filename: 'system-apis',
+    type: 'csv',
+  },
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {},
+  proxyConfig: {
+    ajax: {
+      query: async (
+        { page, sort }: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        const sortField = String(sort.field || 'id');
+        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+
+        return await listAdminApisApi({
+          method: formValues.method,
+          module: formValues.module,
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          path: formValues.path,
+          sorting: [
+            {
+              direction,
+              field: sortField === 'createdAt' ? 'created_at' : sortField,
+            },
+          ],
+        });
+      },
+    },
+    sort: true,
+  },
+  rowConfig: {
+    isHover: true,
+  },
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    slots: {
+      toolPrefix: 'toolPrefix',
+    },
+    zoom: true,
+  },
+};
 
 function resetFormModel() {
   Object.assign(formModel, {
@@ -270,10 +266,6 @@ function resetFormModel() {
     scope: 'ADMIN',
     status: 'ON',
   });
-}
-
-function toAdminApi(record: AdminApiTableRecord) {
-  return record as AdminApi;
 }
 
 function formatTime(value?: string) {
@@ -313,51 +305,6 @@ function getScopeText(scope?: AdminApiScope) {
   return scope ? scopeTextMap[scope] : '-';
 }
 
-async function loadApis() {
-  loading.value = true;
-  try {
-    const response = await listAdminApisApi({
-      method: searchForm.method,
-      module: searchForm.module,
-      page: pager.page,
-      pageSize: pager.pageSize,
-      path: searchForm.path,
-      sorting: sorting.value,
-    });
-    apis.value = response.items;
-    pager.total = response.total;
-  } catch (error) {
-    message.error((error as Error).message || $t('page.api.loadFailed'));
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function handleSearch() {
-  pager.page = 1;
-  await loadApis();
-}
-
-async function handleReset() {
-  searchForm.method = undefined;
-  searchForm.module = '';
-  searchForm.path = '';
-  pager.page = 1;
-  sorting.value = [...defaultSorting];
-  await loadApis();
-}
-
-async function handleTableChange(
-  pagination: TablePaginationConfig,
-  _filters: Record<string, any>,
-  sorter: AdminTableChangeSorter,
-) {
-  pager.page = pagination.current ?? 1;
-  pager.pageSize = pagination.pageSize ?? 10;
-  sorting.value = toAdminTableSorting(sorter as any);
-  await loadApis();
-}
-
 async function openCreate() {
   editingId.value = undefined;
   resetFormModel();
@@ -366,23 +313,22 @@ async function openCreate() {
   formRef.value?.clearValidate();
 }
 
-async function openEdit(record: AdminApiTableRecord) {
-  const api = toAdminApi(record);
-  if (!api.id) {
+async function openEdit(record: AdminApi) {
+  if (!record.id) {
     message.warning($t('page.api.missingId'));
     return;
   }
 
-  editingId.value = api.id;
+  editingId.value = record.id;
   Object.assign(formModel, {
-    description: api.description ?? '',
-    method: api.method ?? 'GET',
-    module: api.module ?? '',
-    moduleDescription: api.moduleDescription ?? '',
-    operation: api.operation ?? '',
-    path: api.path ?? '',
-    scope: api.scope ?? 'ADMIN',
-    status: api.status ?? 'ON',
+    description: record.description ?? '',
+    method: record.method ?? 'GET',
+    module: record.module ?? '',
+    moduleDescription: record.moduleDescription ?? '',
+    operation: record.operation ?? '',
+    path: record.path ?? '',
+    scope: record.scope ?? 'ADMIN',
+    status: record.status ?? 'ON',
   });
   modalOpen.value = true;
   await nextTick();
@@ -402,22 +348,21 @@ async function submitApi() {
       message.success($t('page.api.createSuccess'));
     }
     modalOpen.value = false;
-    await loadApis();
+    gridApi.reload();
   } finally {
     submitting.value = false;
   }
 }
 
-async function handleDelete(record: AdminApiTableRecord) {
-  const api = toAdminApi(record);
-  if (!api.id) {
+async function handleDelete(record: AdminApi) {
+  if (!record.id) {
     message.warning($t('page.api.missingId'));
     return;
   }
 
-  await deleteAdminApiApi(api.id);
+  await deleteAdminApiApi(record.id);
   message.success($t('page.api.deleteSuccess'));
-  await loadApis();
+  gridApi.reload();
 }
 
 async function handleSync() {
@@ -425,165 +370,106 @@ async function handleSync() {
   try {
     await syncAdminApisApi();
     message.success($t('page.api.syncSuccess'));
-    pager.page = 1;
-    await loadApis();
+    await gridApi.reload();
   } finally {
     syncing.value = false;
   }
 }
 
-onMounted(() => {
-  loadApis();
+const [Grid, gridApi] = useVbenVxeGrid<AdminApi>({
+  formOptions,
+  gridOptions,
+  gridClass: 'admin-api-grid',
 });
 </script>
 
 <template>
   <Page auto-content-height :title="$t('menu.system.api')">
-    <div ref="tableSurfaceRef" class="admin-api-surface">
-      <div class="admin-api-toolbar">
-        <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item :label="$t('page.api.method')" name="method">
-            <Select
-              v-model:value="searchForm.method"
-              allow-clear
-              :options="methodOptions"
-              :placeholder="$t('page.api.selectMethod')"
-              style="width: 120px"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.api.module')" name="module">
-            <Input
-              v-model:value="searchForm.module"
-              allow-clear
-              :placeholder="$t('page.api.searchModule')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.api.path')" name="path">
-            <Input
-              v-model:value="searchForm.path"
-              allow-clear
-              :placeholder="$t('page.api.searchPath')"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button html-type="submit" type="primary">
+    <Grid :table-title="$t('menu.system.api')">
+      <template #toolPrefix>
+        <div class="admin-api-tool-prefix">
+          <div class="admin-api-tool-prefix__item">
+            <Popconfirm
+              :title="$t('page.api.syncConfirm')"
+              @confirm="handleSync"
+            >
+              <Button v-access:code="API_ACCESS.sync" :loading="syncing">
                 <template #icon>
-                  <IconifyIcon icon="lucide:search" />
+                  <IconifyIcon icon="lucide:refresh-cw" />
                 </template>
-                {{ $t('common.query') }}
+                {{ $t('page.api.syncButton') }}
               </Button>
-              <Button @click="handleReset">
-                <template #icon>
-                  <IconifyIcon icon="lucide:rotate-ccw" />
-                </template>
-                {{ $t('common.reset') }}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-
-        <Space>
-          <AdminTableToolbar
-            v-model:column-keys="visibleColumnKeys"
-            :columns="columns"
-            :export-access-codes="API_ACCESS.export"
-            :data-source="apis"
-            file-name="system-apis"
-            :fullscreen-target="tableSurfaceRef"
-            :refresh="loadApis"
-            storage-key="system-api-list"
-          />
-          <Popconfirm :title="$t('page.api.syncConfirm')" @confirm="handleSync">
-            <Button v-access:code="API_ACCESS.sync" :loading="syncing">
+            </Popconfirm>
+          </div>
+          <div class="admin-api-tool-prefix__item">
+            <Button
+              v-access:code="API_ACCESS.create"
+              type="primary"
+              @click="openCreate"
+            >
               <template #icon>
-                <IconifyIcon icon="lucide:refresh-cw" />
+                <IconifyIcon icon="lucide:plus" />
               </template>
-              {{ $t('page.api.syncButton') }}
+              {{ $t('page.api.createTitle') }}
             </Button>
-          </Popconfirm>
+          </div>
+        </div>
+      </template>
+
+      <template #method="{ row }">
+        <Tag :color="getMethodColor(row.method)">
+          {{ row.method || '-' }}
+        </Tag>
+      </template>
+
+      <template #scope="{ row }">
+        <Tag>{{ getScopeText(row.scope) }}</Tag>
+      </template>
+
+      <template #status="{ row }">
+        <Tag :color="getStatusColor(row.status)">
+          {{ getStatusText(row.status) }}
+        </Tag>
+      </template>
+
+      <template #createdAt="{ row }">
+        {{ formatTime(row.createdAt) }}
+      </template>
+
+      <template #action="{ row }">
+        <Space>
           <Button
-            v-access:code="API_ACCESS.create"
-            type="primary"
-            @click="openCreate"
+            v-access:code="API_ACCESS.edit"
+            size="small"
+            type="link"
+            @click="openEdit(row)"
           >
             <template #icon>
-              <IconifyIcon icon="lucide:plus" />
+              <IconifyIcon icon="lucide:pencil" />
             </template>
-            {{ $t('page.api.createTitle') }}
+            {{ $t('common.edit') }}
           </Button>
+          <Popconfirm
+            :title="
+              $t('ui.actionMessage.deleteConfirm', [$t('page.api.moduleName')])
+            "
+            @confirm="handleDelete(row)"
+          >
+            <Button
+              v-access:code="API_ACCESS.delete"
+              danger
+              size="small"
+              type="link"
+            >
+              <template #icon>
+                <IconifyIcon icon="lucide:trash-2" />
+              </template>
+              {{ $t('common.delete') }}
+            </Button>
+          </Popconfirm>
         </Space>
-      </div>
-
-      <Table
-        class="admin-api-table"
-        :columns="displayColumns"
-        :data-source="apis"
-        :loading="loading"
-        :pagination="tablePagination"
-        row-key="id"
-        size="middle"
-        @change="handleTableChange"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'method'">
-            <Tag :color="getMethodColor(record.method)">
-              {{ record.method || '-' }}
-            </Tag>
-          </template>
-
-          <template v-else-if="column.key === 'scope'">
-            <Tag>{{ getScopeText(record.scope) }}</Tag>
-          </template>
-
-          <template v-else-if="column.key === 'status'">
-            <Tag :color="getStatusColor(record.status)">
-              {{ getStatusText(record.status) }}
-            </Tag>
-          </template>
-
-          <template v-else-if="column.key === 'createdAt'">
-            {{ formatTime(record.createdAt) }}
-          </template>
-
-          <template v-else-if="column.key === 'action'">
-            <Space>
-              <Button
-                v-access:code="API_ACCESS.edit"
-                size="small"
-                type="link"
-                @click="openEdit(record)"
-              >
-                <template #icon>
-                  <IconifyIcon icon="lucide:pencil" />
-                </template>
-                {{ $t('common.edit') }}
-              </Button>
-              <Popconfirm
-                :title="
-                  $t('ui.actionMessage.deleteConfirm', [
-                    $t('page.api.moduleName'),
-                  ])
-                "
-                @confirm="handleDelete(record)"
-              >
-                <Button
-                  v-access:code="API_ACCESS.delete"
-                  danger
-                  size="small"
-                  type="link"
-                >
-                  <template #icon>
-                    <IconifyIcon icon="lucide:trash-2" />
-                  </template>
-                  {{ $t('common.delete') }}
-                </Button>
-              </Popconfirm>
-            </Space>
-          </template>
-        </template>
-      </Table>
-    </div>
+      </template>
+    </Grid>
 
     <Modal
       v-model:open="modalOpen"
@@ -592,19 +478,34 @@ onMounted(() => {
       :title="modalTitle"
       @ok="submitApi"
     >
-      <Form
-        ref="formRef"
-        :model="formModel"
-        :rules="formRules"
-        layout="vertical"
-      >
-        <Form.Item :label="$t('page.api.path')" name="path">
+      <Form ref="formRef" :model="formModel" layout="vertical">
+        <Form.Item
+          :label="$t('page.api.path')"
+          name="path"
+          :rules="[
+            {
+              message: $t('ui.formRules.required', [$t('page.api.path')]),
+              required: true,
+            },
+          ]"
+        >
           <Input
             v-model:value="formModel.path"
             :placeholder="$t('page.api.placeholderPath')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.api.method')" name="method">
+        <Form.Item
+          :label="$t('page.api.method')"
+          name="method"
+          :rules="[
+            {
+              message: $t('ui.formRules.selectRequired', [
+                $t('page.api.method'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Select v-model:value="formModel.method" :options="methodOptions" />
         </Form.Item>
         <Form.Item :label="$t('page.api.description')" name="description">
@@ -634,10 +535,32 @@ onMounted(() => {
             :placeholder="$t('page.api.placeholderOperation')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.api.scope')" name="scope">
+        <Form.Item
+          :label="$t('page.api.scope')"
+          name="scope"
+          :rules="[
+            {
+              message: $t('ui.formRules.selectRequired', [
+                $t('page.api.scope'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Select v-model:value="formModel.scope" :options="scopeOptions" />
         </Form.Item>
-        <Form.Item :label="$t('page.api.status')" name="status">
+        <Form.Item
+          :label="$t('page.api.status')"
+          name="status"
+          :rules="[
+            {
+              message: $t('ui.formRules.selectRequired', [
+                $t('page.api.status'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Select v-model:value="formModel.status" :options="statusOptions" />
         </Form.Item>
       </Form>
@@ -646,38 +569,27 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.admin-api-surface {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 100%;
-  padding: 16px;
-  overflow-y: auto;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-}
-
-.admin-api-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+.admin-api-tool-prefix {
+  display: inline-flex;
+  gap: 8px;
   align-items: center;
-  justify-content: space-between;
+  margin-right: 8px;
 }
 
-.admin-api-table {
-  flex: 1;
-  min-height: 0;
+.admin-api-tool-prefix__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
 }
 
-@media (max-width: 640px) {
-  .admin-api-surface {
-    padding: 12px;
-  }
+.admin-api-tool-prefix :deep(.ant-popconfirm-open),
+.admin-api-tool-prefix :deep(.ant-popover-open) {
+  display: inline-flex;
+  align-items: center;
+}
 
-  .admin-api-toolbar {
-    align-items: stretch;
-  }
+.admin-api-tool-prefix :deep(.ant-btn) {
+  display: inline-flex;
+  align-items: center;
 }
 </style>

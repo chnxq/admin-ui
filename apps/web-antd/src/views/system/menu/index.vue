@@ -1,24 +1,17 @@
 <script lang="ts" setup>
-import type {
-  FormInstance,
-  TableColumnsType,
-  TablePaginationConfig,
-} from 'ant-design-vue';
-import type { Rule } from 'ant-design-vue/es/form';
 import type { SelectValue } from 'ant-design-vue/es/select';
 
+import type { VbenFormProps } from '@vben/common-ui';
+
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type {
   AdminMenu,
   AdminMenuSaveInput,
   AdminMenuStatus,
   AdminMenuType,
 } from '#/api/admin/menus';
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref } from 'vue';
 
 import { IconPicker, Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
@@ -35,12 +28,13 @@ import {
   Popconfirm,
   Select,
   Space,
-  Table,
   Tag,
+  Tooltip,
   TreeSelect,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   createAdminMenuApi,
   deleteAdminMenuApi,
@@ -48,13 +42,6 @@ import {
   syncAdminMenusApi,
   updateAdminMenuApi,
 } from '#/api/admin/menus';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 
 interface AdminMenuFormModel extends Omit<
   AdminMenuSaveInput,
@@ -73,21 +60,18 @@ interface AdminMenuFormModel extends Omit<
   type: AdminMenuType;
 }
 
-type AdminMenuTableRecord = AdminMenu | Record<string, any>;
 type ComponentOption = {
   label: string;
   meta: string;
   value: string;
 };
+
 type MenuTreeOption = {
   children?: MenuTreeOption[];
   label: string;
   subtitle: string;
   value: number;
 };
-type AdminTableChangeSorter = Parameters<
-  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
->[2];
 
 const MENU_ACCESS = {
   create: ['menus:create'],
@@ -102,10 +86,8 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(
-  () => userStore.userInfo?.tenantName || 'XAdmin平台',
+  () => userStore.userInfo?.tenantName || 'XAdmin骞冲彴',
 );
-
-const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
 
 const statusOptions = [
   { label: $t('enum.status.ON'), value: 'ON' },
@@ -135,85 +117,14 @@ const typeTextMap: Record<AdminMenuType, string> = {
 
 const pageComponentMap = import.meta.glob('../../**/*.vue');
 
-const columns: AdminTableColumn<AdminMenu>[] = [
-  {
-    key: 'menu',
-    sortField: 'name',
-    sortable: true,
-    sorter: true,
-    title: $t('page.menu.menu'),
-    width: 260,
-  },
-  {
-    dataIndex: 'path',
-    sortable: true,
-    sorter: true,
-    title: $t('page.menu.path'),
-    width: 180,
-  },
-  {
-    dataIndex: 'component',
-    title: $t('page.menu.component'),
-    width: 240,
-  },
-  {
-    dataIndex: 'type',
-    key: 'type',
-    sortable: true,
-    sorter: true,
-    title: $t('page.menu.type'),
-    width: 100,
-  },
-  {
-    key: 'scope',
-    title: $t('page.tenant.resourceOwnership'),
-    width: 120,
-  },
-  {
-    dataIndex: 'status',
-    key: 'status',
-    sortable: true,
-    sorter: true,
-    title: $t('page.menu.status'),
-    width: 100,
-  },
-  {
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    sortField: 'created_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.menu.createdAt'),
-    width: 170,
-  },
-  {
-    fixed: 'right',
-    key: 'action',
-    title: $t('ui.table.action'),
-    width: 150,
-  },
-];
-
 const loading = ref(false);
 const modalOpen = ref(false);
 const submitting = ref(false);
 const syncing = ref(false);
 const editingId = ref<number>();
-const formRef = ref<FormInstance>();
-const tableSurfaceRef = ref<HTMLElement>();
+const formRef = ref();
 const menuItems = ref<AdminMenu[]>([]);
 const menuTree = ref<AdminMenu[]>([]);
-const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(columns).filter(
-    (key): key is string => key !== undefined,
-  ),
-);
-
-const searchForm = reactive({
-  name: '',
-  path: '',
-});
 
 const formModel = reactive<AdminMenuFormModel>({
   authority: '',
@@ -233,48 +144,11 @@ const formModel = reactive<AdminMenuFormModel>({
 const modalTitle = computed(() =>
   editingId.value ? $t('page.menu.editTitle') : $t('page.menu.createTitle'),
 );
-const displayColumns = computed<TableColumnsType<AdminMenu>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(columns, sorting.value),
-    visibleColumnKeys.value,
-  ),
-);
-const formRules = computed<Record<string, Rule[]>>(() => ({
-  name: [
-    {
-      message: $t('ui.formRules.required', [$t('page.menu.name')]),
-      required: true,
-    },
-  ],
-  path: [
-    {
-      message: $t('ui.formRules.required', [$t('page.menu.path')]),
-      required: true,
-    },
-  ],
-  status: [
-    {
-      message: $t('ui.formRules.selectRequired', [$t('page.menu.status')]),
-      required: true,
-    },
-  ],
-  title: [
-    {
-      message: $t('ui.formRules.required', [$t('page.menu.title')]),
-      required: true,
-    },
-  ],
-  type: [
-    {
-      message: $t('ui.formRules.selectRequired', [$t('page.menu.type')]),
-      required: true,
-    },
-  ],
-}));
 
 const parentTreeOptions = computed<MenuTreeOption[]>(() =>
   buildParentTreeOptions(menuTree.value, editingId.value),
 );
+
 const componentOptions = computed<ComponentOption[]>(() => {
   const existingComponents = menuItems.value
     .map((item) => item.component?.trim())
@@ -292,12 +166,158 @@ const componentOptions = computed<ComponentOption[]>(() => {
       value,
     }));
 });
+
 const componentAutoCompleteOptions = computed(() =>
   componentOptions.value.map((item) => ({
     label: item.label,
     value: item.value,
   })),
 );
+
+const formOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.menu.placeholderSearchName'),
+      },
+      fieldName: 'name',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.menu.name'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.menu.placeholderSearchPath'),
+      },
+      fieldName: 'path',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.menu.path'),
+    },
+  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
+  wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
+};
+
+const gridOptions: VxeTableGridOptions<AdminMenu> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
+  },
+  columns: [
+    {
+      field: 'name',
+      treeNode: true,
+      slots: { default: 'menu' },
+      sortable: true,
+      title: $t('page.menu.menu'),
+      width: 260,
+    },
+    {
+      field: 'path',
+      sortable: true,
+      title: $t('page.menu.path'),
+      width: 180,
+    },
+    {
+      field: 'component',
+      title: $t('page.menu.component'),
+      width: 240,
+    },
+    {
+      field: 'type',
+      slots: { default: 'type' },
+      sortable: true,
+      title: $t('page.menu.type'),
+      width: 100,
+    },
+    {
+      field: 'scope',
+      slots: { default: 'scope' },
+      title: $t('page.tenant.resourceOwnership'),
+      width: 120,
+    },
+    {
+      field: 'status',
+      slots: { default: 'status' },
+      sortable: true,
+      title: $t('page.menu.status'),
+      width: 100,
+    },
+    {
+      field: 'createdAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.menu.createdAt'),
+      width: 170,
+    },
+    {
+      field: 'action',
+      fixed: 'right',
+      slots: { default: 'action' },
+      title: $t('ui.table.action'),
+      width: 220,
+    },
+  ],
+  exportConfig: {
+    filename: 'system-menus',
+    type: 'csv',
+  },
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {
+    enabled: false,
+  },
+  proxyConfig: {
+    ajax: {
+      query: async (
+        _params: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        loading.value = true;
+        try {
+          const response = await listAdminMenusApi({
+            name: formValues.name,
+            path: formValues.path,
+            pageSize: 200,
+            sorting: [{ direction: 'ASC', field: 'id' }],
+          });
+          menuItems.value = response.items;
+          menuTree.value = response.tree;
+          return {
+            items: response.tree,
+            total: response.tree.length,
+          };
+        } finally {
+          loading.value = false;
+        }
+      },
+    },
+    sort: false,
+  },
+  rowConfig: {
+    isHover: true,
+  },
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    slots: {
+      toolPrefix: 'toolPrefix',
+    },
+    zoom: true,
+  },
+  treeConfig: {
+    line: true,
+    rowField: 'id',
+    transform: false,
+  },
+};
 
 function resetFormModel() {
   Object.assign(formModel, {
@@ -314,10 +334,6 @@ function resetFormModel() {
     title: '',
     type: 'MENU',
   });
-}
-
-function toAdminMenu(record: AdminMenuTableRecord) {
-  return record as AdminMenu;
 }
 
 function formatTime(value?: string) {
@@ -340,7 +356,9 @@ function ensurePlatformWritable() {
   if (!isTenantSession.value) {
     return true;
   }
-  message.warning(`租户会话 ${sessionTenantLabel.value} 仅可查看平台菜单`);
+  message.warning(
+    `绉熸埛浼氳瘽 ${sessionTenantLabel.value} 浠呭彲鏌ョ湅骞冲彴鑿滃崟`,
+  );
   return false;
 }
 
@@ -350,6 +368,13 @@ function getDisplayTitle(title?: string) {
     return '-';
   }
   return $te(normalizedTitle) ? $t(normalizedTitle) : normalizedTitle;
+}
+
+function getMenuTooltip(menu: AdminMenu) {
+  return [
+    `${$t('page.menu.name')}：${menu.name || '-'}`,
+    `${$t('page.menu.path')}：${menu.path || '-'}`,
+  ].join('\n');
 }
 
 function buildParentTreeOptions(
@@ -443,53 +468,14 @@ function buildComponentOptionMeta(componentPath: string) {
   return $t('page.menu.componentOptionMetaView');
 }
 
-async function loadMenus() {
-  loading.value = true;
-  try {
-    const response = await listAdminMenusApi({
-      name: searchForm.name,
-      path: searchForm.path,
-      pageSize: 200,
-      sorting: sorting.value,
-    });
-    menuItems.value = response.items;
-    menuTree.value = response.tree;
-  } catch (error) {
-    message.error((error as Error).message || $t('page.menu.loadFailed'));
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function handleSearch() {
-  await loadMenus();
-}
-
-async function handleReset() {
-  searchForm.name = '';
-  searchForm.path = '';
-  sorting.value = [...defaultSorting];
-  await loadMenus();
-}
-
-async function handleTableChange(
-  _pagination: TablePaginationConfig,
-  _filters: Record<string, any>,
-  sorter: AdminTableChangeSorter,
-) {
-  sorting.value = toAdminTableSorting(sorter as any);
-  await loadMenus();
-}
-
-async function openCreate(parent?: AdminMenuTableRecord) {
+async function openCreate(parent?: AdminMenu) {
   if (!ensurePlatformWritable()) {
     return;
   }
   editingId.value = undefined;
   resetFormModel();
-  const menu = parent ? toAdminMenu(parent) : undefined;
-  if (menu?.id) {
-    formModel.parentId = menu.id;
+  if (parent?.id) {
+    formModel.parentId = parent.id;
   }
   syncFormByType(formModel.type);
   modalOpen.value = true;
@@ -497,32 +483,31 @@ async function openCreate(parent?: AdminMenuTableRecord) {
   formRef.value?.clearValidate();
 }
 
-async function openEdit(record: AdminMenuTableRecord) {
+async function openEdit(record: AdminMenu) {
   if (!ensurePlatformWritable()) {
     return;
   }
-  const menu = toAdminMenu(record);
-  if (!menu.id) {
+  if (!record.id) {
     message.warning($t('page.menu.missingId'));
     return;
   }
 
-  editingId.value = menu.id;
+  editingId.value = record.id;
   Object.assign(formModel, {
-    authority: (menu.meta?.authority ?? []).join(','),
-    component: menu.component ?? '',
-    icon: menu.meta?.icon ?? '',
-    ignoreAccess: menu.meta?.ignoreAccess ? 'true' : 'false',
-    menuVisibleWithForbidden: menu.meta?.menuVisibleWithForbidden
+    authority: (record.meta?.authority ?? []).join(','),
+    component: record.component ?? '',
+    icon: record.meta?.icon ?? '',
+    ignoreAccess: record.meta?.ignoreAccess ? 'true' : 'false',
+    menuVisibleWithForbidden: record.meta?.menuVisibleWithForbidden
       ? 'true'
       : 'false',
-    name: menu.name ?? '',
-    parentId: menu.parentId,
-    path: menu.path ?? '',
-    redirect: menu.redirect ?? '',
-    status: menu.status ?? 'ON',
-    title: menu.meta?.title ?? '',
-    type: menu.type ?? 'MENU',
+    name: record.name ?? '',
+    parentId: record.parentId,
+    path: record.path ?? '',
+    redirect: record.redirect ?? '',
+    status: record.status ?? 'ON',
+    title: record.meta?.title ?? '',
+    type: record.type ?? 'MENU',
   });
   formModel.authority = normalizeAuthorityInput(formModel.authority);
   syncFormByType(formModel.type);
@@ -556,25 +541,24 @@ async function submitMenu() {
       message.success($t('page.menu.createSuccess'));
     }
     modalOpen.value = false;
-    await loadMenus();
+    await gridApi.reload();
   } finally {
     submitting.value = false;
   }
 }
 
-async function handleDelete(record: AdminMenuTableRecord) {
+async function handleDelete(record: AdminMenu) {
   if (!ensurePlatformWritable()) {
     return;
   }
-  const menu = toAdminMenu(record);
-  if (!menu.id) {
+  if (!record.id) {
     message.warning($t('page.menu.missingId'));
     return;
   }
 
-  await deleteAdminMenuApi(menu.id);
+  await deleteAdminMenuApi(record.id);
   message.success($t('page.menu.deleteSuccess'));
-  await loadMenus();
+  await gridApi.reload();
 }
 
 async function handleSync() {
@@ -585,191 +569,136 @@ async function handleSync() {
   try {
     await syncAdminMenusApi();
     message.success($t('page.menu.syncSuccess'));
-    await loadMenus();
+    await gridApi.reload();
   } finally {
     syncing.value = false;
   }
 }
 
-onMounted(() => {
-  loadMenus();
+const [Grid, gridApi] = useVbenVxeGrid<AdminMenu>({
+  gridClass: 'admin-menu-grid',
+  gridOptions,
+  formOptions,
 });
 </script>
 
 <template>
   <Page auto-content-height :title="$t('menu.system.menu')">
-    <div ref="tableSurfaceRef" class="admin-menu-surface">
-      <div v-if="isTenantSession" class="tenant-session-banner">
-        <IconifyIcon icon="lucide:building-2" />
-        <span class="tenant-session-banner__text">
-          当前为租户会话
-          {{ sessionTenantLabel }}，菜单属于平台租户，仅支持查看。
-        </span>
-      </div>
+    <div v-if="isTenantSession" class="tenant-session-banner">
+      <IconifyIcon icon="lucide:building-2" />
+      <span class="tenant-session-banner__text">
+        褰撳墠涓虹鎴蜂細璇
+        {{ sessionTenantLabel }}锛岃彍鍗曞睘浜庡钩鍙扮鎴凤紝浠呮敮鎸佹煡鐪嬨
+      </span>
+    </div>
 
-      <div class="admin-menu-toolbar">
-        <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item :label="$t('page.menu.name')" name="name">
-            <Input
-              v-model:value="searchForm.name"
-              allow-clear
-              :placeholder="$t('page.menu.placeholderSearchName')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.menu.path')" name="path">
-            <Input
-              v-model:value="searchForm.path"
-              allow-clear
-              :placeholder="$t('page.menu.placeholderSearchPath')"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button html-type="submit" type="primary">
+    <Grid :table-title="$t('menu.system.menu')">
+      <template #toolPrefix>
+        <div class="admin-menu-tool-prefix">
+          <div class="admin-menu-tool-prefix__item">
+            <Popconfirm
+              :title="$t('page.menu.syncConfirm')"
+              @confirm="handleSync"
+            >
+              <Button v-access:code="MENU_ACCESS.sync" :loading="syncing">
                 <template #icon>
-                  <IconifyIcon icon="lucide:search" />
+                  <IconifyIcon icon="lucide:refresh-cw" />
                 </template>
-                {{ $t('common.query') }}
+                {{ $t('page.menu.syncButton') }}
               </Button>
-              <Button @click="handleReset">
-                <template #icon>
-                  <IconifyIcon icon="lucide:rotate-ccw" />
-                </template>
-                {{ $t('common.reset') }}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-
-        <Space>
-          <AdminTableToolbar
-            v-model:column-keys="visibleColumnKeys"
-            :columns="columns"
-            :export-access-codes="MENU_ACCESS.export"
-            :data-source="menuTree"
-            file-name="system-menus"
-            :fullscreen-target="tableSurfaceRef"
-            :refresh="loadMenus"
-            storage-key="system-menu-list"
-          />
-          <Popconfirm
-            :title="$t('page.menu.syncConfirm')"
-            @confirm="handleSync"
-          >
-            <Button v-access:code="MENU_ACCESS.sync" :loading="syncing">
+            </Popconfirm>
+          </div>
+          <div class="admin-menu-tool-prefix__item">
+            <Button
+              v-access:code="MENU_ACCESS.create"
+              :disabled="isTenantSession"
+              type="primary"
+              @click="openCreate()"
+            >
               <template #icon>
-                <IconifyIcon icon="lucide:refresh-cw" />
+                <IconifyIcon icon="lucide:plus" />
               </template>
-              {{ $t('page.menu.syncButton') }}
+              {{ $t('page.menu.createTitle') }}
             </Button>
-          </Popconfirm>
+          </div>
+        </div>
+      </template>
+
+      <template #menu="{ row }">
+        <Tooltip :title="getMenuTooltip(row)">
+          <span class="menu-main">
+            {{ getDisplayTitle(row.meta?.title) }}
+          </span>
+        </Tooltip>
+      </template>
+
+      <template #type="{ row }">
+        <Tag>{{ getTypeText(row.type) }}</Tag>
+      </template>
+
+      <template #scope>
+        <Tag color="gold">XAdmin骞冲彴</Tag>
+      </template>
+
+      <template #status="{ row }">
+        <Tag :color="getStatusColor(row.status)">
+          {{ getStatusText(row.status) }}
+        </Tag>
+      </template>
+
+      <template #createdAt="{ row }">
+        {{ formatTime(row.createdAt) }}
+      </template>
+
+      <template #action="{ row }">
+        <Space>
           <Button
             v-access:code="MENU_ACCESS.create"
             :disabled="isTenantSession"
-            type="primary"
-            @click="openCreate()"
+            size="small"
+            type="link"
+            @click="openCreate(row)"
           >
             <template #icon>
               <IconifyIcon icon="lucide:plus" />
             </template>
-            {{ $t('page.menu.createTitle') }}
+            {{ $t('page.menu.childMenu') }}
           </Button>
+          <Button
+            v-access:code="MENU_ACCESS.edit"
+            :disabled="isTenantSession"
+            size="small"
+            type="link"
+            @click="openEdit(row)"
+          >
+            <template #icon>
+              <IconifyIcon icon="lucide:pencil" />
+            </template>
+            {{ $t('common.edit') }}
+          </Button>
+          <Popconfirm
+            :disabled="isTenantSession"
+            :title="
+              $t('ui.actionMessage.deleteConfirm', [$t('page.menu.moduleName')])
+            "
+            @confirm="handleDelete(row)"
+          >
+            <Button
+              v-access:code="MENU_ACCESS.delete"
+              danger
+              :disabled="isTenantSession"
+              size="small"
+              type="link"
+            >
+              <template #icon>
+                <IconifyIcon icon="lucide:trash-2" />
+              </template>
+              {{ $t('common.delete') }}
+            </Button>
+          </Popconfirm>
         </Space>
-      </div>
-
-      <Table
-        class="admin-menu-table"
-        :columns="displayColumns"
-        :data-source="menuTree"
-        :loading="loading"
-        :pagination="false"
-        row-key="id"
-        size="middle"
-        @change="handleTableChange"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'menu'">
-            <div class="menu-cell">
-              <span class="menu-main">
-                {{ getDisplayTitle(record.meta?.title) }}
-              </span>
-              <span class="menu-sub">{{
-                record.name || record.path || '-'
-              }}</span>
-            </div>
-          </template>
-
-          <template v-else-if="column.key === 'type'">
-            <Tag>{{ getTypeText(record.type) }}</Tag>
-          </template>
-
-          <template v-else-if="column.key === 'scope'">
-            <Tag color="gold">XAdmin平台</Tag>
-          </template>
-
-          <template v-else-if="column.key === 'status'">
-            <Tag :color="getStatusColor(record.status)">
-              {{ getStatusText(record.status) }}
-            </Tag>
-          </template>
-
-          <template v-else-if="column.key === 'createdAt'">
-            {{ formatTime(record.createdAt) }}
-          </template>
-
-          <template v-else-if="column.key === 'action'">
-            <Space>
-              <Button
-                v-access:code="MENU_ACCESS.create"
-                :disabled="isTenantSession"
-                size="small"
-                type="link"
-                @click="openCreate(record)"
-              >
-                <template #icon>
-                  <IconifyIcon icon="lucide:plus" />
-                </template>
-                {{ $t('page.menu.childMenu') }}
-              </Button>
-              <Button
-                v-access:code="MENU_ACCESS.edit"
-                :disabled="isTenantSession"
-                size="small"
-                type="link"
-                @click="openEdit(record)"
-              >
-                <template #icon>
-                  <IconifyIcon icon="lucide:pencil" />
-                </template>
-                {{ $t('common.edit') }}
-              </Button>
-              <Popconfirm
-                :disabled="isTenantSession"
-                :title="
-                  $t('ui.actionMessage.deleteConfirm', [
-                    $t('page.menu.moduleName'),
-                  ])
-                "
-                @confirm="handleDelete(record)"
-              >
-                <Button
-                  v-access:code="MENU_ACCESS.delete"
-                  danger
-                  :disabled="isTenantSession"
-                  size="small"
-                  type="link"
-                >
-                  <template #icon>
-                    <IconifyIcon icon="lucide:trash-2" />
-                  </template>
-                  {{ $t('common.delete') }}
-                </Button>
-              </Popconfirm>
-            </Space>
-          </template>
-        </template>
-      </Table>
-    </div>
+      </template>
+    </Grid>
 
     <Modal
       v-model:open="modalOpen"
@@ -778,12 +707,7 @@ onMounted(() => {
       :title="modalTitle"
       @ok="submitMenu"
     >
-      <Form
-        ref="formRef"
-        :model="formModel"
-        :rules="formRules"
-        layout="vertical"
-      >
+      <Form ref="formRef" :model="formModel" layout="vertical">
         <Form.Item :label="$t('page.menu.parent')" name="parentId">
           <TreeSelect
             v-model:value="formModel.parentId"
@@ -811,19 +735,46 @@ onMounted(() => {
             {{ $t('page.menu.parentHint') }}
           </div>
         </Form.Item>
-        <Form.Item :label="$t('page.menu.title')" name="title">
+        <Form.Item
+          :label="$t('page.menu.title')"
+          name="title"
+          :rules="[
+            {
+              message: $t('ui.formRules.required', [$t('page.menu.title')]),
+              required: true,
+            },
+          ]"
+        >
           <Input
             v-model:value="formModel.title"
             :placeholder="$t('page.menu.placeholderTitle')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.menu.name')" name="name">
+        <Form.Item
+          :label="$t('page.menu.name')"
+          name="name"
+          :rules="[
+            {
+              message: $t('ui.formRules.required', [$t('page.menu.name')]),
+              required: true,
+            },
+          ]"
+        >
           <Input
             v-model:value="formModel.name"
             :placeholder="$t('page.menu.placeholderName')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.menu.path')" name="path">
+        <Form.Item
+          :label="$t('page.menu.path')"
+          name="path"
+          :rules="[
+            {
+              message: $t('ui.formRules.required', [$t('page.menu.path')]),
+              required: true,
+            },
+          ]"
+        >
           <Input
             v-model:value="formModel.path"
             :placeholder="$t('page.menu.placeholderPath')"
@@ -884,7 +835,18 @@ onMounted(() => {
             {{ $t('page.menu.authorityHint') }}
           </div>
         </Form.Item>
-        <Form.Item :label="$t('page.menu.type')" name="type">
+        <Form.Item
+          :label="$t('page.menu.type')"
+          name="type"
+          :rules="[
+            {
+              message: $t('ui.formRules.selectRequired', [
+                $t('page.menu.type'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Select
             v-model:value="formModel.type"
             :options="typeOptions"
@@ -915,7 +877,18 @@ onMounted(() => {
             ]"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.menu.status')" name="status">
+        <Form.Item
+          :label="$t('page.menu.status')"
+          name="status"
+          :rules="[
+            {
+              message: $t('ui.formRules.selectRequired', [
+                $t('page.menu.status'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Select v-model:value="formModel.status" :options="statusOptions" />
         </Form.Item>
       </Form>
@@ -924,31 +897,12 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.admin-menu-surface {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 100%;
-  padding: 16px;
-  overflow-y: auto;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-}
-
-.admin-menu-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .tenant-session-banner {
   display: flex;
   gap: 10px;
   align-items: center;
   padding: 12px 14px;
+  margin-bottom: 16px;
   background: linear-gradient(
     135deg,
     hsl(var(--primary) / 8%),
@@ -963,27 +917,33 @@ onMounted(() => {
   color: hsl(var(--foreground) / 82%);
 }
 
-.admin-menu-table {
-  flex: 1;
-  min-height: 0;
+.admin-menu-tool-prefix {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-right: 8px;
 }
 
-.menu-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  line-height: 1.4;
-  text-align: left;
+.admin-menu-tool-prefix__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.admin-menu-tool-prefix :deep(.ant-btn),
+.admin-menu-tool-prefix :deep(.ant-popover-open) {
+  display: inline-flex;
+  align-items: center;
 }
 
 .menu-main {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 500;
   color: hsl(var(--foreground));
-}
-
-.menu-sub {
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
 }
 
 .menu-option {
@@ -1008,15 +968,5 @@ onMounted(() => {
   font-size: 12px;
   line-height: 1.5;
   color: hsl(var(--muted-foreground));
-}
-
-@media (max-width: 640px) {
-  .admin-menu-surface {
-    padding: 12px;
-  }
-
-  .admin-menu-toolbar {
-    align-items: stretch;
-  }
 }
 </style>

@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import type {
-  FormInstance,
-  TableColumnsType,
-  TablePaginationConfig,
-  TreeProps,
-} from 'ant-design-vue';
+import type { FormInstance, TreeProps } from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
 
+import type { VbenFormProps } from '@vben/common-ui';
+
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { AdminApi } from '#/api/admin/apis';
 import type { AdminMenu } from '#/api/admin/menus';
 import type {
@@ -17,10 +15,6 @@ import type {
   AdminPermissionSaveInput,
   AdminPermissionStatus,
 } from '#/api/admin/permissions';
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
@@ -38,7 +32,6 @@ import {
   Popconfirm,
   Select,
   Space,
-  Table,
   Tag,
   Tooltip,
   Tree,
@@ -46,6 +39,7 @@ import {
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminApisApi } from '#/api/admin/apis';
 import { listAdminMenusApi } from '#/api/admin/menus';
 import {
@@ -59,13 +53,6 @@ import {
   updateAdminPermissionApi,
   updateAdminPermissionGroupApi,
 } from '#/api/admin/permissions';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 
 interface AdminPermissionFormModel extends AdminPermissionSaveInput {
@@ -95,9 +82,6 @@ type TreeSelectOption = {
   title: string;
   value: number | string;
 };
-type AdminTableChangeSorter = Parameters<
-  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
->[2];
 
 const PERMISSION_ACCESS = {
   create: ['permissions:create'],
@@ -118,8 +102,6 @@ const sessionTenantLabel = computed(
   () => userStore.userInfo?.tenantName || 'XAdmin平台',
 );
 
-const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
-
 const statusOptions = [
   { label: $t('enum.status.ON'), value: 'ON' },
   { label: $t('enum.status.OFF'), value: 'OFF' },
@@ -129,59 +111,6 @@ const statusTextMap: Record<AdminPermissionStatus, string> = {
   OFF: $t('enum.status.OFF'),
   ON: $t('enum.status.ON'),
 };
-
-const columns: AdminTableColumn<AdminPermission>[] = [
-  {
-    key: 'permission',
-    sortField: 'name',
-    sortable: true,
-    sorter: true,
-    title: $t('page.permission.permission'),
-    width: 280,
-  },
-  {
-    dataIndex: 'groupName',
-    key: 'group',
-    sortField: 'group_id',
-    sortable: true,
-    sorter: true,
-    title: $t('page.permission.groupName'),
-    width: 150,
-  },
-  {
-    dataIndex: 'status',
-    key: 'status',
-    sortable: true,
-    sorter: true,
-    title: $t('page.permission.status'),
-    width: 100,
-  },
-  {
-    key: 'scope',
-    title: $t('page.tenant.resourceOwnership'),
-    width: 100,
-  },
-  {
-    key: 'resource',
-    title: $t('page.permission.resource'),
-    width: 160,
-  },
-  {
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    sortField: 'created_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.permission.createdAt'),
-    width: 170,
-  },
-  {
-    fixed: 'right',
-    key: 'action',
-    title: $t('ui.table.action'),
-    width: 150,
-  },
-];
 
 const loading = ref(false);
 const groupLoading = ref(false);
@@ -195,30 +124,11 @@ const editingGroupId = ref<number>();
 const selectedGroupId = ref<number>();
 const formRef = ref<FormInstance>();
 const groupFormRef = ref<FormInstance>();
-const tableSurfaceRef = ref<HTMLElement>();
-const permissions = ref<AdminPermission[]>([]);
 const groups = ref<AdminPermissionGroup[]>([]);
 const groupTree = ref<AdminPermissionGroup[]>([]);
 const menuOptions = ref<AdminMenu[]>([]);
 const apiOptions = ref<AdminApi[]>([]);
 const resourceOptionLoading = ref(false);
-const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(columns).filter(
-    (key): key is string => key !== undefined,
-  ),
-);
-
-const searchForm = reactive({
-  code: '',
-  name: '',
-});
-
-const pager = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-});
 
 const formModel = reactive<AdminPermissionFormModel>({
   apiIds: [],
@@ -260,12 +170,6 @@ const groupModalTitle = computed(() =>
     : $t('page.permission.groupCreateTitle'),
 );
 
-const displayColumns = computed<TableColumnsType<AdminPermission>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(columns, sorting.value),
-    visibleColumnKeys.value,
-  ),
-);
 const formRules = computed<Record<string, Rule[]>>(() => ({
   code: [
     {
@@ -312,13 +216,147 @@ const groupFormRules = computed<Record<string, Rule[]>>(() => ({
   ],
 }));
 
-const tablePagination = computed<TablePaginationConfig>(() => ({
-  current: pager.page,
-  pageSize: pager.pageSize,
-  showSizeChanger: true,
-  showTotal: (total) => `${$t('page.loginAuditLog.total')} ${total}`,
-  total: pager.total,
-}));
+const permissionFormOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.permission.searchName'),
+      },
+      fieldName: 'name',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.permission.name'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.permission.searchCode'),
+      },
+      fieldName: 'code',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.permission.code'),
+    },
+  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
+  wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
+};
+
+const permissionGridOptions: VxeTableGridOptions<AdminPermission> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
+  },
+  columns: [
+    {
+      field: 'name',
+      slots: { default: 'permission' },
+      sortable: true,
+      title: $t('page.permission.permission'),
+      width: 280,
+    },
+    {
+      field: 'groupName',
+      slots: { default: 'group' },
+      sortable: true,
+      title: $t('page.permission.groupName'),
+      width: 150,
+    },
+    {
+      field: 'status',
+      slots: { default: 'status' },
+      sortable: true,
+      title: $t('page.permission.status'),
+      width: 100,
+    },
+    {
+      field: 'scope',
+      slots: { default: 'scope' },
+      title: $t('page.tenant.resourceOwnership'),
+      width: 100,
+    },
+    {
+      field: 'resource',
+      slots: { default: 'resource' },
+      title: $t('page.permission.resource'),
+      width: 160,
+    },
+    {
+      field: 'createdAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.permission.createdAt'),
+      width: 170,
+    },
+    {
+      field: 'action',
+      fixed: 'right',
+      slots: { default: 'action' },
+      title: $t('ui.table.action'),
+      width: 150,
+    },
+  ],
+  exportConfig: {
+    filename: 'permission-list',
+    type: 'csv',
+  },
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {},
+  proxyConfig: {
+    ajax: {
+      query: async (
+        { page, sort }: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        const sortField = String(sort.field || 'id');
+        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+
+        loading.value = true;
+        try {
+          return await listAdminPermissionsApi({
+            code: formValues.code,
+            groupId: selectedGroupId.value,
+            name: formValues.name,
+            page: page.currentPage,
+            pageSize: page.pageSize,
+            sorting: [
+              {
+                direction,
+                field: toPermissionSortField(sortField),
+              },
+            ],
+          });
+        } catch (error) {
+          message.error(
+            (error as Error).message ||
+              $t('page.permission.loadPermissionsFailed'),
+          );
+          throw error;
+        } finally {
+          loading.value = false;
+        }
+      },
+    },
+    sort: true,
+  },
+  rowConfig: {
+    isHover: true,
+  },
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    slots: {
+      toolPrefix: 'toolPrefix',
+    },
+    zoom: true,
+  },
+};
 
 const groupOptions = computed(
   () =>
@@ -352,40 +390,6 @@ const menuTreeSelectData = computed(() =>
 const apiTreeSelectData = computed(() =>
   buildApiTreeSelectData(apiOptions.value),
 );
-
-const menuTitleMap = computed(() => {
-  const map = new Map<number, string>();
-  for (const item of menuOptions.value) {
-    if (item.id === undefined) {
-      continue;
-    }
-    const title =
-      item.meta?.title?.trim() ||
-      item.name?.trim() ||
-      item.path?.trim() ||
-      `#${item.id}`;
-    const subtitle = item.path?.trim();
-    map.set(item.id, subtitle ? `${title} (${subtitle})` : title);
-  }
-  return map;
-});
-
-const apiTitleMap = computed(() => {
-  const map = new Map<number, string>();
-  for (const item of apiOptions.value) {
-    if (item.id === undefined) {
-      continue;
-    }
-    const method = item.method?.trim() || 'API';
-    const path = item.path?.trim() || `#${item.id}`;
-    const operation = item.operation?.trim();
-    map.set(
-      item.id,
-      operation ? `${method} ${path} (${operation})` : `${method} ${path}`,
-    );
-  }
-  return map;
-});
 
 function toTreeNode(
   group: AdminPermissionGroup,
@@ -527,6 +531,20 @@ function formatTime(value?: string) {
   return value ? dayjs(value).format('YYYY-MM-DD HH:mm') : '-';
 }
 
+function toPermissionSortField(sortField: string) {
+  switch (sortField) {
+    case 'createdAt': {
+      return 'created_at';
+    }
+    case 'groupName': {
+      return 'group_id';
+    }
+    default: {
+      return sortField;
+    }
+  }
+}
+
 function getStatusText(status?: AdminPermissionStatus) {
   return status ? statusTextMap[status] : '-';
 }
@@ -535,22 +553,15 @@ function getStatusColor(status?: AdminPermissionStatus) {
   return status === 'ON' ? 'success' : 'error';
 }
 
-function getPermissionBoundMenuTitles(record: PermissionRecord) {
-  const permission = toPermission(record);
-  return (permission.menuIds ?? []).map(
-    (id) => menuTitleMap.value.get(id) || `#${id}`,
-  );
-}
-
-function getPermissionBoundApiTitles(record: PermissionRecord) {
-  const permission = toPermission(record);
-  return (permission.apiIds ?? []).map(
-    (id) => apiTitleMap.value.get(id) || `#${id}`,
-  );
-}
-
 function getPermissionScopeText() {
   return 'XAdmin平台';
+}
+
+function getPermissionTooltip(record: AdminPermission) {
+  return [
+    `${$t('page.permission.code')}：${record.code || '-'}`,
+    `${$t('page.permission.permission')}：${record.name || '-'}`,
+  ].join('\n');
 }
 
 async function loadGroups() {
@@ -569,61 +580,18 @@ async function loadGroups() {
 }
 
 async function loadPermissions() {
-  loading.value = true;
-  try {
-    const response = await listAdminPermissionsApi({
-      code: searchForm.code,
-      groupId: selectedGroupId.value,
-      name: searchForm.name,
-      page: pager.page,
-      pageSize: pager.pageSize,
-      sorting: sorting.value,
-    });
-    permissions.value = response.items;
-    pager.total = response.total;
-  } catch (error) {
-    message.error(
-      (error as Error).message || $t('page.permission.loadPermissionsFailed'),
-    );
-  } finally {
-    loading.value = false;
-  }
+  return await permissionGridApi.reload();
 }
 
 async function refreshAll() {
   await Promise.all([loadGroups(), loadPermissions(), loadResourceOptions()]);
 }
 
-async function handleSearch() {
-  pager.page = 1;
-  await loadPermissions();
-}
-
-async function handleReset() {
-  searchForm.code = '';
-  searchForm.name = '';
-  pager.page = 1;
-  sorting.value = [...defaultSorting];
-  await loadPermissions();
-}
-
-async function handleTableChange(
-  pagination: TablePaginationConfig,
-  _filters: Record<string, any>,
-  sorter: AdminTableChangeSorter,
-) {
-  pager.page = pagination.current ?? 1;
-  pager.pageSize = pagination.pageSize ?? 10;
-  sorting.value = toAdminTableSorting(sorter as any);
-  await loadPermissions();
-}
-
 async function handleTreeSelect(keys: (number | string)[]) {
   const key = keys[0];
   selectedGroupId.value =
     key && key !== 'all' ? Number.parseInt(String(key), 10) : undefined;
-  pager.page = 1;
-  await loadPermissions();
+  await permissionGridApi.reload();
 }
 
 async function openCreate() {
@@ -776,12 +744,17 @@ async function handleDeleteGroup() {
   await deleteAdminPermissionGroupApi(selectedGroupId.value);
   message.success($t('page.permission.groupDeleteSuccess'));
   selectedGroupId.value = undefined;
-  pager.page = 1;
   await refreshAll();
 }
 
 onMounted(() => {
   refreshAll();
+});
+
+const [PermissionGrid, permissionGridApi] = useVbenVxeGrid<AdminPermission>({
+  gridClass: 'admin-permission-grid',
+  gridOptions: permissionGridOptions,
+  formOptions: permissionFormOptions,
 });
 </script>
 
@@ -846,220 +819,124 @@ onMounted(() => {
         />
       </aside>
 
-      <section ref="tableSurfaceRef" class="admin-permission-surface">
+      <section class="admin-permission-surface">
         <div v-if="isTenantSession" class="tenant-session-banner">
           <Tag color="blue">租户会话</Tag>
           <span class="tenant-session-banner__text">
             当前权限定义仅可查看，不可编辑。所属租户：{{ sessionTenantLabel }}
           </span>
         </div>
-        <div class="admin-permission-toolbar">
-          <Form :model="searchForm" layout="inline" @finish="handleSearch">
-            <Form.Item :label="$t('page.permission.name')" name="name">
-              <Input
-                v-model:value="searchForm.name"
-                allow-clear
-                :placeholder="$t('page.permission.searchName')"
-              />
-            </Form.Item>
-            <Form.Item :label="$t('page.permission.code')" name="code">
-              <Input
-                v-model:value="searchForm.code"
-                allow-clear
-                :placeholder="$t('page.permission.searchCode')"
-              />
-            </Form.Item>
-            <Form.Item>
-              <Space>
-                <Button html-type="submit" type="primary">
-                  <template #icon>
-                    <IconifyIcon icon="lucide:search" />
-                  </template>
-                  {{ $t('common.query') }}
-                </Button>
-                <Button @click="handleReset">
-                  <template #icon>
-                    <IconifyIcon icon="lucide:rotate-ccw" />
-                  </template>
-                  {{ $t('common.reset') }}
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-
-          <Space>
-            <AdminTableToolbar
-              v-model:column-keys="visibleColumnKeys"
-              :columns="columns"
-              :export-access-codes="PERMISSION_ACCESS.export"
-              :data-source="permissions"
-              file-name="permission-list"
-              :fullscreen-target="tableSurfaceRef"
-              :refresh="refreshAll"
-              storage-key="permission-list"
-            />
-            <Button
-              v-access:code="PERMISSION_ACCESS.sync"
-              :disabled="isTenantSession"
-              :loading="syncing"
-              @click="handleSync"
-            >
-              <template #icon>
-                <IconifyIcon icon="lucide:refresh-cw" />
-              </template>
-              {{ $t('page.permission.syncButton') }}
-            </Button>
-            <Button
-              v-access:code="PERMISSION_ACCESS.create"
-              :disabled="isTenantSession"
-              type="primary"
-              @click="openCreate"
-            >
-              <template #icon>
-                <IconifyIcon icon="lucide:plus" />
-              </template>
-              {{ $t('page.permission.createTitle') }}
-            </Button>
-          </Space>
-        </div>
-
         <div class="permission-context">
           <span>{{ selectedGroupName }}</span>
         </div>
 
-        <Table
-          class="admin-permission-table"
-          :columns="displayColumns"
-          :data-source="permissions"
-          :loading="loading"
-          :pagination="tablePagination"
-          row-key="id"
-          size="middle"
-          @change="handleTableChange"
+        <PermissionGrid
+          class="admin-permission-grid-shell"
+          :table-title="$t('menu.permission.permission')"
         >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'permission'">
-              <div class="permission-cell">
-                <span class="permission-main">{{ record.name || '-' }}</span>
-                <span class="permission-sub">{{ record.code || '-' }}</span>
-              </div>
-            </template>
+          <template #toolPrefix>
+            <Space class="permission-grid-tools" :size="8">
+              <Button
+                v-access:code="PERMISSION_ACCESS.sync"
+                :disabled="isTenantSession"
+                :loading="syncing"
+                @click="handleSync"
+              >
+                <template #icon>
+                  <IconifyIcon icon="lucide:refresh-cw" />
+                </template>
+                {{ $t('page.permission.syncButton') }}
+              </Button>
+              <Button
+                v-access:code="PERMISSION_ACCESS.create"
+                :disabled="isTenantSession"
+                type="primary"
+                @click="openCreate"
+              >
+                <template #icon>
+                  <IconifyIcon icon="lucide:plus" />
+                </template>
+                {{ $t('page.permission.createTitle') }}
+              </Button>
+            </Space>
+          </template>
 
-            <template v-else-if="column.key === 'group'">
-              {{ record.groupName || '-' }}
-            </template>
+          <template #permission="{ row }">
+            <Tooltip :title="getPermissionTooltip(row)">
+              <span class="permission-main">{{ row.name || '-' }}</span>
+            </Tooltip>
+          </template>
 
-            <template v-else-if="column.key === 'status'">
-              <Tag :color="getStatusColor(record.status)">
-                {{ getStatusText(record.status) }}
+          <template #group="{ row }">
+            {{ row.groupName || '-' }}
+          </template>
+
+          <template #status="{ row }">
+            <Tag :color="getStatusColor(row.status)">
+              {{ getStatusText(row.status) }}
+            </Tag>
+          </template>
+
+          <template #scope>
+            <Tag color="gold">{{ getPermissionScopeText() }}</Tag>
+          </template>
+
+          <template #resource="{ row }">
+            <Space :size="4">
+              <Tag>
+                {{
+                  $t('page.permission.menuResourceCount', {
+                    count: row.menuIds?.length ?? 0,
+                  })
+                }}
               </Tag>
-            </template>
+              <Tag>
+                {{
+                  $t('page.permission.apiResourceCount', {
+                    count: row.apiIds?.length ?? 0,
+                  })
+                }}
+              </Tag>
+            </Space>
+          </template>
 
-            <template v-else-if="column.key === 'scope'">
-              <Tag color="gold">{{ getPermissionScopeText() }}</Tag>
-            </template>
+          <template #createdAt="{ row }">
+            {{ formatTime(row.createdAt) }}
+          </template>
 
-            <template v-else-if="column.key === 'resource'">
-              <Space :size="4">
-                <Tooltip placement="topLeft">
-                  <template #title>
-                    <div>
-                      <div>
-                        {{
-                          $t('page.permission.menuResourceCount', {
-                            count: record.menuIds?.length ?? 0,
-                          })
-                        }}
-                      </div>
-                      <div
-                        v-if="getPermissionBoundMenuTitles(record).length > 0"
-                      >
-                        {{ getPermissionBoundMenuTitles(record).join(' , ') }}
-                      </div>
-                      <div v-else>-</div>
-                    </div>
-                  </template>
-                  <Tag>
-                    {{
-                      $t('page.permission.menuResourceCount', {
-                        count: record.menuIds?.length ?? 0,
-                      })
-                    }}
-                  </Tag>
-                </Tooltip>
-                <Tooltip placement="topLeft">
-                  <template #title>
-                    <div>
-                      <div>
-                        {{
-                          $t('page.permission.apiResourceCount', {
-                            count: record.apiIds?.length ?? 0,
-                          })
-                        }}
-                      </div>
-                      <div
-                        v-if="getPermissionBoundApiTitles(record).length > 0"
-                      >
-                        {{ getPermissionBoundApiTitles(record).join(' , ') }}
-                      </div>
-                      <div v-else>-</div>
-                    </div>
-                  </template>
-                  <Tag>
-                    {{
-                      $t('page.permission.apiResourceCount', {
-                        count: record.apiIds?.length ?? 0,
-                      })
-                    }}
-                  </Tag>
-                </Tooltip>
-              </Space>
-            </template>
-
-            <template v-else-if="column.key === 'createdAt'">
-              {{ formatTime(record.createdAt) }}
-            </template>
-
-            <template v-else-if="column.key === 'action'">
-              <Space>
+          <template #action="{ row }">
+            <Space>
+              <Button
+                v-access:code="PERMISSION_ACCESS.edit"
+                :disabled="isTenantSession"
+                size="small"
+                type="link"
+                @click="openEdit(row)"
+              >
+                {{ $t('common.edit') }}
+              </Button>
+              <Popconfirm
+                :disabled="isTenantSession"
+                :title="
+                  $t('ui.actionMessage.deleteConfirm', [
+                    $t('page.permission.moduleName'),
+                  ])
+                "
+                @confirm="handleDelete(row)"
+              >
                 <Button
-                  v-access:code="PERMISSION_ACCESS.edit"
+                  v-access:code="PERMISSION_ACCESS.delete"
+                  danger
                   :disabled="isTenantSession"
                   size="small"
                   type="link"
-                  @click="openEdit(record)"
                 >
-                  <template #icon>
-                    <IconifyIcon icon="lucide:pencil" />
-                  </template>
-                  {{ $t('common.edit') }}
+                  {{ $t('common.delete') }}
                 </Button>
-                <Popconfirm
-                  :disabled="isTenantSession"
-                  :title="
-                    $t('ui.actionMessage.deleteConfirm', [
-                      $t('page.permission.moduleName'),
-                    ])
-                  "
-                  @confirm="handleDelete(record)"
-                >
-                  <Button
-                    v-access:code="PERMISSION_ACCESS.delete"
-                    danger
-                    :disabled="isTenantSession"
-                    size="small"
-                    type="link"
-                  >
-                    <template #icon>
-                      <IconifyIcon icon="lucide:trash-2" />
-                    </template>
-                    {{ $t('common.delete') }}
-                  </Button>
-                </Popconfirm>
-              </Space>
-            </template>
+              </Popconfirm>
+            </Space>
           </template>
-        </Table>
+        </PermissionGrid>
       </section>
     </div>
 
@@ -1299,6 +1176,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
+  min-height: calc(100vh - 160px);
   overflow-y: auto;
 }
 
@@ -1330,31 +1209,58 @@ onMounted(() => {
 }
 
 .permission-context {
-  font-size: 13px;
-  color: hsl(var(--muted-foreground));
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: hsl(var(--muted) / 18%);
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
 }
 
-.admin-permission-table {
+.permission-context__value {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: hsl(var(--foreground));
+}
+
+.permission-grid-tools {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.admin-permission-grid-shell {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.admin-permission-grid-shell :deep(.vxe-grid) {
+  min-height: 0;
+}
+
+.admin-permission-grid-shell :deep(.vxe-grid--body-wrapper),
+.admin-permission-grid-shell :deep(.vxe-grid--table-wrapper) {
+  min-height: 0;
+}
+
+:deep(.admin-permission-grid) {
   flex: 1;
   min-height: 0;
 }
 
-.permission-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  line-height: 1.4;
-  text-align: left;
-}
-
 .permission-main {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 500;
   color: hsl(var(--foreground));
-}
-
-.permission-sub {
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
 }
 
 .permission-option {

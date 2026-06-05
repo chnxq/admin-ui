@@ -1,17 +1,9 @@
 <script lang="ts" setup>
-import type {
-  FormInstance,
-  TableColumnsType,
-  TablePaginationConfig,
-} from 'ant-design-vue';
-import type { Rule } from 'ant-design-vue/es/form';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
@@ -26,25 +18,17 @@ import {
   Modal,
   Popconfirm,
   Select,
-  Space,
-  Table,
   Tag,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   listAdminInternalMessagesApi,
   revokeAdminInternalMessageApi,
   sendAdminInternalMessageApi,
 } from '#/api/admin/internal-messages';
 import { listAdminUsersApi } from '#/api/admin/users';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 
 type AdminInternalMessage = Awaited<
@@ -55,13 +39,6 @@ type AdminInternalMessageStatus = NonNullable<AdminInternalMessage['status']>;
 type AdminSendInternalMessageInput = Parameters<
   typeof sendAdminInternalMessageApi
 >[0];
-
-type AdminInternalMessageTableRecord =
-  | AdminInternalMessage
-  | Record<string, any>;
-type AdminTableChangeSorter = Parameters<
-  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
->[2];
 
 interface SendFormModel {
   content: string;
@@ -87,107 +64,12 @@ const INTERNAL_MESSAGE_ACCESS = {
   send: ['internal:message:create', 'internal-messages:send'],
 } as const;
 
-const defaultSorting: AdminTableSorting[] = [
-  { direction: 'DESC', field: 'created_at' },
-];
-
-const typeOptions: Array<{ label: string; value: AdminInternalMessageType }> = [
-  { label: $t('page.internalMessage.typeNotification'), value: 'NOTIFICATION' },
-  { label: $t('page.internalMessage.typePrivate'), value: 'PRIVATE' },
-  { label: $t('page.internalMessage.typeGroup'), value: 'GROUP' },
-];
-
-const columns: AdminTableColumn<AdminInternalMessage>[] = [
-  {
-    dataIndex: 'title',
-    key: 'title',
-    sortField: 'title',
-    sortable: true,
-    sorter: true,
-    title: $t('page.internalMessage.title'),
-    width: 220,
-  },
-  {
-    dataIndex: 'content',
-    key: 'content',
-    sortField: 'content',
-    sortable: true,
-    sorter: true,
-    title: $t('page.internalMessage.content'),
-    width: 360,
-  },
-  {
-    dataIndex: 'type',
-    key: 'type',
-    sortField: 'type',
-    sortable: true,
-    sorter: true,
-    title: $t('page.internalMessage.type'),
-    width: 120,
-  },
-  {
-    dataIndex: 'status',
-    key: 'status',
-    sortField: 'status',
-    sortable: true,
-    sorter: true,
-    title: $t('page.internalMessage.status'),
-    width: 120,
-  },
-  {
-    dataIndex: 'senderName',
-    key: 'senderName',
-    title: $t('page.internalMessage.senderName'),
-    width: 150,
-  },
-  {
-    key: 'tenant',
-    title: $t('page.tenant.messageOwnership'),
-    width: 160,
-  },
-  {
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    sortField: 'created_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.internalMessage.createdAt'),
-    width: 170,
-  },
-  {
-    fixed: 'right',
-    key: 'action',
-    title: $t('ui.table.action'),
-    width: 110,
-  },
-];
-
 const { hasAccessByCodes } = useAccess();
-const loading = ref(false);
 const sendModalOpen = ref(false);
 const sending = ref(false);
-const tableSurfaceRef = ref<HTMLElement>();
-const messages = ref<AdminInternalMessage[]>([]);
-const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(columns).filter(
-    (key): key is string => key !== undefined,
-  ),
-);
-const formRef = ref<FormInstance>();
+const formRef = ref();
 const targetUserLoading = ref(false);
 const targetUserOptions = ref<TargetUserOption[]>([]);
-
-const searchForm = reactive({
-  title: '',
-  type: undefined as AdminInternalMessageType | undefined,
-});
-
-const pager = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-});
 
 const sendFormModel = reactive<SendFormModel>({
   content: '',
@@ -197,45 +79,156 @@ const sendFormModel = reactive<SendFormModel>({
   type: 'NOTIFICATION',
 });
 
-const displayColumns = computed<TableColumnsType<AdminInternalMessage>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(columns, sorting.value),
-    visibleColumnKeys.value,
-  ),
-);
+const typeOptions: Array<{ label: string; value: AdminInternalMessageType }> = [
+  { label: $t('page.internalMessage.typeNotification'), value: 'NOTIFICATION' },
+  { label: $t('page.internalMessage.typePrivate'), value: 'PRIVATE' },
+  { label: $t('page.internalMessage.typeGroup'), value: 'GROUP' },
+];
 
-const tablePagination = computed<TablePaginationConfig>(() => ({
-  current: pager.page,
-  pageSize: pager.pageSize,
-  showSizeChanger: true,
-  showTotal: (total) => `${$t('page.internalMessage.total')} ${total}`,
-  total: pager.total,
-}));
+const formOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.internalMessage.searchTitle'),
+      },
+      fieldName: 'title',
+      label: $t('page.internalMessage.title'),
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: typeOptions,
+        placeholder: $t('page.internalMessage.selectType'),
+      },
+      fieldName: 'type',
+      label: $t('page.internalMessage.type'),
+    },
+  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
+};
 
-const formRules = computed<Record<string, Rule[]>>(() => ({
-  content: [
+const gridOptions: VxeTableGridOptions<AdminInternalMessage> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
+  },
+  columns: [
     {
-      message: $t('ui.formRules.required', [
-        $t('page.internalMessage.content'),
-      ]),
-      required: true,
+      field: 'title',
+      sortable: true,
+      title: $t('page.internalMessage.title'),
+      width: 220,
+    },
+    {
+      field: 'content',
+      slots: { default: 'content' },
+      sortable: true,
+      title: $t('page.internalMessage.content'),
+      width: 360,
+    },
+    {
+      field: 'type',
+      slots: { default: 'type' },
+      sortable: true,
+      title: $t('page.internalMessage.type'),
+      width: 120,
+    },
+    {
+      field: 'status',
+      slots: { default: 'status' },
+      sortable: true,
+      title: $t('page.internalMessage.status'),
+      width: 120,
+    },
+    {
+      field: 'senderName',
+      title: $t('page.internalMessage.senderName'),
+      width: 150,
+    },
+    {
+      field: 'tenantName',
+      slots: { default: 'tenant' },
+      title: $t('page.tenant.messageOwnership'),
+      width: 160,
+    },
+    {
+      field: 'createdAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.internalMessage.createdAt'),
+      width: 170,
+    },
+    {
+      field: 'action',
+      fixed: 'right',
+      slots: { default: 'action' },
+      title: $t('ui.table.action'),
+      width: 120,
     },
   ],
-  title: [
-    {
-      message: $t('ui.formRules.required', [$t('page.internalMessage.title')]),
-      required: true,
+  exportConfig: {
+    filename: 'internal-messages',
+    type: 'csv',
+  },
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {},
+  proxyConfig: {
+    ajax: {
+      query: async (
+        { page, sort }: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        const sortField = String(sort.field || 'createdAt');
+        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+
+        const response = await listAdminInternalMessagesApi({
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          sorting: [
+            {
+              direction,
+              field: sortField === 'createdAt' ? 'created_at' : sortField,
+            },
+          ],
+        });
+
+        let items = response.items;
+        const title = String(formValues.title || '').trim();
+        if (title) {
+          items = items.filter((item) => (item.title || '').includes(title));
+        }
+        if (formValues.type) {
+          items = items.filter((item) => item.type === formValues.type);
+        }
+
+        return {
+          items,
+          total: response.total,
+        };
+      },
     },
-  ],
-  type: [
-    {
-      message: $t('ui.formRules.selectRequired', [
-        $t('page.internalMessage.type'),
-      ]),
-      required: true,
+    sort: true,
+  },
+  rowConfig: {
+    isHover: true,
+  },
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: hasAccessByCodes([...INTERNAL_MESSAGE_ACCESS.export]),
+    refresh: true,
+    slots: {
+      toolPrefix: 'toolPrefix',
     },
-  ],
-}));
+    zoom: true,
+  },
+};
 
 function formatTime(value?: string) {
   return value ? dayjs(value).format('YYYY-MM-DD HH:mm') : '-';
@@ -243,10 +236,6 @@ function formatTime(value?: string) {
 
 function getTenantScopeText(record: AdminInternalMessage) {
   return record.tenantName || '-';
-}
-
-function toAdminMessage(record: AdminInternalMessageTableRecord) {
-  return record as AdminInternalMessage;
 }
 
 function getTypeText(type?: AdminInternalMessageType) {
@@ -376,57 +365,6 @@ async function handleTargetUserSearch(value: string) {
   await loadTargetUsers(value.trim());
 }
 
-async function loadMessages() {
-  loading.value = true;
-  try {
-    const response = await listAdminInternalMessagesApi({
-      page: pager.page,
-      pageSize: pager.pageSize,
-      sorting: sorting.value,
-    });
-    let items = response.items;
-    const title = searchForm.title.trim();
-    if (title) {
-      items = items.filter((item) => (item.title || '').includes(title));
-    }
-    if (searchForm.type) {
-      items = items.filter((item) => item.type === searchForm.type);
-    }
-    messages.value = items;
-    pager.total = response.total;
-  } catch (error) {
-    message.error(
-      (error as Error).message || $t('page.internalMessage.loadFailed'),
-    );
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function handleSearch() {
-  pager.page = 1;
-  await loadMessages();
-}
-
-async function handleReset() {
-  searchForm.title = '';
-  searchForm.type = undefined;
-  pager.page = 1;
-  sorting.value = [...defaultSorting];
-  await loadMessages();
-}
-
-async function handleTableChange(
-  pagination: TablePaginationConfig,
-  _filters: Record<string, any>,
-  sorter: AdminTableChangeSorter,
-) {
-  pager.page = pagination.current ?? 1;
-  pager.pageSize = pagination.pageSize ?? 10;
-  sorting.value = toAdminTableSorting(sorter as any);
-  await loadMessages();
-}
-
 async function openSend() {
   resetSendFormModel();
   await loadTargetUsers();
@@ -457,22 +395,20 @@ async function submitSend() {
     await sendAdminInternalMessageApi(payload);
     message.success($t('page.internalMessage.sendSuccess'));
     sendModalOpen.value = false;
-    pager.page = 1;
-    await loadMessages();
+    await gridApi.reload();
   } finally {
     sending.value = false;
   }
 }
 
-async function handleRevoke(record: AdminInternalMessageTableRecord) {
-  const row = toAdminMessage(record);
-  if (!row.id) {
+async function handleRevoke(record: AdminInternalMessage) {
+  if (!record.id) {
     return;
   }
   try {
-    await revokeAdminInternalMessageApi(row.id);
+    await revokeAdminInternalMessageApi(record.id);
     message.success($t('page.internalMessage.revokeSuccess'));
-    await loadMessages();
+    await gridApi.reload();
   } catch (error) {
     const text = (error as Error).message || '';
     if (text.includes('message cannot be revoked after 30 minutes')) {
@@ -497,138 +433,83 @@ async function handleRevoke(record: AdminInternalMessageTableRecord) {
   }
 }
 
-const canSend = computed(() =>
-  hasAccessByCodes([...INTERNAL_MESSAGE_ACCESS.send]),
-);
 const canRevoke = computed(() =>
   hasAccessByCodes([...INTERNAL_MESSAGE_ACCESS.revoke]),
 );
 
-onMounted(() => {
-  loadMessages();
+const [Grid, gridApi] = useVbenVxeGrid<AdminInternalMessage>({
+  formOptions,
+  gridClass: 'admin-internal-message-grid',
+  gridOptions,
 });
 </script>
 
 <template>
   <Page auto-content-height :title="$t('menu.internalMessage.internalMessage')">
-    <div ref="tableSurfaceRef" class="admin-internal-message-surface">
-      <div class="admin-internal-message-toolbar">
-        <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item :label="$t('page.internalMessage.title')" name="title">
-            <Input
-              v-model:value="searchForm.title"
-              allow-clear
-              :placeholder="$t('page.internalMessage.searchTitle')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.internalMessage.type')" name="type">
-            <Select
-              v-model:value="searchForm.type"
-              allow-clear
-              :options="typeOptions"
-              :placeholder="$t('page.internalMessage.selectType')"
-              style="width: 140px"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button html-type="submit" type="primary">
-                <template #icon>
-                  <IconifyIcon icon="lucide:search" />
-                </template>
-                {{ $t('common.query') }}
-              </Button>
-              <Button @click="handleReset">
-                <template #icon>
-                  <IconifyIcon icon="lucide:rotate-ccw" />
-                </template>
-                {{ $t('common.reset') }}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-
-        <Space>
-          <AdminTableToolbar
-            v-model:column-keys="visibleColumnKeys"
-            :columns="columns"
-            :export-access-codes="INTERNAL_MESSAGE_ACCESS.export"
-            :data-source="messages"
-            file-name="internal-messages"
-            :fullscreen-target="tableSurfaceRef"
-            :refresh="loadMessages"
-            storage-key="internal-message-list"
-          />
-          <Button v-if="canSend" type="primary" @click="openSend">
+    <Grid :table-title="$t('menu.internalMessage.internalMessage')">
+      <template #toolPrefix>
+        <div class="admin-internal-message-tool-prefix">
+          <Button
+            v-access:code="INTERNAL_MESSAGE_ACCESS.send"
+            type="primary"
+            @click="openSend"
+          >
             <template #icon>
               <IconifyIcon icon="lucide:send" />
             </template>
             {{ $t('page.internalMessage.sendButton') }}
           </Button>
-        </Space>
-      </div>
+        </div>
+      </template>
 
-      <Table
-        class="admin-internal-message-table"
-        :columns="displayColumns"
-        :data-source="messages"
-        :loading="loading"
-        :pagination="tablePagination"
-        row-key="id"
-        size="middle"
-        @change="handleTableChange"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'content'">
-            <span :title="record.content || ''">
-              {{ record.content || '-' }}
-            </span>
-          </template>
+      <template #content="{ row }">
+        <span :title="row.content || ''">
+          {{ row.content || '-' }}
+        </span>
+      </template>
 
-          <template v-else-if="column.key === 'type'">
-            <Tag :color="getTypeColor(record.type)">
-              {{ getTypeText(record.type) }}
-            </Tag>
-          </template>
+      <template #type="{ row }">
+        <Tag :color="getTypeColor(row.type)">
+          {{ getTypeText(row.type) }}
+        </Tag>
+      </template>
 
-          <template v-else-if="column.key === 'status'">
-            <Tag :color="getStatusColor(record.status)">
-              {{ getStatusText(record.status) }}
-            </Tag>
-          </template>
+      <template #status="{ row }">
+        <Tag :color="getStatusColor(row.status)">
+          {{ getStatusText(row.status) }}
+        </Tag>
+      </template>
 
-          <template v-else-if="column.key === 'tenant'">
-            <Tag :color="record.tenantId ? 'blue' : 'gold'">
-              {{ getTenantScopeText(record) }}
-            </Tag>
-          </template>
+      <template #tenant="{ row }">
+        <Tag :color="row.tenantId ? 'blue' : 'gold'">
+          {{ getTenantScopeText(row) }}
+        </Tag>
+      </template>
 
-          <template v-else-if="column.key === 'createdAt'">
-            {{ formatTime(record.createdAt) }}
-          </template>
+      <template #createdAt="{ row }">
+        {{ formatTime(row.createdAt) }}
+      </template>
 
-          <template v-else-if="column.key === 'action'">
-            <Popconfirm
-              v-if="canRevoke && record.status === 'PUBLISHED'"
-              :title="
-                $t('ui.actionMessage.deleteConfirm', [
-                  $t('page.internalMessage.moduleName'),
-                ])
-              "
-              @confirm="handleRevoke(record)"
-            >
-              <Button danger size="small" type="link">
-                <template #icon>
-                  <IconifyIcon icon="lucide:ban" />
-                </template>
-                {{ $t('page.internalMessage.revokeButton') }}
-              </Button>
-            </Popconfirm>
-            <span v-else>-</span>
-          </template>
-        </template>
-      </Table>
-    </div>
+      <template #action="{ row }">
+        <Popconfirm
+          v-if="canRevoke && row.status === 'PUBLISHED'"
+          :title="
+            $t('ui.actionMessage.deleteConfirm', [
+              $t('page.internalMessage.moduleName'),
+            ])
+          "
+          @confirm="handleRevoke(row)"
+        >
+          <Button danger size="small" type="link">
+            <template #icon>
+              <IconifyIcon icon="lucide:ban" />
+            </template>
+            {{ $t('page.internalMessage.revokeButton') }}
+          </Button>
+        </Popconfirm>
+        <span v-else>-</span>
+      </template>
+    </Grid>
 
     <Modal
       v-model:open="sendModalOpen"
@@ -637,22 +518,50 @@ onMounted(() => {
       :title="$t('page.internalMessage.sendTitle')"
       @ok="submitSend"
     >
-      <Form
-        ref="formRef"
-        :model="sendFormModel"
-        :rules="formRules"
-        layout="vertical"
-      >
-        <Form.Item :label="$t('page.internalMessage.title')" name="title">
+      <Form ref="formRef" :model="sendFormModel" layout="vertical">
+        <Form.Item
+          :label="$t('page.internalMessage.title')"
+          name="title"
+          :rules="[
+            {
+              message: $t('ui.formRules.required', [
+                $t('page.internalMessage.title'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Input
             v-model:value="sendFormModel.title"
             :placeholder="$t('page.internalMessage.placeholderTitle')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.internalMessage.type')" name="type">
+        <Form.Item
+          :label="$t('page.internalMessage.type')"
+          name="type"
+          :rules="[
+            {
+              message: $t('ui.formRules.selectRequired', [
+                $t('page.internalMessage.type'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Select v-model:value="sendFormModel.type" :options="typeOptions" />
         </Form.Item>
-        <Form.Item :label="$t('page.internalMessage.content')" name="content">
+        <Form.Item
+          :label="$t('page.internalMessage.content')"
+          name="content"
+          :rules="[
+            {
+              message: $t('ui.formRules.required', [
+                $t('page.internalMessage.content'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Input.TextArea
             v-model:value="sendFormModel.content"
             :auto-size="{ minRows: 4, maxRows: 8 }"
@@ -692,29 +601,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.admin-internal-message-surface {
+.admin-internal-message-tool-prefix {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 100%;
-  padding: 16px;
-  overflow-y: auto;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-}
-
-.admin-internal-message-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
   align-items: center;
-  justify-content: space-between;
-}
-
-.admin-internal-message-table {
-  flex: 1;
-  min-height: 0;
+  margin-right: 8px;
 }
 
 .message-target-option {
@@ -730,15 +620,5 @@ onMounted(() => {
 .message-target-option__meta {
   font-size: 12px;
   color: hsl(var(--muted-foreground));
-}
-
-@media (max-width: 640px) {
-  .admin-internal-message-surface {
-    padding: 12px;
-  }
-
-  .admin-internal-message-toolbar {
-    align-items: stretch;
-  }
 }
 </style>

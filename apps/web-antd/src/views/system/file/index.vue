@@ -1,20 +1,16 @@
 <script lang="ts" setup>
 import type {
-  FormInstance,
-  TableColumnsType,
-  TablePaginationConfig,
   UploadChangeParam,
   UploadFile,
   UploadProps,
 } from 'ant-design-vue';
 
-import type { AdminFile, AdminFileBrowserInfo } from '#/api/admin/files';
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
+import type { AdminFile, AdminFileBrowserInfo } from '#/api/admin/files';
+
+import { computed, nextTick, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
@@ -29,15 +25,14 @@ import {
   message,
   Modal,
   Popconfirm,
-  Select,
   Space,
-  Table,
   Tag,
   TypographyParagraph,
   Upload,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   deleteAdminFileBinaryApi,
   fetchAdminFileContentApi,
@@ -46,19 +41,7 @@ import {
   listAdminFilesApi,
   uploadAdminFileApi,
 } from '#/api/admin/files';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
-
-type AdminFileTableRecord = AdminFile | Record<string, any>;
-type AdminTableChangeSorter = Parameters<
-  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
->[2];
 
 const FILE_ACCESS = {
   delete: ['files:delete'],
@@ -66,11 +49,6 @@ const FILE_ACCESS = {
   upload: ['files:create'],
   view: ['files:view'],
 } as const;
-
-const defaultSorting: AdminTableSorting[] = [
-  { direction: 'DESC', field: 'created_at' },
-  { direction: 'DESC', field: 'id' },
-];
 
 const extensionOptions = [
   'pdf',
@@ -88,104 +66,13 @@ const extensionOptions = [
   value,
 }));
 
-const columns: AdminTableColumn<AdminFile>[] = [
-  {
-    dataIndex: 'fileName',
-    key: 'fileName',
-    sortField: 'file_name',
-    sortable: true,
-    sorter: true,
-    title: $t('page.file.fileName'),
-    width: 240,
-  },
-  {
-    dataIndex: 'extension',
-    key: 'extension',
-    sortField: 'extension',
-    sortable: true,
-    sorter: true,
-    title: $t('page.file.extension'),
-    width: 100,
-  },
-  {
-    dataIndex: 'bucketName',
-    key: 'bucketName',
-    sortField: 'bucket_name',
-    sortable: true,
-    sorter: true,
-    title: $t('page.file.bucketName'),
-    width: 130,
-  },
-  {
-    dataIndex: 'fileDirectory',
-    key: 'fileDirectory',
-    sortField: 'file_directory',
-    sortable: true,
-    sorter: true,
-    title: $t('page.file.directory'),
-    width: 220,
-  },
-  {
-    dataIndex: 'sizeFormat',
-    key: 'sizeFormat',
-    sortField: 'size',
-    sortable: true,
-    sorter: true,
-    title: $t('page.file.size'),
-    width: 120,
-  },
-  {
-    dataIndex: 'tenantName',
-    key: 'tenantName',
-    title: $t('page.file.owner'),
-    width: 140,
-  },
-  {
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    sortField: 'created_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.file.createdAt'),
-    width: 180,
-  },
-  {
-    fixed: 'right',
-    key: 'action',
-    title: $t('ui.table.action'),
-    width: 190,
-  },
-];
-
-const loading = ref(false);
 const drawerOpen = ref(false);
 const uploadModalOpen = ref(false);
 const uploadSubmitting = ref(false);
-const fileList = ref<AdminFile[]>([]);
 const currentPreview = ref<AdminFileBrowserInfo>();
 const currentPreviewObjectUrl = ref('');
 const previewText = ref('');
-const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(columns).filter(
-    (key): key is string => key !== undefined,
-  ),
-);
-const uploadFormRef = ref<FormInstance>();
-const tableSurfaceRef = ref<HTMLElement>();
-
-const searchForm = reactive({
-  bucketName: '',
-  extension: undefined as string | undefined,
-  fileDirectory: '',
-  fileName: '',
-});
-
-const pager = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-});
+const uploadFormRef = ref();
 
 const uploadForm = reactive({
   bucketName: '',
@@ -205,21 +92,6 @@ const uploadRules = {
     },
   ],
 };
-
-const displayColumns = computed<TableColumnsType<AdminFile>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(columns, sorting.value),
-    visibleColumnKeys.value,
-  ),
-);
-
-const tablePagination = computed<TablePaginationConfig>(() => ({
-  current: pager.page,
-  pageSize: pager.pageSize,
-  showSizeChanger: true,
-  showTotal: (total) => `${$t('page.file.total')} ${total}`,
-  total: pager.total,
-}));
 
 const uploadProps = computed<UploadProps>(() => ({
   beforeUpload: (file) => {
@@ -241,8 +113,183 @@ const previewTitle = computed(
   () => currentPreview.value?.fileName || $t('page.file.previewTitle'),
 );
 
-function toAdminFile(record: AdminFileTableRecord) {
-  return record as AdminFile;
+const formOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.file.placeholderFileName'),
+      },
+      fieldName: 'fileName',
+      label: $t('page.file.fileName'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.file.placeholderDirectory'),
+      },
+      fieldName: 'fileDirectory',
+      label: $t('page.file.directory'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.file.placeholderBucket'),
+      },
+      fieldName: 'bucketName',
+      label: $t('page.file.bucketName'),
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: extensionOptions,
+        placeholder: $t('page.file.placeholderExtension'),
+      },
+      fieldName: 'extension',
+      label: $t('page.file.extension'),
+    },
+  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
+};
+
+const gridOptions: VxeTableGridOptions<AdminFile> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
+  },
+  columns: [
+    {
+      field: 'fileName',
+      sortable: true,
+      title: $t('page.file.fileName'),
+      width: 240,
+    },
+    {
+      field: 'extension',
+      slots: { default: 'extension' },
+      sortable: true,
+      title: $t('page.file.extension'),
+      width: 100,
+    },
+    {
+      field: 'bucketName',
+      sortable: true,
+      title: $t('page.file.bucketName'),
+      width: 130,
+    },
+    {
+      field: 'fileDirectory',
+      sortable: true,
+      title: $t('page.file.directory'),
+      width: 220,
+    },
+    {
+      field: 'sizeFormat',
+      sortable: true,
+      title: $t('page.file.size'),
+      width: 120,
+    },
+    {
+      field: 'tenantName',
+      slots: { default: 'tenantName' },
+      title: $t('page.file.owner'),
+      width: 140,
+    },
+    {
+      field: 'createdAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.file.createdAt'),
+      width: 180,
+    },
+    {
+      field: 'action',
+      fixed: 'right',
+      slots: { default: 'action' },
+      title: $t('ui.table.action'),
+      width: 190,
+    },
+  ],
+  emptyRender: {
+    name: 'NotData',
+  },
+  exportConfig: {
+    filename: 'system-files',
+    type: 'csv',
+  },
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {},
+  proxyConfig: {
+    ajax: {
+      query: async (
+        { page, sort }: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        const sortField = String(sort.field || 'createdAt');
+        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+
+        return await listAdminFilesApi({
+          bucketName: formValues.bucketName,
+          extension: formValues.extension,
+          fileDirectory: formValues.fileDirectory,
+          fileName: formValues.fileName,
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          sorting: [
+            {
+              direction,
+              field: toFileSortField(sortField),
+            },
+            {
+              direction: 'DESC',
+              field: 'id',
+            },
+          ],
+        });
+      },
+    },
+    sort: true,
+  },
+  rowConfig: {
+    isHover: true,
+  },
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    slots: {
+      toolPrefix: 'toolPrefix',
+    },
+    zoom: true,
+  },
+};
+
+function toFileSortField(sortField: string) {
+  switch (sortField) {
+    case 'bucketName': {
+      return 'bucket_name';
+    }
+    case 'createdAt': {
+      return 'created_at';
+    }
+    case 'fileDirectory': {
+      return 'file_directory';
+    }
+    case 'fileName': {
+      return 'file_name';
+    }
+    default: {
+      return sortField;
+    }
+  }
 }
 
 function formatTime(value?: string) {
@@ -264,51 +311,6 @@ function revokeCurrentPreviewObjectUrl() {
 
 function handleUploadChange(info: UploadChangeParam) {
   uploadForm.fileList = info.fileList.slice(-1);
-}
-
-async function loadFiles() {
-  loading.value = true;
-  try {
-    const result = await listAdminFilesApi({
-      bucketName: searchForm.bucketName,
-      extension: searchForm.extension,
-      fileDirectory: searchForm.fileDirectory,
-      fileName: searchForm.fileName,
-      page: pager.page,
-      pageSize: pager.pageSize,
-      sorting: sorting.value,
-    });
-    fileList.value = result.items;
-    pager.total = result.total;
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function handleSearch() {
-  pager.page = 1;
-  await loadFiles();
-}
-
-async function handleReset() {
-  searchForm.bucketName = '';
-  searchForm.extension = undefined;
-  searchForm.fileDirectory = '';
-  searchForm.fileName = '';
-  sorting.value = [...defaultSorting];
-  pager.page = 1;
-  await loadFiles();
-}
-
-async function handleTableChange(
-  pagination: TablePaginationConfig,
-  _filters: Record<string, any>,
-  sorterArg: AdminTableChangeSorter,
-) {
-  pager.page = pagination.current ?? 1;
-  pager.pageSize = pagination.pageSize ?? 10;
-  sorting.value = toAdminTableSorting(sorterArg as any);
-  await loadFiles();
 }
 
 async function openUploadModal() {
@@ -335,8 +337,7 @@ async function submitUpload() {
     });
     message.success($t('page.file.uploadSuccess'));
     uploadModalOpen.value = false;
-    pager.page = 1;
-    await loadFiles();
+    await gridApi.query({ page: 1 });
   } catch (error) {
     message.error((error as Error).message || $t('page.file.uploadFailed'));
   } finally {
@@ -344,12 +345,11 @@ async function submitUpload() {
   }
 }
 
-async function openPreview(record: AdminFileTableRecord) {
-  const file = toAdminFile(record);
-  if (!file.id) {
+async function openPreview(record: AdminFile) {
+  if (!record.id) {
     return;
   }
-  currentPreview.value = await getAdminFileBrowserInfoApi(file.id);
+  currentPreview.value = await getAdminFileBrowserInfoApi(record.id);
   revokeCurrentPreviewObjectUrl();
   previewText.value = '';
   if (
@@ -357,44 +357,38 @@ async function openPreview(record: AdminFileTableRecord) {
     currentPreview.value.previewType === 'drawio' ||
     currentPreview.value.previewType === 'text'
   ) {
-    previewText.value = await fetchAdminFilePreviewTextApi(file.id);
+    previewText.value = await fetchAdminFilePreviewTextApi(record.id);
   } else if (
     currentPreview.value.previewType === 'image' ||
     currentPreview.value.previewType === 'pdf'
   ) {
-    const result = await fetchAdminFileContentApi(file.id, 'preview');
+    const result = await fetchAdminFileContentApi(record.id, 'preview');
     currentPreviewObjectUrl.value = URL.createObjectURL(result.blob);
   }
   drawerOpen.value = true;
 }
 
-async function handleDownload(record: AdminFileTableRecord) {
-  const file = toAdminFile(record);
-  if (!file.id) {
+async function handleDownload(record: AdminFile) {
+  if (!record.id) {
     return;
   }
-  const result = await fetchAdminFileContentApi(file.id, 'download');
+  const result = await fetchAdminFileContentApi(record.id, 'download');
   const objectUrl = URL.createObjectURL(result.blob);
   const anchor = document.createElement('a');
   anchor.href = objectUrl;
-  anchor.download = result.fileName || file.fileName || `file-${file.id}`;
+  anchor.download = result.fileName || record.fileName || `file-${record.id}`;
   anchor.click();
   URL.revokeObjectURL(objectUrl);
 }
 
-async function handleDelete(record: AdminFileTableRecord) {
-  const file = toAdminFile(record);
-  if (!file.id) {
+async function handleDelete(record: AdminFile) {
+  if (!record.id) {
     return;
   }
-  await deleteAdminFileBinaryApi(file.id);
+  await deleteAdminFileBinaryApi(record.id);
   message.success($t('page.file.deleteSuccess'));
-  await loadFiles();
+  await gridApi.reload();
 }
-
-onMounted(() => {
-  loadFiles();
-});
 
 function handlePreviewDrawerClose(open: boolean) {
   drawerOpen.value = open;
@@ -402,11 +396,17 @@ function handlePreviewDrawerClose(open: boolean) {
     revokeCurrentPreviewObjectUrl();
   }
 }
+
+const [Grid, gridApi] = useVbenVxeGrid<AdminFile>({
+  gridClass: 'admin-file-grid',
+  gridOptions,
+  formOptions,
+});
 </script>
 
 <template>
   <Page auto-content-height :title="$t('menu.system.file')">
-    <div ref="tableSurfaceRef" class="file-page">
+    <div class="file-page">
       <div class="file-page__hero">
         <div>
           <div class="file-page__hero-title">
@@ -416,125 +416,66 @@ function handlePreviewDrawerClose(open: boolean) {
         </div>
       </div>
 
-      <div class="file-page__toolbar">
-        <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item :label="$t('page.file.fileName')" name="fileName">
-            <Input
-              v-model:value="searchForm.fileName"
-              allow-clear
-              :placeholder="$t('page.file.placeholderFileName')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.file.directory')" name="fileDirectory">
-            <Input
-              v-model:value="searchForm.fileDirectory"
-              allow-clear
-              :placeholder="$t('page.file.placeholderDirectory')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.file.bucketName')" name="bucketName">
-            <Input
-              v-model:value="searchForm.bucketName"
-              allow-clear
-              :placeholder="$t('page.file.placeholderBucket')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.file.extension')" name="extension">
-            <Select
-              v-model:value="searchForm.extension"
-              allow-clear
-              :options="extensionOptions"
-              :placeholder="$t('page.file.placeholderExtension')"
-              style="width: 120px"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button html-type="submit" type="primary">
-                {{ $t('common.query') }}
-              </Button>
-              <Button @click="handleReset">{{ $t('common.reset') }}</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-
-        <Space class="file-page__toolbar-actions">
-          <AdminTableToolbar
-            v-model:column-keys="visibleColumnKeys"
-            :columns="columns"
-            :data-source="fileList"
-            :export-access-codes="FILE_ACCESS.export"
-            file-name="system-files"
-            :fullscreen-target="tableSurfaceRef"
-            :refresh="loadFiles"
-            storage-key="system-file-list"
-          />
-          <Button
-            v-access:code="FILE_ACCESS.upload"
-            type="primary"
-            @click="openUploadModal"
-          >
-            <template #icon><IconifyIcon icon="lucide:upload" /></template>
-            {{ $t('page.file.uploadButton') }}
-          </Button>
-        </Space>
-      </div>
-
-      <Table
-        :columns="displayColumns"
-        :data-source="fileList"
-        :loading="loading"
-        :pagination="tablePagination"
-        row-key="id"
-        size="middle"
-        @change="handleTableChange"
-      >
-        <template #emptyText>
-          {{ $t('page.file.empty') }}
-        </template>
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'extension'">
-            <Tag>{{ (record.extension || '-').toUpperCase() }}</Tag>
-          </template>
-          <template v-else-if="column.key === 'tenantName'">
-            <Tag :color="record.tenantId ? 'blue' : 'gold'">
-              {{ record.tenantName || $t('page.file.platformOwner') }}
-            </Tag>
-          </template>
-          <template v-else-if="column.key === 'createdAt'">
-            {{ formatTime(record.createdAt) }}
-          </template>
-          <template v-else-if="column.key === 'action'">
-            <Space>
+      <Grid :table-title="$t('menu.system.file')">
+        <template #toolPrefix>
+          <div class="file-page__tool-prefix">
+            <div class="file-page__tool-prefix-item">
               <Button
-                v-access:code="FILE_ACCESS.view"
-                size="small"
-                type="link"
-                @click="openPreview(record)"
+                v-access:code="FILE_ACCESS.upload"
+                type="primary"
+                @click="openUploadModal"
               >
-                {{ $t('page.file.previewButton') }}
+                <template #icon><IconifyIcon icon="lucide:upload" /></template>
+                {{ $t('page.file.uploadButton') }}
               </Button>
-              <Button
-                v-access:code="FILE_ACCESS.view"
-                size="small"
-                type="link"
-                @click="handleDownload(record)"
-              >
-                {{ $t('page.file.downloadButton') }}
-              </Button>
-              <Popconfirm
-                v-access:code="FILE_ACCESS.delete"
-                :title="$t('page.file.deleteConfirm')"
-                @confirm="handleDelete(record)"
-              >
-                <Button danger size="small" type="link">
-                  {{ $t('common.delete') }}
-                </Button>
-              </Popconfirm>
-            </Space>
-          </template>
+            </div>
+          </div>
         </template>
-      </Table>
+
+        <template #extension="{ row }">
+          <Tag>{{ (row.extension || '-').toUpperCase() }}</Tag>
+        </template>
+
+        <template #tenantName="{ row }">
+          <Tag :color="row.tenantId ? 'blue' : 'gold'">
+            {{ row.tenantName || $t('page.file.platformOwner') }}
+          </Tag>
+        </template>
+
+        <template #createdAt="{ row }">
+          {{ formatTime(row.createdAt) }}
+        </template>
+
+        <template #action="{ row }">
+          <Space>
+            <Button
+              v-access:code="FILE_ACCESS.view"
+              size="small"
+              type="link"
+              @click="openPreview(row)"
+            >
+              {{ $t('page.file.previewButton') }}
+            </Button>
+            <Button
+              v-access:code="FILE_ACCESS.view"
+              size="small"
+              type="link"
+              @click="handleDownload(row)"
+            >
+              {{ $t('page.file.downloadButton') }}
+            </Button>
+            <Popconfirm
+              v-access:code="FILE_ACCESS.delete"
+              :title="$t('page.file.deleteConfirm')"
+              @confirm="handleDelete(row)"
+            >
+              <Button danger size="small" type="link">
+                {{ $t('common.delete') }}
+              </Button>
+            </Popconfirm>
+          </Space>
+        </template>
+      </Grid>
     </div>
 
     <Modal
@@ -571,8 +512,9 @@ function handlePreviewDrawerClose(open: boolean) {
             :placeholder="$t('page.file.placeholderBucket')"
           />
           <div class="file-form-help">
-            Bucket 可留空。留空后系统会按文件类型自动选择，如图片进
-            `images`，文档进 `docs`，其它文件进 `files`。
+            Bucket
+            鍙暀绌恒€傜暀绌哄悗绯荤粺浼氭寜鏂囦欢绫诲瀷鑷姩閫夋嫨锛屽鍥剧墖杩
+            `images`锛屾枃妗ｈ繘 `docs`锛屽叾瀹冩枃浠惰繘 `files`銆
           </div>
         </Form.Item>
         <Form.Item :label="$t('page.file.directory')" name="folder">
@@ -581,8 +523,8 @@ function handlePreviewDrawerClose(open: boolean) {
             :placeholder="$t('page.file.placeholderFolderHint')"
           />
           <div class="file-form-help">
-            目录可留空。留空后会自动使用当前平台或租户的默认目录；如需自定义，可输入
-            `project/contracts` 这类相对目录。
+            鐩綍鍙暀绌恒€傜暀绌哄悗浼氳嚜鍔ㄤ娇鐢ㄥ綋鍓嶅钩鍙版垨绉熸埛鐨勯粯璁ょ洰褰曪紱濡傞渶鑷畾涔夛紝鍙緭鍏
+            `project/contracts` 杩欑被鐩稿鐩綍銆
           </div>
         </Form.Item>
       </Form>
@@ -644,7 +586,9 @@ function handlePreviewDrawerClose(open: boolean) {
 .file-page {
   display: grid;
   gap: 16px;
+  min-height: 100%;
   padding: 16px;
+  overflow-y: auto;
   background:
     radial-gradient(
       circle at top left,
@@ -682,17 +626,20 @@ function handlePreviewDrawerClose(open: boolean) {
   color: hsl(var(--muted-foreground));
 }
 
-.file-page__toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+.file-page__tool-prefix {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  margin-right: 8px;
 }
 
-.file-page__toolbar-actions {
-  display: flex;
-  flex-wrap: wrap;
+.file-page__tool-prefix-item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.file-page__tool-prefix :deep(.ant-btn) {
+  display: inline-flex;
   align-items: center;
 }
 
@@ -751,15 +698,9 @@ function handlePreviewDrawerClose(open: boolean) {
     padding: 12px;
   }
 
-  .file-page__hero,
-  .file-page__toolbar {
+  .file-page__hero {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .file-page__toolbar-actions {
-    justify-content: space-between;
-    width: 100%;
   }
 }
 </style>

@@ -1,23 +1,15 @@
 <script lang="ts" setup>
-import type {
-  FormInstance,
-  TableColumnsType,
-  TablePaginationConfig,
-} from 'ant-design-vue';
-import type { Rule } from 'ant-design-vue/es/form';
+import type { VbenFormProps } from '@vben/common-ui';
 
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type {
   AdminOrgUnit,
   AdminOrgUnitSaveInput,
   AdminOrgUnitStatus,
   AdminOrgUnitType,
 } from '#/api/admin/org-units';
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
@@ -33,25 +25,19 @@ import {
   Popconfirm,
   Select,
   Space,
-  Table,
   Tag,
+  Tooltip,
   TreeSelect,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   createAdminOrgUnitApi,
   deleteAdminOrgUnitApi,
   listAdminOrgUnitsApi,
   updateAdminOrgUnitApi,
 } from '#/api/admin/org-units';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 
 interface AdminOrgUnitFormModel extends AdminOrgUnitSaveInput {
@@ -62,10 +48,6 @@ interface AdminOrgUnitFormModel extends AdminOrgUnitSaveInput {
   type: AdminOrgUnitType;
 }
 
-type AdminOrgUnitTableRecord = AdminOrgUnit | Record<string, any>;
-type AdminTableChangeSorter = Parameters<
-  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
->[2];
 type OrgUnitTreeOption = {
   children?: OrgUnitTreeOption[];
   key: number;
@@ -88,10 +70,6 @@ const isTenantSession = computed(
 const sessionTenantLabel = computed(
   () => userStore.userInfo?.tenantName || '-',
 );
-
-const defaultSorting: AdminTableSorting[] = [
-  { direction: 'ASC', field: 'sort_order' },
-];
 
 const statusOptions = [
   { label: $t('enum.status.ON'), value: 'ON' },
@@ -129,87 +107,11 @@ const typeTextMap: Record<AdminOrgUnitType, string> = {
   TEAM: $t('enum.orgUnit.type.TEAM'),
 };
 
-const columns: AdminTableColumn<AdminOrgUnit>[] = [
-  {
-    key: 'orgUnit',
-    sortField: 'name',
-    sortable: true,
-    sorter: true,
-    title: $t('page.orgUnit.orgUnit'),
-    width: 260,
-  },
-  {
-    dataIndex: 'code',
-    sortable: true,
-    sorter: true,
-    title: $t('page.orgUnit.code'),
-    width: 160,
-  },
-  {
-    dataIndex: 'type',
-    key: 'type',
-    sortable: true,
-    sorter: true,
-    title: $t('page.orgUnit.type'),
-    width: 120,
-  },
-  {
-    dataIndex: 'sortOrder',
-    sortField: 'sort_order',
-    sortable: true,
-    sorter: true,
-    title: $t('page.orgUnit.sortOrder'),
-    width: 90,
-  },
-  {
-    dataIndex: 'tenantName',
-    key: 'tenant',
-    sortField: 'tenant_id',
-    sortable: true,
-    sorter: true,
-    title: $t('page.tenant.resourceOwnership'),
-    width: 180,
-  },
-  {
-    dataIndex: 'status',
-    key: 'status',
-    sortable: true,
-    sorter: true,
-    title: $t('page.orgUnit.status'),
-    width: 100,
-  },
-  { dataIndex: 'leaderName', title: $t('page.orgUnit.leaderName'), width: 140 },
-  {
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    sortField: 'created_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.orgUnit.createdAt'),
-    width: 170,
-  },
-  { fixed: 'right', key: 'action', title: $t('ui.table.action'), width: 150 },
-];
-
-const loading = ref(false);
 const modalOpen = ref(false);
 const submitting = ref(false);
 const editingId = ref<number>();
-const formRef = ref<FormInstance>();
-const tableSurfaceRef = ref<HTMLElement>();
-const orgUnits = ref<AdminOrgUnit[]>([]);
+const formRef = ref();
 const orgUnitTree = ref<AdminOrgUnit[]>([]);
-const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(columns).filter(
-    (key): key is string => key !== undefined,
-  ),
-);
-
-const searchForm = reactive({
-  code: '',
-  name: '',
-});
 
 const formModel = reactive<AdminOrgUnitFormModel>({
   address: '',
@@ -230,42 +132,157 @@ const modalTitle = computed(() =>
     ? $t('page.orgUnit.editTitle')
     : $t('page.orgUnit.createTitle'),
 );
-const displayColumns = computed<TableColumnsType<AdminOrgUnit>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(columns, sorting.value),
-    visibleColumnKeys.value,
-  ),
-);
-const formRules: Record<string, Rule[]> = {
-  code: [
-    {
-      message: $t('ui.formRules.required', [$t('page.orgUnit.code')]),
-      required: true,
-    },
-  ],
-  name: [
-    {
-      message: $t('ui.formRules.required', [$t('page.orgUnit.name')]),
-      required: true,
-    },
-  ],
-  status: [
-    {
-      message: $t('ui.formRules.selectRequired', [$t('page.orgUnit.status')]),
-      required: true,
-    },
-  ],
-  type: [
-    {
-      message: $t('ui.formRules.selectRequired', [$t('page.orgUnit.type')]),
-      required: true,
-    },
-  ],
-};
 
 const parentOptions = computed<OrgUnitTreeOption[]>(() =>
   buildParentTreeOptions(orgUnitTree.value, editingId.value),
 );
+
+const formOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.orgUnit.searchName'),
+      },
+      fieldName: 'name',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.orgUnit.name'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.orgUnit.searchCode'),
+      },
+      fieldName: 'code',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.orgUnit.code'),
+    },
+  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
+  wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
+};
+
+const gridOptions: VxeTableGridOptions<AdminOrgUnit> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
+  },
+  columns: [
+    {
+      field: 'name',
+      treeNode: true,
+      slots: { default: 'orgUnit' },
+      sortable: true,
+      title: $t('page.orgUnit.orgUnit'),
+      width: 280,
+    },
+    {
+      field: 'code',
+      sortable: true,
+      title: $t('page.orgUnit.code'),
+      width: 160,
+    },
+    {
+      field: 'type',
+      slots: { default: 'type' },
+      sortable: true,
+      title: $t('page.orgUnit.type'),
+      width: 120,
+    },
+    {
+      field: 'sortOrder',
+      sortable: true,
+      title: $t('page.orgUnit.sortOrder'),
+      width: 90,
+    },
+    {
+      field: 'tenantName',
+      slots: { default: 'tenant' },
+      sortable: true,
+      title: $t('page.tenant.resourceOwnership'),
+      width: 180,
+    },
+    {
+      field: 'status',
+      slots: { default: 'status' },
+      sortable: true,
+      title: $t('page.orgUnit.status'),
+      width: 100,
+    },
+    {
+      field: 'leaderName',
+      title: $t('page.orgUnit.leaderName'),
+      width: 140,
+    },
+    {
+      field: 'createdAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.orgUnit.createdAt'),
+      width: 170,
+    },
+    {
+      field: 'action',
+      fixed: 'right',
+      slots: { default: 'action' },
+      title: $t('ui.table.action'),
+      width: 150,
+    },
+  ],
+  exportConfig: {
+    filename: 'system-org-units',
+    type: 'csv',
+  },
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {
+    enabled: false,
+  },
+  proxyConfig: {
+    ajax: {
+      query: async (
+        _params: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        const result = await listAdminOrgUnitsApi({
+          code: formValues.code,
+          name: formValues.name,
+          page: 1,
+          pageSize: 200,
+          sorting: [{ direction: 'ASC', field: 'sort_order' }],
+        });
+        orgUnitTree.value = result.tree;
+        return {
+          items: result.tree,
+          total: result.tree.length,
+        };
+      },
+    },
+    sort: false,
+  },
+  rowConfig: {
+    isHover: true,
+  },
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    slots: {
+      toolPrefix: 'toolPrefix',
+    },
+    zoom: true,
+  },
+  treeConfig: {
+    line: true,
+    rowField: 'id',
+    transform: false,
+  },
+};
 
 function buildParentTreeOptions(
   items: AdminOrgUnit[],
@@ -307,10 +324,6 @@ function resetFormModel() {
   });
 }
 
-function toAdminOrgUnit(record: AdminOrgUnitTableRecord) {
-  return record as AdminOrgUnit;
-}
-
 function formatTime(value?: string) {
   return value ? dayjs(value).format('YYYY-MM-DD HH:mm') : '-';
 }
@@ -319,46 +332,16 @@ function statusColor(status?: AdminOrgUnitStatus) {
   return status === 'ON' ? 'success' : 'default';
 }
 
-function getOrgUnitScopeText(record: AdminOrgUnitTableRecord) {
-  const orgUnit = toAdminOrgUnit(record);
-  return orgUnit.tenantName || '-';
+function getOrgUnitScopeText(record: AdminOrgUnit) {
+  return record.tenantName || '-';
 }
 
-async function loadOrgUnits() {
-  loading.value = true;
-  try {
-    const result = await listAdminOrgUnitsApi({
-      code: searchForm.code,
-      name: searchForm.name,
-      page: 1,
-      pageSize: 200,
-      sorting: sorting.value,
-    });
-    orgUnits.value = result.items;
-    orgUnitTree.value = result.tree;
-  } finally {
-    loading.value = false;
-  }
-}
-
-function handleSearch() {
-  void loadOrgUnits();
-}
-
-function handleReset() {
-  searchForm.code = '';
-  searchForm.name = '';
-  sorting.value = [...defaultSorting];
-  void loadOrgUnits();
-}
-
-function handleTableChange(
-  _pagination: TablePaginationConfig,
-  _filters: Record<string, any>,
-  sorter: AdminTableChangeSorter,
-) {
-  sorting.value = toAdminTableSorting(sorter as any);
-  void loadOrgUnits();
+function getOrgUnitTooltip(record: AdminOrgUnit) {
+  return [
+    `${$t('page.orgUnit.code')}：${record.code || '-'}`,
+    `${$t('page.orgUnit.name')}：${record.name || '-'}`,
+    `${$t('page.orgUnit.description')}：${record.description || '-'}`,
+  ].join('\n');
 }
 
 async function openCreateModal() {
@@ -369,21 +352,20 @@ async function openCreateModal() {
   formRef.value?.clearValidate();
 }
 
-async function openEditModal(record: AdminOrgUnitTableRecord) {
-  const orgUnit = toAdminOrgUnit(record);
-  editingId.value = orgUnit.id;
+async function openEditModal(record: AdminOrgUnit) {
+  editingId.value = record.id;
   Object.assign(formModel, {
-    address: orgUnit.address ?? '',
-    code: orgUnit.code ?? '',
-    description: orgUnit.description ?? '',
-    email: orgUnit.email ?? '',
-    name: orgUnit.name ?? '',
-    parentId: orgUnit.parentId,
-    phone: orgUnit.phone ?? '',
-    remark: orgUnit.remark ?? '',
-    sortOrder: orgUnit.sortOrder ?? 0,
-    status: orgUnit.status ?? 'ON',
-    type: orgUnit.type ?? 'DEPARTMENT',
+    address: record.address ?? '',
+    code: record.code ?? '',
+    description: record.description ?? '',
+    email: record.email ?? '',
+    name: record.name ?? '',
+    parentId: record.parentId,
+    phone: record.phone ?? '',
+    remark: record.remark ?? '',
+    sortOrder: record.sortOrder ?? 0,
+    status: record.status ?? 'ON',
+    type: record.type ?? 'DEPARTMENT',
   });
   modalOpen.value = true;
   await nextTick();
@@ -402,150 +384,109 @@ async function handleSubmit() {
       message.success($t('page.orgUnit.createSuccess'));
     }
     modalOpen.value = false;
-    await loadOrgUnits();
+    await gridApi.reload();
   } finally {
     submitting.value = false;
   }
 }
 
-async function handleDelete(record: AdminOrgUnitTableRecord) {
-  const orgUnit = toAdminOrgUnit(record);
-  if (!orgUnit.id) {
+async function handleDelete(record: AdminOrgUnit) {
+  if (!record.id) {
     return;
   }
-  await deleteAdminOrgUnitApi(orgUnit.id);
+  await deleteAdminOrgUnitApi(record.id);
   message.success($t('page.orgUnit.deleteSuccess'));
-  await loadOrgUnits();
+  await gridApi.reload();
 }
 
-onMounted(() => {
-  void loadOrgUnits();
+const [Grid, gridApi] = useVbenVxeGrid<AdminOrgUnit>({
+  gridClass: 'admin-org-unit-grid',
+  gridOptions,
+  formOptions,
 });
 </script>
 
 <template>
   <Page auto-content-height :title="$t('menu.system.orgUnit')">
-    <div ref="tableSurfaceRef" class="admin-org-unit-surface">
-      <div v-if="isTenantSession" class="tenant-session-banner">
-        <Tag color="blue">租户会话</Tag>
-        <span class="tenant-session-banner__text">
-          当前组织数据已按租户隔离。所属租户：{{ sessionTenantLabel }}
-        </span>
-      </div>
-      <div class="admin-org-unit-toolbar">
-        <Space wrap>
-          <Input
-            v-model:value="searchForm.name"
-            allow-clear
-            :placeholder="$t('page.orgUnit.searchName')"
-            style="width: 180px"
-            @press-enter="handleSearch"
-          />
-          <Input
-            v-model:value="searchForm.code"
-            allow-clear
-            :placeholder="$t('page.orgUnit.searchCode')"
-            style="width: 180px"
-            @press-enter="handleSearch"
-          />
-          <Button type="primary" @click="handleSearch">
-            <template #icon>
-              <IconifyIcon icon="lucide:search" />
-            </template>
-            {{ $t('common.query') }}
-          </Button>
-          <Button @click="handleReset">
-            <template #icon>
-              <IconifyIcon icon="lucide:rotate-ccw" />
-            </template>
-            {{ $t('common.reset') }}
-          </Button>
-        </Space>
-        <Space>
-          <AdminTableToolbar
-            v-model:column-keys="visibleColumnKeys"
-            :columns="columns"
-            :export-access-codes="ORG_UNIT_ACCESS.export"
-            :data-source="orgUnitTree"
-            file-name="system-org-units"
-            :fullscreen-target="tableSurfaceRef"
-            :refresh="loadOrgUnits"
-            storage-key="system-org-unit-list"
-          />
-          <Button
-            v-access:code="ORG_UNIT_ACCESS.create"
-            type="primary"
-            @click="openCreateModal"
-          >
-            <template #icon>
-              <IconifyIcon icon="lucide:plus" />
-            </template>
-            {{ $t('page.orgUnit.createButton') }}
-          </Button>
-        </Space>
-      </div>
-
-      <Table
-        class="admin-org-unit-table"
-        :columns="displayColumns"
-        :data-source="orgUnitTree"
-        :loading="loading"
-        :pagination="false"
-        :row-key="(record) => record.id ?? record.code ?? record.name"
-        size="middle"
-        @change="handleTableChange"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'orgUnit'">
-            <div class="admin-primary-cell">
-              <span>{{ toAdminOrgUnit(record).name || '-' }}</span>
-              <small>{{ toAdminOrgUnit(record).description || '' }}</small>
-            </div>
-          </template>
-          <template v-else-if="column.key === 'type'">
-            {{ typeTextMap[toAdminOrgUnit(record).type ?? 'OTHER'] }}
-          </template>
-          <template v-else-if="column.key === 'tenant'">
-            <Tag :color="toAdminOrgUnit(record).tenantId ? 'blue' : 'default'">
-              {{ getOrgUnitScopeText(record) }}
-            </Tag>
-          </template>
-          <template v-else-if="column.key === 'status'">
-            <Tag :color="statusColor(toAdminOrgUnit(record).status)">
-              {{ statusTextMap[toAdminOrgUnit(record).status ?? 'OFF'] }}
-            </Tag>
-          </template>
-          <template v-else-if="column.key === 'createdAt'">
-            {{ formatTime(toAdminOrgUnit(record).createdAt) }}
-          </template>
-          <template v-else-if="column.key === 'action'">
-            <Space>
-              <Button
-                v-access:code="ORG_UNIT_ACCESS.edit"
-                size="small"
-                type="link"
-                @click="openEditModal(record)"
-              >
-                {{ $t('common.edit') }}
-              </Button>
-              <Popconfirm
-                v-access:code="ORG_UNIT_ACCESS.delete"
-                :title="
-                  $t('ui.actionMessage.deleteConfirm', [
-                    $t('page.orgUnit.moduleName'),
-                  ])
-                "
-                @confirm="handleDelete(record)"
-              >
-                <Button danger size="small" type="link">
-                  {{ $t('common.delete') }}
-                </Button>
-              </Popconfirm>
-            </Space>
-          </template>
-        </template>
-      </Table>
+    <div v-if="isTenantSession" class="tenant-session-banner">
+      <Tag color="blue">绉熸埛浼氳瘽</Tag>
+      <span class="tenant-session-banner__text">
+        褰撳墠缁勭粐鏁版嵁宸叉寜绉熸埛闅旂銆傛墍灞炵鎴凤細{{
+          sessionTenantLabel
+        }}
+      </span>
     </div>
+
+    <Grid :table-title="$t('menu.system.orgUnit')">
+      <template #toolPrefix>
+        <div class="admin-org-unit-tool-prefix">
+          <div class="admin-org-unit-tool-prefix__item">
+            <Button
+              v-access:code="ORG_UNIT_ACCESS.create"
+              type="primary"
+              @click="openCreateModal"
+            >
+              <template #icon>
+                <IconifyIcon icon="lucide:plus" />
+              </template>
+              {{ $t('page.orgUnit.createButton') }}
+            </Button>
+          </div>
+        </div>
+      </template>
+
+      <template #orgUnit="{ row }">
+        <Tooltip :title="getOrgUnitTooltip(row)">
+          <span class="admin-primary-main">{{ row.name || '-' }}</span>
+        </Tooltip>
+      </template>
+
+      <template #type="{ row }">
+        {{ typeTextMap[row.type ?? 'OTHER'] }}
+      </template>
+
+      <template #tenant="{ row }">
+        <Tag :color="row.tenantId ? 'blue' : 'default'">
+          {{ getOrgUnitScopeText(row) }}
+        </Tag>
+      </template>
+
+      <template #status="{ row }">
+        <Tag :color="statusColor(row.status)">
+          {{ statusTextMap[row.status ?? 'OFF'] }}
+        </Tag>
+      </template>
+
+      <template #createdAt="{ row }">
+        {{ formatTime(row.createdAt) }}
+      </template>
+
+      <template #action="{ row }">
+        <Space>
+          <Button
+            v-access:code="ORG_UNIT_ACCESS.edit"
+            size="small"
+            type="link"
+            @click="openEditModal(row)"
+          >
+            {{ $t('common.edit') }}
+          </Button>
+          <Popconfirm
+            v-access:code="ORG_UNIT_ACCESS.delete"
+            :title="
+              $t('ui.actionMessage.deleteConfirm', [
+                $t('page.orgUnit.moduleName'),
+              ])
+            "
+            @confirm="handleDelete(row)"
+          >
+            <Button danger size="small" type="link">
+              {{ $t('common.delete') }}
+            </Button>
+          </Popconfirm>
+        </Space>
+      </template>
+    </Grid>
 
     <Modal
       v-model:open="modalOpen"
@@ -559,10 +500,18 @@ onMounted(() => {
         ref="formRef"
         :label-col="{ span: 5 }"
         :model="formModel"
-        :rules="formRules"
         autocomplete="off"
       >
-        <Form.Item :label="$t('page.orgUnit.name')" name="name">
+        <Form.Item
+          :label="$t('page.orgUnit.name')"
+          name="name"
+          :rules="[
+            {
+              message: $t('ui.formRules.required', [$t('page.orgUnit.name')]),
+              required: true,
+            },
+          ]"
+        >
           <Input
             v-model:value="formModel.name"
             autocomplete="off"
@@ -570,7 +519,16 @@ onMounted(() => {
             :placeholder="$t('page.orgUnit.placeholderName')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.orgUnit.code')" name="code">
+        <Form.Item
+          :label="$t('page.orgUnit.code')"
+          name="code"
+          :rules="[
+            {
+              message: $t('ui.formRules.required', [$t('page.orgUnit.code')]),
+              required: true,
+            },
+          ]"
+        >
           <Input
             v-model:value="formModel.code"
             autocomplete="off"
@@ -598,10 +556,32 @@ onMounted(() => {
             </template>
           </TreeSelect>
         </Form.Item>
-        <Form.Item :label="$t('page.orgUnit.type')" name="type">
+        <Form.Item
+          :label="$t('page.orgUnit.type')"
+          name="type"
+          :rules="[
+            {
+              message: $t('ui.formRules.selectRequired', [
+                $t('page.orgUnit.type'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Select v-model:value="formModel.type" :options="typeOptions" />
         </Form.Item>
-        <Form.Item :label="$t('page.orgUnit.status')" name="status">
+        <Form.Item
+          :label="$t('page.orgUnit.status')"
+          name="status"
+          :rules="[
+            {
+              message: $t('ui.formRules.selectRequired', [
+                $t('page.orgUnit.status'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Select v-model:value="formModel.status" :options="statusOptions" />
         </Form.Item>
         <Form.Item :label="$t('page.orgUnit.sortOrder')" name="sortOrder">
@@ -651,20 +631,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.admin-org-unit-surface {
-  min-height: 100%;
-  padding: 16px;
-  background: hsl(var(--background));
-}
-
-.admin-org-unit-toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
 .tenant-session-banner {
   display: flex;
   gap: 10px;
@@ -685,18 +651,30 @@ onMounted(() => {
   color: hsl(var(--foreground) / 82%);
 }
 
-.admin-org-unit-table {
-  width: 100%;
+.admin-org-unit-tool-prefix {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
 }
 
-.admin-primary-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.admin-org-unit-tool-prefix__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
 }
 
-.admin-primary-cell small {
-  color: hsl(var(--muted-foreground));
+.admin-org-unit-tool-prefix :deep(.ant-btn) {
+  display: inline-flex;
+  align-items: center;
+}
+
+.admin-primary-main {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .full-input {
@@ -716,16 +694,5 @@ onMounted(() => {
 .org-unit-parent-option__meta {
   font-size: 12px;
   color: hsl(var(--muted-foreground));
-}
-
-@media (max-width: 768px) {
-  .admin-org-unit-surface {
-    padding: 12px;
-  }
-
-  .admin-org-unit-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
 </style>

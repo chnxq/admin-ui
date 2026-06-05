@@ -1,11 +1,9 @@
 <script lang="ts" setup>
-import type {
-  FormInstance,
-  TableColumnsType,
-  TablePaginationConfig,
-} from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
 
+import type { VbenFormProps } from '@vben/common-ui';
+
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { AdminApi } from '#/api/admin/apis';
 import type { AdminMenu } from '#/api/admin/menus';
 import type {
@@ -18,10 +16,6 @@ import type {
   AdminRoleStatus,
   AdminRoleType,
 } from '#/api/admin/roles';
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 
@@ -41,14 +35,15 @@ import {
   Select,
   Space,
   Spin,
-  Table,
   TabPane,
   Tabs,
   Tag,
+  Tooltip,
   Tree,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminApisApi } from '#/api/admin/apis';
 import { listAdminMenusApi } from '#/api/admin/menus';
 import {
@@ -62,13 +57,6 @@ import {
   listAdminRolesApi,
   updateAdminRoleApi,
 } from '#/api/admin/roles';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 
 interface AdminRoleFormModel extends AdminRoleSaveInput {
@@ -79,7 +67,6 @@ interface AdminRoleFormModel extends AdminRoleSaveInput {
   type: AdminRoleType;
 }
 
-type AdminRoleTableRecord = AdminRole | Record<string, any>;
 type PermissionTreeNode = {
   children?: PermissionTreeNode[];
   key: number | string;
@@ -88,9 +75,6 @@ type PermissionTreeNode = {
   title: string;
   value: number | string;
 };
-type AdminTableChangeSorter = Parameters<
-  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
->[2];
 
 const ROLE_ACCESS = {
   authorize: ['roles:edit'],
@@ -107,10 +91,6 @@ const isTenantSession = computed(
 const sessionTenantLabel = computed(
   () => userStore.userInfo?.tenantName || '-',
 );
-
-const defaultSorting: AdminTableSorting[] = [
-  { direction: 'ASC', field: 'sort_order' },
-];
 
 const statusOptions = [
   { label: $t('enum.role.status.ON'), value: 'ON' },
@@ -134,82 +114,13 @@ const typeTextMap: Record<AdminRoleType, string> = {
   TENANT: $t('enum.role.type.TENANT'),
 };
 
-const columns: AdminTableColumn<AdminRole>[] = [
-  {
-    dataIndex: 'id',
-    sortField: 'id',
-    sortable: true,
-    sorter: true,
-    title: $t('page.role.id'),
-    width: 80,
-  },
-  {
-    key: 'role',
-    sortField: 'name',
-    sortable: true,
-    sorter: true,
-    title: $t('page.role.role'),
-    width: 260,
-  },
-  {
-    dataIndex: 'type',
-    key: 'type',
-    sortable: true,
-    sorter: true,
-    title: $t('page.role.type'),
-    width: 120,
-  },
-  {
-    key: 'scope',
-    sortField: 'tenant_id',
-    sortable: true,
-    sorter: true,
-    title: $t('page.tenant.resourceOwnership'),
-    width: 180,
-  },
-  {
-    dataIndex: 'sortOrder',
-    sortField: 'sort_order',
-    sortable: true,
-    sorter: true,
-    title: $t('ui.table.sortOrder'),
-    width: 90,
-  },
-  {
-    dataIndex: 'status',
-    key: 'status',
-    sortable: true,
-    sorter: true,
-    title: $t('page.role.status'),
-    width: 100,
-  },
-  {
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    sortField: 'created_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.role.createdAt'),
-    width: 170,
-  },
-  {
-    fixed: 'right',
-    key: 'action',
-    title: $t('ui.table.action'),
-    width: 220,
-  },
-];
-
-const loading = ref(false);
 const modalOpen = ref(false);
 const authorizeModalOpen = ref(false);
 const submitting = ref(false);
 const authorizeLoading = ref(false);
 const authorizeSubmitting = ref(false);
 const editingId = ref<number>();
-const formRef = ref<FormInstance>();
-const tableSurfaceRef = ref<HTMLElement>();
-const roles = ref<AdminRole[]>([]);
+const formRef = ref();
 const permissionGroups = ref<AdminPermissionGroup[]>([]);
 const permissions = ref<AdminPermission[]>([]);
 const menuOptions = ref<AdminMenu[]>([]);
@@ -219,12 +130,6 @@ const authorizePermissionIds = ref<number[]>([]);
 const permissionOptionLoading = ref(false);
 const resourceOptionLoading = ref(false);
 const authorizeResourcesLoaded = ref(false);
-const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(columns).filter(
-    (key): key is string => key !== undefined,
-  ),
-);
 
 const treeSearchValue = ref('');
 const treeCheckedKeys = ref<Array<number | string>>([]);
@@ -236,17 +141,6 @@ const editTreeSearchValue = ref('');
 const editTreeCheckedKeys = ref<Array<number | string>>([]);
 const editExpandedKeys = ref<Array<number | string>>([]);
 const editAutoExpandParent = ref(true);
-
-const searchForm = reactive({
-  code: '',
-  name: '',
-});
-
-const pager = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-});
 
 const formModel = reactive<AdminRoleFormModel>({
   code: '',
@@ -261,22 +155,12 @@ const formModel = reactive<AdminRoleFormModel>({
 const modalTitle = computed(() =>
   editingId.value ? $t('page.role.editTitle') : $t('page.role.createTitle'),
 );
+
 const authorizeModalTitle = computed(() =>
   authorizeRole.value?.name
-    ? `${$t('page.role.authorizeTitle')} · ${authorizeRole.value.name}`
+    ? `${$t('page.role.authorizeTitle')} 路 ${authorizeRole.value.name}`
     : $t('page.role.authorizeTitle'),
 );
-
-const displayColumns = computed<TableColumnsType<AdminRole>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(columns, sorting.value),
-    visibleColumnKeys.value,
-  ),
-);
-
-function isDefined<T>(value: T | undefined): value is T {
-  return value !== undefined;
-}
 
 const permissionTreeData = computed(() =>
   buildPermissionTree(permissionGroups.value, permissions.value),
@@ -315,7 +199,7 @@ const apiMap = computed(() => {
 const selectedAuthorizePermissions = computed(() =>
   authorizePermissionIds.value
     .map((id) => permissionMap.value.get(id))
-    .filter(isDefined),
+    .filter((value): value is AdminPermission => value !== undefined),
 );
 
 const selectedAuthorizeMenuIds = computed(() =>
@@ -333,13 +217,13 @@ const selectedAuthorizeApiIds = computed(() =>
 const selectedAuthorizeMenus = computed(() =>
   selectedAuthorizeMenuIds.value
     .map((id) => menuMap.value.get(id))
-    .filter(isDefined),
+    .filter((value): value is AdminMenu => value !== undefined),
 );
 
 const selectedAuthorizeApis = computed(() =>
   selectedAuthorizeApiIds.value
     .map((id) => apiMap.value.get(id))
-    .filter(isDefined),
+    .filter((value): value is AdminApi => value !== undefined),
 );
 
 const formRules = computed<Record<string, Rule[]>>(() => ({
@@ -369,13 +253,153 @@ const formRules = computed<Record<string, Rule[]>>(() => ({
   ],
 }));
 
-const tablePagination = computed<TablePaginationConfig>(() => ({
-  current: pager.page,
-  pageSize: pager.pageSize,
-  showSizeChanger: true,
-  showTotal: (total) => `${$t('page.loginAuditLog.total')} ${total}`,
-  total: pager.total,
-}));
+const formOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.role.searchName'),
+      },
+      fieldName: 'name',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.role.name'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.role.searchCode'),
+      },
+      fieldName: 'code',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.role.code'),
+    },
+  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
+  wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
+};
+
+const gridOptions: VxeTableGridOptions<AdminRole> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
+  },
+  columns: [
+    {
+      field: 'name',
+      slots: { default: 'role' },
+      sortable: true,
+      title: $t('page.role.role'),
+      width: 260,
+    },
+    {
+      field: 'type',
+      slots: { default: 'type' },
+      sortable: true,
+      title: $t('page.role.type'),
+      width: 120,
+    },
+    {
+      field: 'scope',
+      slots: { default: 'scope' },
+      sortable: true,
+      title: $t('page.tenant.resourceOwnership'),
+      width: 180,
+    },
+    {
+      field: 'sortOrder',
+      sortable: true,
+      title: $t('ui.table.sortOrder'),
+      width: 90,
+    },
+    {
+      field: 'status',
+      slots: { default: 'status' },
+      sortable: true,
+      title: $t('page.role.status'),
+      width: 100,
+    },
+    {
+      field: 'createdAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.role.createdAt'),
+      width: 170,
+    },
+    {
+      field: 'action',
+      fixed: 'right',
+      slots: { default: 'action' },
+      title: $t('ui.table.action'),
+      width: 220,
+    },
+  ],
+  exportConfig: {
+    filename: 'system-roles',
+    type: 'csv',
+  },
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {},
+  proxyConfig: {
+    ajax: {
+      query: async (
+        { page, sort }: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        const sortField = String(sort.field || 'sortOrder');
+        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+
+        return await listAdminRolesApi({
+          code: formValues.code,
+          name: formValues.name,
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          sorting: [
+            {
+              direction,
+              field: toRoleSortField(sortField),
+            },
+          ],
+        });
+      },
+    },
+    sort: true,
+  },
+  rowConfig: {
+    isHover: true,
+  },
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    slots: {
+      toolPrefix: 'toolPrefix',
+    },
+    zoom: true,
+  },
+};
+
+function toRoleSortField(sortField: string) {
+  switch (sortField) {
+    case 'createdAt': {
+      return 'created_at';
+    }
+    case 'scope': {
+      return 'tenant_id';
+    }
+    case 'sortOrder': {
+      return 'sort_order';
+    }
+    default: {
+      return sortField;
+    }
+  }
+}
 
 function resetFormModel() {
   Object.assign(formModel, {
@@ -395,10 +419,6 @@ function resetAuthorizeState() {
   treeCheckedKeys.value = [];
   treeSearchValue.value = '';
   expandedKeys.value = [];
-}
-
-function toAdminRole(record: AdminRoleTableRecord) {
-  return record as AdminRole;
 }
 
 function toRoleSaveInput(
@@ -439,6 +459,13 @@ function canMutateRole(role: AdminRole) {
 
 function getRoleScopeText(role: AdminRole) {
   return role.tenantName || '-';
+}
+
+function getRoleTooltip(role: AdminRole) {
+  return [
+    `${$t('page.role.code')}：${role.code || '-'}`,
+    `${$t('page.role.role')}：${role.name || '-'}`,
+  ].join('\n');
 }
 
 function uniqueNumbers(values: Array<null | number | undefined>) {
@@ -598,49 +625,6 @@ async function loadAuthorizeResources() {
   }
 }
 
-async function loadRoles() {
-  loading.value = true;
-  try {
-    const response = await listAdminRolesApi({
-      code: searchForm.code,
-      name: searchForm.name,
-      page: pager.page,
-      pageSize: pager.pageSize,
-      sorting: sorting.value,
-    });
-    roles.value = response.items;
-    pager.total = response.total;
-  } catch (error) {
-    message.error((error as Error).message || $t('page.role.loadFailed'));
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function handleSearch() {
-  pager.page = 1;
-  await loadRoles();
-}
-
-async function handleReset() {
-  searchForm.code = '';
-  searchForm.name = '';
-  pager.page = 1;
-  sorting.value = [...defaultSorting];
-  await loadRoles();
-}
-
-async function handleTableChange(
-  pagination: TablePaginationConfig,
-  _filters: Record<string, any>,
-  sorter: AdminTableChangeSorter,
-) {
-  pager.page = pagination.current ?? 1;
-  pager.pageSize = pagination.pageSize ?? 10;
-  sorting.value = toAdminTableSorting(sorter as any);
-  await loadRoles();
-}
-
 async function openCreate() {
   editingId.value = undefined;
   resetFormModel();
@@ -655,19 +639,18 @@ async function openCreate() {
   formRef.value?.clearValidate();
 }
 
-async function openEdit(record: AdminRoleTableRecord) {
-  const role = toAdminRole(record);
-  if (!canMutateRole(role)) {
-    message.warning('租户会话不可编辑全局角色');
+async function openEdit(record: AdminRole) {
+  if (!canMutateRole(record)) {
+    message.warning('绉熸埛浼氳瘽涓嶅彲缂栬緫鍏ㄥ眬瑙掕壊');
     return;
   }
-  if (!role.id) {
+  if (!record.id) {
     message.warning($t('page.role.missingId'));
     return;
   }
 
-  editingId.value = role.id;
-  Object.assign(formModel, toRoleSaveInput(role));
+  editingId.value = record.id;
+  Object.assign(formModel, toRoleSaveInput(record));
   editTreeCheckedKeys.value = [...(formModel.permissions ?? [])];
   editTreeSearchValue.value = '';
   editExpandedKeys.value = [];
@@ -676,13 +659,12 @@ async function openEdit(record: AdminRoleTableRecord) {
   formRef.value?.clearValidate();
 }
 
-async function openAuthorize(record: AdminRoleTableRecord) {
-  const role = toAdminRole(record);
-  if (!canMutateRole(role)) {
-    message.warning('租户会话不可维护全局角色授权');
+async function openAuthorize(record: AdminRole) {
+  if (!canMutateRole(record)) {
+    message.warning('绉熸埛浼氳瘽涓嶅彲缁存姢鍏ㄥ眬瑙掕壊鎺堟潈');
     return;
   }
-  if (!role.id) {
+  if (!record.id) {
     message.warning($t('page.role.missingId'));
     return;
   }
@@ -691,7 +673,7 @@ async function openAuthorize(record: AdminRoleTableRecord) {
   authorizeLoading.value = true;
   try {
     const [roleDetail] = await Promise.all([
-      getAdminRoleApi(role.id),
+      getAdminRoleApi(record.id),
       permissions.value.length > 0
         ? Promise.resolve()
         : loadPermissionOptions(),
@@ -733,7 +715,7 @@ function getApiMethodColor(method?: string) {
   return 'default';
 }
 
-function getAllGroupKeys(nodes: any[]): Array<number | string> {
+function getAllGroupKeys(nodes: PermissionTreeNode[]): Array<number | string> {
   let keys: Array<number | string> = [];
   for (const node of nodes) {
     if (node.children && node.children.length > 0) {
@@ -750,12 +732,12 @@ const filteredPermissionTreeData = computed(() => {
     return permissionTreeData.value;
   }
 
-  function filterNode(node: any): any | null {
+  function filterNode(node: PermissionTreeNode): null | PermissionTreeNode {
     const titleMatches = node.title.toLowerCase().includes(query);
     if (node.children && node.children.length > 0) {
       const filteredChildren = node.children
-        .map((n: any) => filterNode(n))
-        .filter((child: any) => child !== null);
+        .map((n) => filterNode(n))
+        .filter((child): child is PermissionTreeNode => child !== null);
 
       if (filteredChildren.length > 0) {
         return {
@@ -776,8 +758,8 @@ const filteredPermissionTreeData = computed(() => {
   }
 
   return permissionTreeData.value
-    .map((n: any) => filterNode(n))
-    .filter((node: any) => node !== null);
+    .map((n) => filterNode(n))
+    .filter((node): node is PermissionTreeNode => node !== null);
 });
 
 watch(treeSearchValue, (val) => {
@@ -817,12 +799,12 @@ const editFilteredPermissionTreeData = computed(() => {
     return permissionTreeData.value;
   }
 
-  function filterNode(node: any): any | null {
+  function filterNode(node: PermissionTreeNode): null | PermissionTreeNode {
     const titleMatches = node.title.toLowerCase().includes(query);
     if (node.children && node.children.length > 0) {
       const filteredChildren = node.children
-        .map((n: any) => filterNode(n))
-        .filter((child: any) => child !== null);
+        .map((n) => filterNode(n))
+        .filter((child): child is PermissionTreeNode => child !== null);
 
       if (filteredChildren.length > 0) {
         return {
@@ -843,8 +825,8 @@ const editFilteredPermissionTreeData = computed(() => {
   }
 
   return permissionTreeData.value
-    .map((n: any) => filterNode(n))
-    .filter((node: any) => node !== null);
+    .map((n) => filterNode(n))
+    .filter((node): node is PermissionTreeNode => node !== null);
 });
 
 watch(editTreeSearchValue, (val) => {
@@ -889,7 +871,7 @@ async function submitRole() {
       message.success($t('page.role.createSuccess'));
     }
     modalOpen.value = false;
-    await loadRoles();
+    await gridApi.reload();
   } finally {
     submitting.value = false;
   }
@@ -915,193 +897,140 @@ async function submitAuthorize() {
     };
     authorizeModalOpen.value = false;
     message.success($t('page.role.authorizeSuccess'));
-    await loadRoles();
+    await gridApi.reload();
   } finally {
     authorizeSubmitting.value = false;
   }
 }
 
-async function handleDelete(record: AdminRoleTableRecord) {
-  const role = toAdminRole(record);
-  if (role.isProtected) {
+async function handleDelete(record: AdminRole) {
+  if (record.isProtected) {
     message.warning($t('page.role.protectedDeleteBlocked'));
     return;
   }
-  if (!role.id) {
+  if (!record.id) {
     message.warning($t('page.role.missingId'));
     return;
   }
 
-  await deleteAdminRoleApi(role.id);
+  await deleteAdminRoleApi(record.id);
   message.success($t('page.role.deleteSuccess'));
-  await loadRoles();
+  await gridApi.reload();
 }
 
-onMounted(async () => {
-  await Promise.all([loadPermissionOptions(), loadRoles()]);
+const [Grid, gridApi] = useVbenVxeGrid<AdminRole>({
+  gridClass: 'admin-role-grid',
+  gridOptions,
+  formOptions,
+});
+
+onMounted(() => {
+  void loadPermissionOptions();
 });
 </script>
 
 <template>
   <Page auto-content-height :title="$t('menu.system.role')">
-    <div ref="tableSurfaceRef" class="admin-role-surface">
-      <div v-if="isTenantSession" class="tenant-session-banner">
-        <Tag color="blue">租户会话</Tag>
-        <span class="tenant-session-banner__text">
-          当前仅可维护租户角色，所属租户：{{ sessionTenantLabel }}
-        </span>
-      </div>
-      <div class="admin-role-toolbar">
-        <Form :model="searchForm" layout="inline" @finish="handleSearch">
-          <Form.Item :label="$t('page.role.name')" name="name">
-            <Input
-              v-model:value="searchForm.name"
-              allow-clear
-              :placeholder="$t('page.role.searchName')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.role.code')" name="code">
-            <Input
-              v-model:value="searchForm.code"
-              allow-clear
-              :placeholder="$t('page.role.searchCode')"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button html-type="submit" type="primary">
-                <template #icon>
-                  <IconifyIcon icon="lucide:search" />
-                </template>
-                {{ $t('common.query') }}
-              </Button>
-              <Button @click="handleReset">
-                <template #icon>
-                  <IconifyIcon icon="lucide:rotate-ccw" />
-                </template>
-                {{ $t('common.reset') }}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
+    <div v-if="isTenantSession" class="tenant-session-banner">
+      <Tag color="blue">绉熸埛浼氳瘽</Tag>
+      <span class="tenant-session-banner__text">
+        褰撳墠浠呭彲缁存姢绉熸埛瑙掕壊锛屾墍灞炵鎴凤細{{ sessionTenantLabel }}
+      </span>
+    </div>
 
+    <Grid :table-title="$t('menu.system.role')">
+      <template #toolPrefix>
+        <div class="admin-role-tool-prefix">
+          <div class="admin-role-tool-prefix__item">
+            <Button
+              v-access:code="ROLE_ACCESS.create"
+              type="primary"
+              @click="openCreate"
+            >
+              <template #icon>
+                <IconifyIcon icon="lucide:plus" />
+              </template>
+              {{ $t('page.role.createTitle') }}
+            </Button>
+          </div>
+        </div>
+      </template>
+
+      <template #role="{ row }">
+        <Tooltip :title="getRoleTooltip(row)">
+          <span class="role-main">{{ row.name || '-' }}</span>
+        </Tooltip>
+      </template>
+
+      <template #type="{ row }">
+        <Tag>{{ getTypeText(row.type) }}</Tag>
+      </template>
+
+      <template #scope="{ row }">
+        <Tag :color="row.tenantId ? 'blue' : 'gold'">
+          {{ getRoleScopeText(row) }}
+        </Tag>
+      </template>
+
+      <template #status="{ row }">
+        <Tag :color="getStatusColor(row.status)">
+          {{ getStatusText(row.status) }}
+        </Tag>
+      </template>
+
+      <template #createdAt="{ row }">
+        {{ formatTime(row.createdAt) }}
+      </template>
+
+      <template #action="{ row }">
         <Space>
-          <AdminTableToolbar
-            v-model:column-keys="visibleColumnKeys"
-            :columns="columns"
-            :export-access-codes="ROLE_ACCESS.export"
-            :data-source="roles"
-            file-name="system-roles"
-            :fullscreen-target="tableSurfaceRef"
-            :refresh="loadRoles"
-            storage-key="system-role-list"
-          />
           <Button
-            v-access:code="ROLE_ACCESS.create"
-            type="primary"
-            @click="openCreate"
+            v-access:code="ROLE_ACCESS.authorize"
+            :disabled="!canMutateRole(row)"
+            size="small"
+            type="link"
+            @click="openAuthorize(row)"
           >
             <template #icon>
-              <IconifyIcon icon="lucide:plus" />
+              <IconifyIcon icon="lucide:shield-check" />
             </template>
-            {{ $t('page.role.createTitle') }}
+            {{ $t('page.role.authorize') }}
           </Button>
+          <Button
+            v-access:code="ROLE_ACCESS.edit"
+            :disabled="!canMutateRole(row)"
+            size="small"
+            type="link"
+            @click="openEdit(row)"
+          >
+            <template #icon>
+              <IconifyIcon icon="lucide:pencil" />
+            </template>
+            {{ $t('common.edit') }}
+          </Button>
+          <Popconfirm
+            :disabled="row.isProtected"
+            :title="
+              $t('ui.actionMessage.deleteConfirm', [$t('page.role.moduleName')])
+            "
+            @confirm="handleDelete(row)"
+          >
+            <Button
+              v-access:code="ROLE_ACCESS.delete"
+              danger
+              :disabled="row.isProtected || !canMutateRole(row)"
+              size="small"
+              type="link"
+            >
+              <template #icon>
+                <IconifyIcon icon="lucide:trash-2" />
+              </template>
+              {{ $t('common.delete') }}
+            </Button>
+          </Popconfirm>
         </Space>
-      </div>
-
-      <Table
-        class="admin-role-table"
-        :columns="displayColumns"
-        :data-source="roles"
-        :loading="loading"
-        :pagination="tablePagination"
-        row-key="id"
-        size="middle"
-        @change="handleTableChange"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'role'">
-            <div class="role-cell">
-              <span class="role-main">{{ record.name || '-' }}</span>
-              <span class="role-sub">{{ record.code || '-' }}</span>
-            </div>
-          </template>
-
-          <template v-else-if="column.key === 'type'">
-            <Tag>{{ getTypeText(record.type) }}</Tag>
-          </template>
-
-          <template v-else-if="column.key === 'scope'">
-            <Tag :color="toAdminRole(record).tenantId ? 'blue' : 'gold'">
-              {{ getRoleScopeText(toAdminRole(record)) }}
-            </Tag>
-          </template>
-
-          <template v-else-if="column.key === 'status'">
-            <Tag :color="getStatusColor(record.status)">
-              {{ getStatusText(record.status) }}
-            </Tag>
-          </template>
-
-          <template v-else-if="column.key === 'createdAt'">
-            {{ formatTime(record.createdAt) }}
-          </template>
-
-          <template v-else-if="column.key === 'action'">
-            <Space>
-              <Button
-                v-access:code="ROLE_ACCESS.authorize"
-                :disabled="!canMutateRole(toAdminRole(record))"
-                size="small"
-                type="link"
-                @click="openAuthorize(record)"
-              >
-                <template #icon>
-                  <IconifyIcon icon="lucide:shield-check" />
-                </template>
-                {{ $t('page.role.authorize') }}
-              </Button>
-              <Button
-                v-access:code="ROLE_ACCESS.edit"
-                :disabled="!canMutateRole(toAdminRole(record))"
-                size="small"
-                type="link"
-                @click="openEdit(record)"
-              >
-                <template #icon>
-                  <IconifyIcon icon="lucide:pencil" />
-                </template>
-                {{ $t('common.edit') }}
-              </Button>
-              <Popconfirm
-                :disabled="record.isProtected"
-                :title="
-                  $t('ui.actionMessage.deleteConfirm', [
-                    $t('page.role.moduleName'),
-                  ])
-                "
-                @confirm="handleDelete(record)"
-              >
-                <Button
-                  v-access:code="ROLE_ACCESS.delete"
-                  danger
-                  :disabled="
-                    record.isProtected || !canMutateRole(toAdminRole(record))
-                  "
-                  size="small"
-                  type="link"
-                >
-                  <template #icon>
-                    <IconifyIcon icon="lucide:trash-2" />
-                  </template>
-                  {{ $t('common.delete') }}
-                </Button>
-              </Popconfirm>
-            </Space>
-          </template>
-        </template>
-      </Table>
-    </div>
+      </template>
+    </Grid>
 
     <Modal
       v-model:open="modalOpen"
@@ -1112,7 +1041,6 @@ onMounted(async () => {
       @ok="submitRole"
     >
       <div class="edit-role-container">
-        <!-- Left Side: Role details Form -->
         <div class="edit-role-form-panel">
           <Form
             ref="formRef"
@@ -1164,15 +1092,14 @@ onMounted(async () => {
           </Form>
         </div>
 
-        <!-- Divider -->
         <div class="panel-divider"></div>
 
-        <!-- Right Side: Permissions Checkbox Tree -->
         <div class="edit-role-tree-panel">
           <div class="panel-header">
             <span class="panel-title-text">
-              {{ $t('page.role.permissions') }} (已选
-              {{ formModel.permissions?.length ?? 0 }})
+              {{ $t('page.role.permissions') }} ({{
+                formModel.permissions?.length ?? 0
+              }})
             </span>
             <Input.Search
               v-model:value="editTreeSearchValue"
@@ -1182,10 +1109,10 @@ onMounted(async () => {
             />
             <div class="panel-actions">
               <Button size="small" type="link" @click="editExpandAll">
-                展开所有
+                展开全部
               </Button>
               <Button size="small" type="link" @click="editCollapseAll">
-                折叠所有
+                折叠全部
               </Button>
               <Button size="small" type="link" @click="editSelectAll">
                 全选
@@ -1262,7 +1189,6 @@ onMounted(async () => {
         </div>
 
         <div class="authorize-container">
-          <!-- Left Pane: Permission Tree -->
           <div class="authorize-tree-panel">
             <div class="panel-header">
               <Input.Search
@@ -1273,10 +1199,10 @@ onMounted(async () => {
               />
               <div class="panel-actions">
                 <Button size="small" type="link" @click="expandAll">
-                  展开所有
+                  展开全部
                 </Button>
                 <Button size="small" type="link" @click="collapseAll">
-                  折叠所有
+                  折叠全部
                 </Button>
                 <Button size="small" type="link" @click="selectAll">
                   全选
@@ -1307,10 +1233,8 @@ onMounted(async () => {
             </div>
           </div>
 
-          <!-- Divider -->
           <div class="panel-divider"></div>
 
-          <!-- Right Pane: Preview & Impact Tabs -->
           <div class="authorize-preview-panel-new">
             <Tabs v-model:active-key="activeTabKey" size="middle">
               <TabPane
@@ -1421,31 +1345,12 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.admin-role-surface {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 100%;
-  padding: 16px;
-  overflow-y: auto;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-}
-
-.admin-role-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .tenant-session-banner {
   display: flex;
   gap: 10px;
   align-items: center;
   padding: 12px 14px;
+  margin-bottom: 16px;
   background: linear-gradient(
     135deg,
     hsl(var(--primary) / 8%),
@@ -1460,27 +1365,31 @@ onMounted(async () => {
   color: hsl(var(--foreground) / 82%);
 }
 
-.admin-role-table {
-  flex: 1;
-  min-height: 0;
+.admin-role-tool-prefix {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
 }
 
-.role-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  line-height: 1.4;
-  text-align: left;
+.admin-role-tool-prefix__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.admin-role-tool-prefix :deep(.ant-btn) {
+  display: inline-flex;
+  align-items: center;
 }
 
 .role-main {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 500;
   color: hsl(var(--foreground));
-}
-
-.role-sub {
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
 }
 
 .full-width-control {
@@ -1752,12 +1661,12 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
-  .admin-role-surface {
-    padding: 12px;
+  .edit-role-container {
+    flex-direction: column;
   }
 
-  .admin-role-toolbar {
-    align-items: stretch;
+  .panel-divider {
+    display: none;
   }
 }
 </style>

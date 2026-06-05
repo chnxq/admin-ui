@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import type {
-  FormInstance,
-  TableColumnsType,
-  TablePaginationConfig,
-  TreeProps,
-} from 'ant-design-vue';
+import type { FormInstance, TreeProps } from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
 
+import type { VbenFormProps } from '@vben/common-ui';
+
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type {
   AdminDictCategory,
   AdminDictCategoryLevel,
@@ -17,10 +15,6 @@ import type {
   AdminDictLabelSaveInput,
   AdminDictLabelStatus,
 } from '#/api/admin/dicts';
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 
@@ -40,12 +34,12 @@ import {
   Select,
   Space,
   Switch,
-  Table,
   Tag,
   Tree,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   createAdminDictCategoryApi,
   createAdminDictLabelApi,
@@ -56,13 +50,6 @@ import {
   updateAdminDictCategoryApi,
   updateAdminDictLabelApi,
 } from '#/api/admin/dicts';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 
 interface AdminDictCategoryFormModel extends AdminDictCategorySaveInput {
@@ -96,9 +83,6 @@ interface AdminDictLabelFormModel extends AdminDictLabelSaveInput {
 }
 
 type AdminDictLabelTableRecord = AdminDictLabel | Record<string, any>;
-type AdminTableChangeSorter = Parameters<
-  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
->[2];
 type DictTreeNode = NonNullable<TreeProps['treeData']>[number];
 
 const DICT_CATEGORY_ACCESS = {
@@ -124,10 +108,6 @@ const isTenantSession = computed(
 const sessionTenantLabel = computed(
   () => userStore.userInfo?.tenantName || 'XAdmin Platform',
 );
-
-const defaultLabelSorting: AdminTableSorting[] = [
-  { direction: 'ASC', field: 'sort_order' },
-];
 
 const enabledOptions = computed(() => [
   { label: $t('common.enabled'), value: 1 },
@@ -206,78 +186,169 @@ const labelStatusOptions = computed(() => [
   },
 ]);
 
-const labelColumns = computed<AdminTableColumn<AdminDictLabel>[]>(() => [
-  {
-    dataIndex: 'labelKey',
-    key: 'labelKey',
-    sortField: 'label_key',
-    sortable: true,
-    sorter: true,
-    title: $t('page.dict.labelKey'),
-    width: 220,
+const labelFormOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.dict.placeholderLabelKeySearch'),
+      },
+      fieldName: 'labelKey',
+      label: $t('page.dict.labelKey'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.dict.placeholderLabelCodeSearch'),
+      },
+      fieldName: 'labelCode',
+      label: $t('page.dict.labelCode'),
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: enabledOptions,
+        placeholder: $t('page.dict.placeholderEnabled'),
+      },
+      fieldName: 'isEnabled',
+      label: $t('page.dict.enabled'),
+    },
+  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
+};
+
+const labelGridOptions: VxeTableGridOptions<AdminDictLabel> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
   },
-  {
-    dataIndex: 'labelCode',
-    key: 'labelCode',
-    sortField: 'label_code',
-    sortable: true,
-    sorter: true,
-    title: $t('page.dict.labelCode'),
-    width: 160,
+  columns: [
+    {
+      field: 'labelKey',
+      sortable: true,
+      title: $t('page.dict.labelKey'),
+      width: 220,
+    },
+    {
+      field: 'labelCode',
+      sortable: true,
+      title: $t('page.dict.labelCode'),
+      width: 160,
+    },
+    {
+      field: 'textValue',
+      slots: { default: 'textValue' },
+      title: $t('page.dict.currentText'),
+      width: 180,
+    },
+    {
+      field: 'labelKind',
+      slots: { default: 'labelKind' },
+      sortable: true,
+      title: $t('page.dict.labelKind'),
+      width: 110,
+    },
+    {
+      field: 'status',
+      slots: { default: 'status' },
+      sortable: true,
+      title: $t('page.dict.labelStatus'),
+      width: 100,
+    },
+    {
+      field: 'isEnabled',
+      slots: { default: 'isEnabled' },
+      sortable: true,
+      title: $t('page.dict.enabled'),
+      width: 100,
+    },
+    {
+      field: 'sortOrder',
+      sortable: true,
+      title: $t('page.dict.sortOrder'),
+      width: 90,
+    },
+    {
+      field: 'scope',
+      slots: { default: 'scope' },
+      title: $t('page.tenant.resourceOwnership'),
+      width: 120,
+    },
+    {
+      field: 'action',
+      fixed: 'right',
+      slots: { default: 'action' },
+      title: $t('ui.table.action'),
+      width: 150,
+    },
+  ],
+  exportConfig: {
+    filename: 'system-dict-labels',
+    type: 'csv',
   },
-  {
-    key: 'textValue',
-    title: $t('page.dict.currentText'),
-    width: 180,
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {},
+  proxyConfig: {
+    ajax: {
+      query: async (
+        { page, sort }: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        if (!selectedCategoryId.value) {
+          return {
+            items: [],
+            total: 0,
+          };
+        }
+        const sortField = String(sort.field || 'sortOrder');
+        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+
+        labelLoading.value = true;
+        try {
+          return await listAdminDictLabelsApi({
+            categoryId: selectedCategoryId.value,
+            isEnabled:
+              formValues.isEnabled === undefined
+                ? undefined
+                : formValues.isEnabled === 1,
+            labelCode: formValues.labelCode,
+            labelKey: formValues.labelKey,
+            page: page.currentPage,
+            pageSize: page.pageSize,
+            sorting: [
+              {
+                direction,
+                field: toLabelSortField(sortField),
+              },
+            ],
+          });
+        } finally {
+          labelLoading.value = false;
+        }
+      },
+    },
+    sort: true,
   },
-  {
-    dataIndex: 'labelKind',
-    key: 'labelKind',
-    sortField: 'label_kind',
-    sortable: true,
-    sorter: true,
-    title: $t('page.dict.labelKind'),
-    width: 110,
+  rowConfig: {
+    isHover: true,
   },
-  {
-    dataIndex: 'status',
-    key: 'status',
-    sortField: 'status',
-    sortable: true,
-    sorter: true,
-    title: $t('page.dict.labelStatus'),
-    width: 100,
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    slots: {
+      toolPrefix: 'toolPrefix',
+    },
+    zoom: true,
   },
-  {
-    dataIndex: 'isEnabled',
-    key: 'isEnabled',
-    sortField: 'is_enabled',
-    sortable: true,
-    sorter: true,
-    title: $t('page.dict.enabled'),
-    width: 100,
-  },
-  {
-    dataIndex: 'sortOrder',
-    key: 'sortOrder',
-    sortField: 'sort_order',
-    sortable: true,
-    sorter: true,
-    title: $t('page.dict.sortOrder'),
-    width: 90,
-  },
-  {
-    key: 'scope',
-    title: $t('page.tenant.resourceOwnership'),
-    width: 120,
-  },
-  {
-    fixed: 'right',
-    key: 'action',
-    title: $t('ui.table.action'),
-    width: 150,
-  },
-]);
+};
 
 const categoryLoading = ref(false);
 const labelLoading = ref(false);
@@ -291,15 +362,7 @@ const selectedCategoryId = ref<number>();
 const expandedCategoryKeys = ref<Array<number | string>>([]);
 const categoryFormRef = ref<FormInstance>();
 const labelFormRef = ref<FormInstance>();
-const labelSurfaceRef = ref<HTMLElement>();
 const categoryItems = ref<AdminDictCategory[]>([]);
-const labelItems = ref<AdminDictLabel[]>([]);
-const labelSorting = ref<AdminTableSorting[]>([...defaultLabelSorting]);
-const labelVisibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(labelColumns.value).filter(
-    (key): key is string => key !== undefined,
-  ),
-);
 
 const categorySearchForm = reactive({
   categoryKey: '',
@@ -313,8 +376,6 @@ const labelSearchForm = reactive({
   labelCode: '',
   labelKey: '',
 });
-
-const labelPager = reactive({ page: 1, pageSize: 10, total: 0 });
 
 const categoryFormModel = reactive<AdminDictCategoryFormModel>({
   categoryKey: '',
@@ -359,13 +420,6 @@ const labelModalTitle = computed(() =>
   editingLabelId.value
     ? $t('page.dict.editLabelTitle')
     : $t('page.dict.createLabelTitle'),
-);
-
-const displayLabelColumns = computed<TableColumnsType<AdminDictLabel>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(labelColumns.value, labelSorting.value),
-    labelVisibleColumnKeys.value,
-  ),
 );
 
 const categoryRules = computed<Record<string, Rule[]>>(() => ({
@@ -414,14 +468,6 @@ const labelRules = computed<Record<string, Rule[]>>(() => ({
       required: true,
     },
   ],
-}));
-
-const labelPagination = computed<TablePaginationConfig>(() => ({
-  current: labelPager.page,
-  pageSize: labelPager.pageSize,
-  showSizeChanger: true,
-  showTotal: (total) => `${$t('page.dict.total')} ${total}`,
-  total: labelPager.total,
 }));
 
 const parentCategoryOptions = computed(() =>
@@ -522,6 +568,29 @@ function resolveLabelText(record: AdminDictLabel) {
     record.defaultText ||
     '-'
   );
+}
+
+function toLabelSortField(sortField: string) {
+  switch (sortField) {
+    case 'isEnabled': {
+      return 'is_enabled';
+    }
+    case 'labelCode': {
+      return 'label_code';
+    }
+    case 'labelKey': {
+      return 'label_key';
+    }
+    case 'labelKind': {
+      return 'label_kind';
+    }
+    case 'sortOrder': {
+      return 'sort_order';
+    }
+    default: {
+      return sortField;
+    }
+  }
 }
 
 function getCategoryLevelText(level?: AdminDictCategoryLevel) {
@@ -689,13 +758,14 @@ async function loadCategoryData() {
 
 async function loadLabelData() {
   if (!selectedCategoryId.value) {
-    labelItems.value = [];
-    labelPager.total = 0;
-    return;
+    return {
+      items: [],
+      total: 0,
+    };
   }
   labelLoading.value = true;
   try {
-    const result = await listAdminDictLabelsApi({
+    return await listAdminDictLabelsApi({
       categoryId: selectedCategoryId.value,
       isEnabled:
         labelSearchForm.isEnabled === undefined
@@ -703,12 +773,10 @@ async function loadLabelData() {
           : labelSearchForm.isEnabled === 1,
       labelCode: labelSearchForm.labelCode,
       labelKey: labelSearchForm.labelKey,
-      page: labelPager.page,
-      pageSize: labelPager.pageSize,
-      sorting: labelSorting.value,
+      page: 1,
+      pageSize: 10,
+      sorting: [{ direction: 'ASC', field: 'sort_order' }],
     });
-    labelItems.value = result.items;
-    labelPager.total = result.total;
   } finally {
     labelLoading.value = false;
   }
@@ -724,31 +792,6 @@ function handleCategoryReset() {
   categorySearchForm.isEnabled = undefined;
   categorySearchForm.scene = undefined;
   void loadCategoryData();
-}
-
-function handleLabelSearch() {
-  labelPager.page = 1;
-  void loadLabelData();
-}
-
-function handleLabelReset() {
-  labelSearchForm.isEnabled = undefined;
-  labelSearchForm.labelCode = '';
-  labelSearchForm.labelKey = '';
-  labelSorting.value = [...defaultLabelSorting];
-  labelPager.page = 1;
-  void loadLabelData();
-}
-
-function handleLabelTableChange(
-  pagination: TablePaginationConfig,
-  _filters: Record<string, any>,
-  sorter: AdminTableChangeSorter,
-) {
-  labelPager.page = pagination.current ?? 1;
-  labelPager.pageSize = pagination.pageSize ?? 10;
-  labelSorting.value = toAdminTableSorting(sorter as any);
-  void loadLabelData();
 }
 
 function handleTreeSelect(keys: Array<number | string>) {
@@ -953,13 +996,18 @@ function handleRunSql() {
 }
 
 watch(selectedCategoryId, () => {
-  labelPager.page = 1;
-  void loadLabelData();
+  void labelGridApi.query({ page: 1 });
+});
+
+const [LabelGrid, labelGridApi] = useVbenVxeGrid<AdminDictLabel>({
+  gridClass: 'dict-label-grid',
+  gridOptions: labelGridOptions,
+  formOptions: labelFormOptions,
 });
 
 onMounted(async () => {
   await loadCategoryData();
-  await loadLabelData();
+  await labelGridApi.reload();
 });
 </script>
 
@@ -1166,7 +1214,7 @@ onMounted(async () => {
             </Space>
           </div>
 
-          <div ref="labelSurfaceRef" class="dict-label-panel">
+          <div class="dict-label-panel">
             <div class="dict-panel-head">
               <div>
                 <div class="dict-panel-title">
@@ -1176,142 +1224,86 @@ onMounted(async () => {
                   {{ $t('page.dict.labelListDesc') }}
                 </div>
               </div>
-              <Space>
-                <AdminTableToolbar
-                  v-model:column-keys="labelVisibleColumnKeys"
-                  :columns="labelColumns"
-                  :data-source="labelItems"
-                  :export-access-codes="DICT_LABEL_ACCESS.export"
-                  file-name="system-dict-labels"
-                  :fullscreen-target="labelSurfaceRef"
-                  :refresh="loadLabelData"
-                  storage-key="system-dict-label-list"
-                />
-                <Button
-                  v-access:code="DICT_LABEL_ACCESS.create"
-                  :disabled="!selectedCategoryId || isTenantSession"
-                  type="primary"
-                  @click="openLabelCreateModal"
-                >
-                  <template #icon><IconifyIcon icon="lucide:plus" /></template>
-                  {{ $t('page.dict.createLabelButton') }}
-                </Button>
-              </Space>
             </div>
 
-            <div class="dict-filter-strip">
-              <Input
-                v-model:value="labelSearchForm.labelKey"
-                allow-clear
-                :placeholder="$t('page.dict.placeholderLabelKeySearch')"
-                @press-enter="handleLabelSearch"
-              />
-              <Input
-                v-model:value="labelSearchForm.labelCode"
-                allow-clear
-                :placeholder="$t('page.dict.placeholderLabelCodeSearch')"
-                @press-enter="handleLabelSearch"
-              />
-              <Select
-                v-model:value="labelSearchForm.isEnabled"
-                allow-clear
-                :options="enabledOptions"
-                :placeholder="$t('page.dict.placeholderEnabled')"
-              />
-              <Button type="primary" @click="handleLabelSearch">
-                {{ $t('common.query') }}
-              </Button>
-              <Button @click="handleLabelReset">
-                {{ $t('common.reset') }}
-              </Button>
-            </div>
-
-            <Table
-              :columns="displayLabelColumns"
-              :data-source="labelItems"
-              :loading="labelLoading"
-              :pagination="labelPagination"
-              :row-key="(record) => record.id ?? record.labelKey"
-              size="middle"
-              @change="handleLabelTableChange"
-            >
-              <template #emptyText>
-                {{
-                  selectedCategoryId
-                    ? $t('page.dict.emptyLabelData')
-                    : $t('page.dict.emptyLabelNeedCategory')
-                }}
-              </template>
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'textValue'">
-                  {{ resolveLabelText(toAdminDictLabel(record)) }}
-                </template>
-                <template v-else-if="column.key === 'labelKind'">
-                  {{ getLabelKindText(toAdminDictLabel(record).labelKind) }}
-                </template>
-                <template v-else-if="column.key === 'status'">
-                  <Tag
-                    :color="
-                      toAdminDictLabel(record).status === 'ON'
-                        ? 'green'
-                        : 'default'
-                    "
-                  >
-                    {{ getLabelStatusText(toAdminDictLabel(record).status) }}
-                  </Tag>
-                </template>
-                <template v-else-if="column.key === 'isEnabled'">
-                  <Tag :color="statusColor(toAdminDictLabel(record).isEnabled)">
-                    {{ statusText(toAdminDictLabel(record).isEnabled) }}
-                  </Tag>
-                </template>
-                <template v-else-if="column.key === 'scope'">
-                  <Tag
-                    :color="
-                      resolveOwnershipTag(
-                        toAdminDictLabel(record).tenantId,
-                        toAdminDictLabel(record).tenantName,
-                      ).color
-                    "
-                  >
-                    {{
-                      resolveOwnershipTag(
-                        toAdminDictLabel(record).tenantId,
-                        toAdminDictLabel(record).tenantName,
-                      ).text
-                    }}
-                  </Tag>
-                </template>
-                <template v-else-if="column.key === 'action'">
-                  <Space>
+            <LabelGrid :table-title="$t('page.dict.labelListTitle')">
+              <template #toolPrefix>
+                <div class="dict-label-tool-prefix">
+                  <div class="dict-label-tool-prefix__item">
                     <Button
-                      v-access:code="DICT_LABEL_ACCESS.edit"
+                      v-access:code="DICT_LABEL_ACCESS.create"
+                      :disabled="!selectedCategoryId || isTenantSession"
+                      type="primary"
+                      @click="openLabelCreateModal"
+                    >
+                      <template #icon>
+                        <IconifyIcon icon="lucide:plus" />
+                      </template>
+                      {{ $t('page.dict.createLabelButton') }}
+                    </Button>
+                  </div>
+                </div>
+              </template>
+
+              <template #textValue="{ row }">
+                {{ resolveLabelText(row) }}
+              </template>
+
+              <template #labelKind="{ row }">
+                {{ getLabelKindText(row.labelKind) }}
+              </template>
+
+              <template #status="{ row }">
+                <Tag :color="row.status === 'ON' ? 'green' : 'default'">
+                  {{ getLabelStatusText(row.status) }}
+                </Tag>
+              </template>
+
+              <template #isEnabled="{ row }">
+                <Tag :color="statusColor(row.isEnabled)">
+                  {{ statusText(row.isEnabled) }}
+                </Tag>
+              </template>
+
+              <template #scope="{ row }">
+                <Tag
+                  :color="
+                    resolveOwnershipTag(row.tenantId, row.tenantName).color
+                  "
+                >
+                  {{ resolveOwnershipTag(row.tenantId, row.tenantName).text }}
+                </Tag>
+              </template>
+
+              <template #action="{ row }">
+                <Space>
+                  <Button
+                    v-access:code="DICT_LABEL_ACCESS.edit"
+                    :disabled="isTenantSession"
+                    size="small"
+                    type="link"
+                    @click="openLabelEditModal(row)"
+                  >
+                    {{ $t('common.edit') }}
+                  </Button>
+                  <Popconfirm
+                    v-access:code="DICT_LABEL_ACCESS.delete"
+                    :disabled="isTenantSession"
+                    :title="$t('page.dict.deleteLabelConfirm')"
+                    @confirm="handleLabelDelete(row)"
+                  >
+                    <Button
+                      danger
                       :disabled="isTenantSession"
                       size="small"
                       type="link"
-                      @click="openLabelEditModal(record)"
                     >
-                      {{ $t('common.edit') }}
+                      {{ $t('common.delete') }}
                     </Button>
-                    <Popconfirm
-                      v-access:code="DICT_LABEL_ACCESS.delete"
-                      :disabled="isTenantSession"
-                      :title="$t('page.dict.deleteLabelConfirm')"
-                      @confirm="handleLabelDelete(record)"
-                    >
-                      <Button
-                        danger
-                        :disabled="isTenantSession"
-                        size="small"
-                        type="link"
-                      >
-                        {{ $t('common.delete') }}
-                      </Button>
-                    </Popconfirm>
-                  </Space>
-                </template>
+                  </Popconfirm>
+                </Space>
               </template>
-            </Table>
+            </LabelGrid>
           </div>
         </section>
       </div>

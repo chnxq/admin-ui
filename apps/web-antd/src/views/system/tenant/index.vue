@@ -1,11 +1,7 @@
 <script lang="ts" setup>
-import type {
-  FormInstance,
-  TableColumnsType,
-  TablePaginationConfig,
-} from 'ant-design-vue';
-import type { Rule } from 'ant-design-vue/es/form';
+import type { VbenFormProps } from '@vben/common-ui';
 
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type {
   AdminTenant,
   AdminTenantAuditStatus,
@@ -13,12 +9,8 @@ import type {
   AdminTenantStatus,
   AdminTenantType,
 } from '#/api/admin/tenants';
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
@@ -33,24 +25,18 @@ import {
   Popconfirm,
   Select,
   Space,
-  Table,
   Tag,
+  Tooltip,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   createAdminTenantApi,
   deleteAdminTenantApi,
   listAdminTenantsApi,
   updateAdminTenantApi,
 } from '#/api/admin/tenants';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 
 interface AdminTenantFormModel extends AdminTenantSaveInput {
@@ -60,11 +46,6 @@ interface AdminTenantFormModel extends AdminTenantSaveInput {
   status: AdminTenantStatus;
   type: AdminTenantType;
 }
-
-type AdminTenantTableRecord = AdminTenant | Record<string, any>;
-type AdminTableChangeSorter = Parameters<
-  NonNullable<InstanceType<typeof Table>['$props']['onChange']>
->[2];
 
 const TENANT_ACCESS = {
   create: ['tenants:create'],
@@ -80,8 +61,6 @@ const isTenantSession = computed(
 const sessionTenantLabel = computed(
   () => userStore.userInfo?.tenantName || '-',
 );
-
-const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
 
 const statusOptions = [
   { label: $t('enum.tenant.status.ON'), value: 'ON' },
@@ -129,98 +108,10 @@ const typeTextMap: Record<AdminTenantType, string> = {
   TRIAL: $t('enum.tenant.type.TRIAL'),
 };
 
-const columns: AdminTableColumn<AdminTenant>[] = [
-  {
-    dataIndex: 'id',
-    sortField: 'id',
-    sortable: true,
-    sorter: true,
-    title: $t('page.tenant.id'),
-    width: 80,
-  },
-  {
-    key: 'tenant',
-    sortField: 'name',
-    sortable: true,
-    sorter: true,
-    title: $t('page.tenant.tenant'),
-    width: 260,
-  },
-  {
-    dataIndex: 'domain',
-    sortable: true,
-    sorter: true,
-    title: $t('page.tenant.domain'),
-    width: 180,
-  },
-  {
-    dataIndex: 'type',
-    key: 'type',
-    sortable: true,
-    sorter: true,
-    title: $t('page.tenant.type'),
-    width: 120,
-  },
-  {
-    dataIndex: 'status',
-    key: 'status',
-    sortable: true,
-    sorter: true,
-    title: $t('page.tenant.status'),
-    width: 100,
-  },
-  {
-    dataIndex: 'auditStatus',
-    key: 'auditStatus',
-    sortField: 'audit_status',
-    sortable: true,
-    sorter: true,
-    title: $t('page.tenant.auditStatus'),
-    width: 100,
-  },
-  {
-    dataIndex: 'memberCount',
-    sortable: true,
-    sorter: true,
-    title: $t('page.tenant.memberCount'),
-    width: 100,
-  },
-  {
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    sortField: 'created_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.tenant.createdAt'),
-    width: 170,
-  },
-  { fixed: 'right', key: 'action', title: $t('ui.table.action'), width: 150 },
-];
-
-const loading = ref(false);
 const modalOpen = ref(false);
 const submitting = ref(false);
 const editingId = ref<number>();
-const formRef = ref<FormInstance>();
-const tableSurfaceRef = ref<HTMLElement>();
-const tenants = ref<AdminTenant[]>([]);
-const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(columns).filter(
-    (key): key is string => key !== undefined,
-  ),
-);
-
-const searchForm = reactive({
-  code: '',
-  name: '',
-});
-
-const pager = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-});
+const formRef = ref();
 
 const formModel = reactive<AdminTenantFormModel>({
   auditStatus: 'APPROVED',
@@ -238,46 +129,143 @@ const formModel = reactive<AdminTenantFormModel>({
 const modalTitle = computed(() =>
   editingId.value ? $t('page.tenant.editTitle') : $t('page.tenant.createTitle'),
 );
-const displayColumns = computed<TableColumnsType<AdminTenant>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(columns, sorting.value),
-    visibleColumnKeys.value,
-  ),
-);
-const formRules: Record<string, Rule[]> = {
-  code: [
+
+const formOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
     {
-      message: $t('ui.formRules.required', [$t('page.tenant.code')]),
-      required: true,
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.tenant.searchName'),
+      },
+      fieldName: 'name',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.tenant.name'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.tenant.searchCode'),
+      },
+      fieldName: 'code',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.tenant.code'),
     },
   ],
-  name: [
-    {
-      message: $t('ui.formRules.required', [$t('page.tenant.name')]),
-      required: true,
-    },
-  ],
-  status: [
-    {
-      message: $t('ui.formRules.selectRequired', [$t('page.tenant.status')]),
-      required: true,
-    },
-  ],
-  type: [
-    {
-      message: $t('ui.formRules.selectRequired', [$t('page.tenant.type')]),
-      required: true,
-    },
-  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
+  wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
 };
 
-const tablePagination = computed<TablePaginationConfig>(() => ({
-  current: pager.page,
-  pageSize: pager.pageSize,
-  showSizeChanger: true,
-  showTotal: (total) => `${$t('page.loginAuditLog.total')} ${total}`,
-  total: pager.total,
-}));
+const gridOptions: VxeTableGridOptions<AdminTenant> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
+  },
+  columns: [
+    {
+      field: 'name',
+      slots: { default: 'tenant' },
+      sortable: true,
+      title: $t('page.tenant.tenant'),
+      width: 260,
+    },
+    {
+      field: 'domain',
+      sortable: true,
+      title: $t('page.tenant.domain'),
+      width: 180,
+    },
+    {
+      field: 'type',
+      slots: { default: 'type' },
+      sortable: true,
+      title: $t('page.tenant.type'),
+      width: 120,
+    },
+    {
+      field: 'status',
+      slots: { default: 'status' },
+      sortable: true,
+      title: $t('page.tenant.status'),
+      width: 100,
+    },
+    {
+      field: 'auditStatus',
+      slots: { default: 'auditStatus' },
+      sortable: true,
+      title: $t('page.tenant.auditStatus'),
+      width: 120,
+    },
+    {
+      field: 'memberCount',
+      sortable: true,
+      title: $t('page.tenant.memberCount'),
+      width: 100,
+    },
+    {
+      field: 'createdAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.tenant.createdAt'),
+      width: 170,
+    },
+    {
+      field: 'action',
+      fixed: 'right',
+      slots: { default: 'action' },
+      title: $t('ui.table.action'),
+      width: 150,
+    },
+  ],
+  exportConfig: {
+    filename: 'system-tenants',
+    type: 'csv',
+  },
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {},
+  proxyConfig: {
+    ajax: {
+      query: async (
+        { page, sort }: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        const sortField = String(sort.field || 'id');
+        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+
+        return await listAdminTenantsApi({
+          code: formValues.code,
+          name: formValues.name,
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          sorting: [
+            {
+              direction,
+              field: toTenantSortField(sortField),
+            },
+          ],
+        });
+      },
+    },
+    sort: true,
+  },
+  rowConfig: {
+    isHover: true,
+  },
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    slots: {
+      toolPrefix: 'toolPrefix',
+    },
+    zoom: true,
+  },
+};
 
 function resetFormModel() {
   Object.assign(formModel, {
@@ -294,10 +282,6 @@ function resetFormModel() {
   });
 }
 
-function toAdminTenant(record: AdminTenantTableRecord) {
-  return record as AdminTenant;
-}
-
 function formatTime(value?: string) {
   return value ? dayjs(value).format('YYYY-MM-DD HH:mm') : '-';
 }
@@ -312,45 +296,25 @@ function statusColor(status?: AdminTenantStatus) {
   return 'default';
 }
 
-async function loadTenants() {
-  loading.value = true;
-  try {
-    const result = await listAdminTenantsApi({
-      code: searchForm.code,
-      name: searchForm.name,
-      page: pager.page,
-      pageSize: pager.pageSize,
-      sorting: sorting.value,
-    });
-    tenants.value = result.items;
-    pager.total = result.total;
-  } finally {
-    loading.value = false;
+function toTenantSortField(sortField: string) {
+  switch (sortField) {
+    case 'auditStatus': {
+      return 'audit_status';
+    }
+    case 'createdAt': {
+      return 'created_at';
+    }
+    default: {
+      return sortField;
+    }
   }
 }
 
-function handleSearch() {
-  pager.page = 1;
-  void loadTenants();
-}
-
-function handleReset() {
-  searchForm.code = '';
-  searchForm.name = '';
-  pager.page = 1;
-  sorting.value = [...defaultSorting];
-  void loadTenants();
-}
-
-function handleTableChange(
-  pagination: TablePaginationConfig,
-  _filters: Record<string, any>,
-  sorter: AdminTableChangeSorter,
-) {
-  pager.page = pagination.current ?? 1;
-  pager.pageSize = pagination.pageSize ?? 10;
-  sorting.value = toAdminTableSorting(sorter as any);
-  void loadTenants();
+function getTenantTooltip(record: AdminTenant) {
+  return [
+    `${$t('page.tenant.code')}：${record.code || '-'}`,
+    `${$t('page.tenant.tenant')}：${record.name || '-'}`,
+  ].join('\n');
 }
 
 async function openCreateModal() {
@@ -365,24 +329,23 @@ async function openCreateModal() {
   formRef.value?.clearValidate();
 }
 
-async function openEditModal(record: AdminTenantTableRecord) {
+async function openEditModal(record: AdminTenant) {
   if (isTenantSession.value) {
     message.warning('租户会话下不可编辑租户');
     return;
   }
-  const tenant = toAdminTenant(record);
-  editingId.value = tenant.id;
+  editingId.value = record.id;
   Object.assign(formModel, {
-    auditStatus: tenant.auditStatus ?? 'APPROVED',
-    code: tenant.code ?? '',
-    domain: tenant.domain ?? '',
-    industry: tenant.industry ?? '',
-    logoUrl: tenant.logoUrl ?? '',
-    name: tenant.name ?? '',
-    remark: tenant.remark ?? '',
-    status: tenant.status ?? 'ON',
-    subscriptionPlan: tenant.subscriptionPlan ?? '',
-    type: tenant.type ?? 'TRIAL',
+    auditStatus: record.auditStatus ?? 'APPROVED',
+    code: record.code ?? '',
+    domain: record.domain ?? '',
+    industry: record.industry ?? '',
+    logoUrl: record.logoUrl ?? '',
+    name: record.name ?? '',
+    remark: record.remark ?? '',
+    status: record.status ?? 'ON',
+    subscriptionPlan: record.subscriptionPlan ?? '',
+    type: record.type ?? 'TRIAL',
   });
   modalOpen.value = true;
   await nextTick();
@@ -401,168 +364,117 @@ async function handleSubmit() {
       message.success($t('page.tenant.createSuccess'));
     }
     modalOpen.value = false;
-    await loadTenants();
+    await gridApi.reload();
   } finally {
     submitting.value = false;
   }
 }
 
-async function handleDelete(record: AdminTenantTableRecord) {
+async function handleDelete(record: AdminTenant) {
   if (isTenantSession.value) {
     message.warning('租户会话下不可删除租户');
     return;
   }
-  const tenant = toAdminTenant(record);
-  if (!tenant.id) {
+  if (!record.id) {
     return;
   }
-  await deleteAdminTenantApi(tenant.id);
+  await deleteAdminTenantApi(record.id);
   message.success($t('page.tenant.deleteSuccess'));
-  await loadTenants();
+  await gridApi.reload();
 }
 
-onMounted(() => {
-  void loadTenants();
+const [Grid, gridApi] = useVbenVxeGrid<AdminTenant>({
+  gridClass: 'admin-tenant-grid',
+  gridOptions,
+  formOptions,
 });
 </script>
 
 <template>
   <Page auto-content-height :title="$t('menu.system.tenant')">
-    <div ref="tableSurfaceRef" class="admin-tenant-surface">
-      <div v-if="isTenantSession" class="tenant-session-banner">
-        <Tag color="blue">租户会话</Tag>
-        <span class="tenant-session-banner__text">
-          当前不可维护租户主数据。所属租户：{{ sessionTenantLabel }}
-        </span>
-      </div>
-      <div class="admin-tenant-toolbar">
-        <Space wrap>
-          <Input
-            v-model:value="searchForm.name"
-            allow-clear
-            :placeholder="$t('page.tenant.searchName')"
-            style="width: 180px"
-            @press-enter="handleSearch"
-          />
-          <Input
-            v-model:value="searchForm.code"
-            allow-clear
-            :placeholder="$t('page.tenant.searchCode')"
-            style="width: 180px"
-            @press-enter="handleSearch"
-          />
-          <Button type="primary" @click="handleSearch">
-            <template #icon>
-              <IconifyIcon icon="lucide:search" />
-            </template>
-            {{ $t('common.query') }}
-          </Button>
-          <Button @click="handleReset">
-            <template #icon>
-              <IconifyIcon icon="lucide:rotate-ccw" />
-            </template>
-            {{ $t('common.reset') }}
-          </Button>
-        </Space>
-        <Space>
-          <AdminTableToolbar
-            v-model:column-keys="visibleColumnKeys"
-            :columns="columns"
-            :export-access-codes="TENANT_ACCESS.export"
-            :data-source="tenants"
-            file-name="system-tenants"
-            :fullscreen-target="tableSurfaceRef"
-            :refresh="loadTenants"
-            storage-key="system-tenant-list"
-          />
-          <Button
-            v-access:code="TENANT_ACCESS.create"
-            :disabled="isTenantSession"
-            type="primary"
-            @click="openCreateModal"
-          >
-            <template #icon>
-              <IconifyIcon icon="lucide:plus" />
-            </template>
-            {{ $t('page.tenant.createTitle') }}
-          </Button>
-        </Space>
-      </div>
-
-      <Table
-        class="admin-tenant-table"
-        :columns="displayColumns"
-        :data-source="tenants"
-        :loading="loading"
-        :pagination="tablePagination"
-        :row-key="(record) => record.id ?? record.code ?? record.name"
-        size="middle"
-        @change="handleTableChange"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'tenant'">
-            <div class="admin-primary-cell">
-              <span>{{ toAdminTenant(record).name || '-' }}</span>
-              <small>{{ toAdminTenant(record).code || '' }}</small>
-            </div>
-          </template>
-          <template v-else-if="column.key === 'type'">
-            {{
-              typeTextMap[
-                toAdminTenant(record).type ?? 'TENANT_TYPE_UNSPECIFIED'
-              ]
-            }}
-          </template>
-          <template v-else-if="column.key === 'status'">
-            <Tag :color="statusColor(toAdminTenant(record).status)">
-              {{ statusTextMap[toAdminTenant(record).status ?? 'OFF'] }}
-            </Tag>
-          </template>
-          <template v-else-if="column.key === 'auditStatus'">
-            {{
-              auditStatusTextMap[
-                toAdminTenant(record).auditStatus ??
-                  'TENANT_AUDIT_STATUS_UNSPECIFIED'
-              ]
-            }}
-          </template>
-          <template v-else-if="column.key === 'createdAt'">
-            {{ formatTime(toAdminTenant(record).createdAt) }}
-          </template>
-          <template v-else-if="column.key === 'action'">
-            <Space>
-              <Button
-                v-access:code="TENANT_ACCESS.edit"
-                :disabled="isTenantSession"
-                size="small"
-                type="link"
-                @click="openEditModal(record)"
-              >
-                {{ $t('common.edit') }}
-              </Button>
-              <Popconfirm
-                v-access:code="TENANT_ACCESS.delete"
-                :title="
-                  $t('ui.actionMessage.deleteConfirm', [
-                    $t('page.tenant.moduleName'),
-                  ])
-                "
-                @confirm="handleDelete(record)"
-              >
-                <Button
-                  danger
-                  :disabled="isTenantSession"
-                  size="small"
-                  type="link"
-                >
-                  {{ $t('common.delete') }}
-                </Button>
-              </Popconfirm>
-            </Space>
-          </template>
-        </template>
-      </Table>
+    <div v-if="isTenantSession" class="tenant-session-banner">
+      <Tag color="blue">绉熸埛浼氳瘽</Tag>
+      <span class="tenant-session-banner__text">
+        褰撳墠涓嶅彲缁存姢绉熸埛涓绘暟鎹€傛墍灞炵鎴凤細{{
+          sessionTenantLabel
+        }}
+      </span>
     </div>
+
+    <Grid :table-title="$t('menu.system.tenant')">
+      <template #toolPrefix>
+        <div class="admin-tenant-tool-prefix">
+          <div class="admin-tenant-tool-prefix__item">
+            <Button
+              v-access:code="TENANT_ACCESS.create"
+              :disabled="isTenantSession"
+              type="primary"
+              @click="openCreateModal"
+            >
+              <template #icon>
+                <IconifyIcon icon="lucide:plus" />
+              </template>
+              {{ $t('page.tenant.createTitle') }}
+            </Button>
+          </div>
+        </div>
+      </template>
+
+      <template #tenant="{ row }">
+        <Tooltip :title="getTenantTooltip(row)">
+          <span class="admin-primary-main">{{ row.name || '-' }}</span>
+        </Tooltip>
+      </template>
+
+      <template #type="{ row }">
+        {{ typeTextMap[row.type ?? 'TENANT_TYPE_UNSPECIFIED'] }}
+      </template>
+
+      <template #status="{ row }">
+        <Tag :color="statusColor(row.status)">
+          {{ statusTextMap[row.status ?? 'OFF'] }}
+        </Tag>
+      </template>
+
+      <template #auditStatus="{ row }">
+        {{
+          auditStatusTextMap[
+            row.auditStatus ?? 'TENANT_AUDIT_STATUS_UNSPECIFIED'
+          ]
+        }}
+      </template>
+
+      <template #createdAt="{ row }">
+        {{ formatTime(row.createdAt) }}
+      </template>
+
+      <template #action="{ row }">
+        <Space>
+          <Button
+            v-access:code="TENANT_ACCESS.edit"
+            :disabled="isTenantSession"
+            size="small"
+            type="link"
+            @click="openEditModal(row)"
+          >
+            {{ $t('common.edit') }}
+          </Button>
+          <Popconfirm
+            v-access:code="TENANT_ACCESS.delete"
+            :title="
+              $t('ui.actionMessage.deleteConfirm', [
+                $t('page.tenant.moduleName'),
+              ])
+            "
+            @confirm="handleDelete(row)"
+          >
+            <Button danger :disabled="isTenantSession" size="small" type="link">
+              {{ $t('common.delete') }}
+            </Button>
+          </Popconfirm>
+        </Space>
+      </template>
+    </Grid>
 
     <Modal
       v-model:open="modalOpen"
@@ -572,19 +484,32 @@ onMounted(() => {
       width="720px"
       @ok="handleSubmit"
     >
-      <Form
-        ref="formRef"
-        :label-col="{ span: 5 }"
-        :model="formModel"
-        :rules="formRules"
-      >
-        <Form.Item :label="$t('page.tenant.name')" name="name">
+      <Form ref="formRef" :model="formModel" :label-col="{ span: 5 }">
+        <Form.Item
+          :label="$t('page.tenant.name')"
+          name="name"
+          :rules="[
+            {
+              message: $t('ui.formRules.required', [$t('page.tenant.name')]),
+              required: true,
+            },
+          ]"
+        >
           <Input
             v-model:value="formModel.name"
             :placeholder="$t('page.tenant.placeholderName')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.tenant.code')" name="code">
+        <Form.Item
+          :label="$t('page.tenant.code')"
+          name="code"
+          :rules="[
+            {
+              message: $t('ui.formRules.required', [$t('page.tenant.code')]),
+              required: true,
+            },
+          ]"
+        >
           <Input
             v-model:value="formModel.code"
             :placeholder="$t('page.tenant.placeholderCode')"
@@ -608,10 +533,32 @@ onMounted(() => {
             :placeholder="$t('page.tenant.placeholderIndustry')"
           />
         </Form.Item>
-        <Form.Item :label="$t('page.tenant.type')" name="type">
+        <Form.Item
+          :label="$t('page.tenant.type')"
+          name="type"
+          :rules="[
+            {
+              message: $t('ui.formRules.selectRequired', [
+                $t('page.tenant.type'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Select v-model:value="formModel.type" :options="typeOptions" />
         </Form.Item>
-        <Form.Item :label="$t('page.tenant.status')" name="status">
+        <Form.Item
+          :label="$t('page.tenant.status')"
+          name="status"
+          :rules="[
+            {
+              message: $t('ui.formRules.selectRequired', [
+                $t('page.tenant.status'),
+              ]),
+              required: true,
+            },
+          ]"
+        >
           <Select v-model:value="formModel.status" :options="statusOptions" />
         </Form.Item>
         <Form.Item :label="$t('page.tenant.auditStatus')" name="auditStatus">
@@ -642,20 +589,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.admin-tenant-surface {
-  min-height: 100%;
-  padding: 16px;
-  background: hsl(var(--background));
-}
-
-.admin-tenant-toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
 .tenant-session-banner {
   display: flex;
   gap: 10px;
@@ -676,28 +609,29 @@ onMounted(() => {
   color: hsl(var(--foreground) / 82%);
 }
 
-.admin-tenant-table {
-  width: 100%;
+.admin-tenant-tool-prefix {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
 }
 
-.admin-primary-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.admin-tenant-tool-prefix__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
 }
 
-.admin-primary-cell small {
-  color: hsl(var(--muted-foreground));
+.admin-tenant-tool-prefix :deep(.ant-btn) {
+  display: inline-flex;
+  align-items: center;
 }
 
-@media (max-width: 768px) {
-  .admin-tenant-surface {
-    padding: 12px;
-  }
-
-  .admin-tenant-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
+.admin-primary-main {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  white-space: nowrap;
 }
 </style>

@@ -1,12 +1,9 @@
 <script lang="ts" setup>
-import type {
-  FormInstance,
-  TableColumnsType,
-  TableColumnType,
-  TablePaginationConfig,
-} from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
 
+import type { VbenFormProps } from '@vben/common-ui';
+
+import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { AdminOrgUnit } from '#/api/admin/org-units';
 import type { AdminPosition } from '#/api/admin/positions';
 import type { AdminRole } from '#/api/admin/roles';
@@ -15,12 +12,8 @@ import type {
   AdminUserSaveInput,
   AdminUserStatus,
 } from '#/api/admin/users';
-import type {
-  AdminTableColumn,
-  AdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, unref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
@@ -35,11 +28,12 @@ import {
   Popconfirm,
   Select,
   Space,
-  Table,
   Tag,
+  Tooltip,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminOrgUnitsApi } from '#/api/admin/org-units';
 import { listAdminPositionsApi } from '#/api/admin/positions';
 import { listAdminRolesApi } from '#/api/admin/roles';
@@ -50,13 +44,6 @@ import {
   listAdminUsersApi,
   updateAdminUserApi,
 } from '#/api/admin/users';
-import AdminTableToolbar from '#/components/admin-table-toolbar/index.vue';
-import {
-  applyAdminTableSorting,
-  filterVisibleAdminTableColumns,
-  getDefaultVisibleColumnKeys,
-  toAdminTableSorting,
-} from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 
 interface AdminUserFormModel extends AdminUserSaveInput {
@@ -73,11 +60,6 @@ interface AdminUserFormModel extends AdminUserSaveInput {
   username: string;
 }
 
-type AdminTableChangeSorter =
-  | Parameters<NonNullable<InstanceType<typeof Table>['$props']['onChange']>>[2]
-  | TableColumnType<AdminUser>['sorter'];
-
-type AdminUserTableRecord = AdminUser | Record<string, any>;
 type UserSelectOption = {
   label: string;
   meta: string;
@@ -98,7 +80,6 @@ const isTenantSession = computed(
 const sessionTenantLabel = computed(
   () => userStore.userInfo?.tenantName || '-',
 );
-const defaultSorting: AdminTableSorting[] = [{ direction: 'ASC', field: 'id' }];
 
 const statusOptions = [
   { label: $t('enum.user.status.NORMAL'), value: 'NORMAL' },
@@ -124,131 +105,14 @@ const statusTextMap: Record<AdminUserStatus, string> = {
   PENDING: $t('enum.user.status.PENDING'),
 };
 
-const columns: AdminTableColumn<AdminUser>[] = [
-  {
-    dataIndex: 'id',
-    sortField: 'id',
-    sortable: true,
-    sorter: true,
-    title: $t('page.user.id'),
-    width: 80,
-  },
-  {
-    key: 'identity',
-    sortField: 'username',
-    sortable: true,
-    sorter: true,
-    title: $t('page.user.identity'),
-    width: 220,
-  },
-  {
-    dataIndex: 'mobile',
-    key: 'mobile',
-    sortable: true,
-    sorter: true,
-    title: $t('page.user.mobile'),
-    width: 140,
-  },
-  {
-    dataIndex: 'telephone',
-    key: 'telephone',
-    sortable: true,
-    sorter: true,
-    title: $t('page.user.telephone'),
-    width: 140,
-  },
-  {
-    key: 'orgUnits',
-    title: $t('page.user.orgUnits'),
-    width: 220,
-  },
-  {
-    key: 'positions',
-    title: $t('page.user.positions'),
-    width: 220,
-  },
-  {
-    key: 'roles',
-    title: $t('page.user.roles'),
-    width: 220,
-  },
-  {
-    dataIndex: 'tenantName',
-    key: 'tenant',
-    sortField: 'tenant_id',
-    sortable: true,
-    sorter: true,
-    title: $t('page.tenant.tenant'),
-    width: 180,
-  },
-  {
-    dataIndex: 'status',
-    key: 'status',
-    sortable: true,
-    sorter: true,
-    title: $t('page.user.status'),
-    width: 100,
-  },
-  {
-    dataIndex: 'lastLoginAt',
-    key: 'lastLoginAt',
-    sortField: 'last_login_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.user.lastLoginAt'),
-    width: 170,
-  },
-  {
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    sortField: 'created_at',
-    sortable: true,
-    sorter: true,
-    title: $t('page.user.createdAt'),
-    width: 170,
-  },
-  {
-    fixed: 'right',
-    key: 'action',
-    title: $t('ui.table.action'),
-    width: 150,
-  },
-];
-
-const loading = ref(false);
 const modalOpen = ref(false);
 const submitting = ref(false);
 const optionLoading = ref(false);
 const editingId = ref<number>();
-const formRef = ref<FormInstance>();
-const tableSurfaceRef = ref<HTMLElement>();
-const users = ref<AdminUser[]>([]);
+const formRef = ref();
 const orgOptions = ref<AdminOrgUnit[]>([]);
 const positionOptions = ref<AdminPosition[]>([]);
 const roleOptions = ref<AdminRole[]>([]);
-const sorting = ref<AdminTableSorting[]>([...defaultSorting]);
-const visibleColumnKeys = ref<string[]>(
-  getDefaultVisibleColumnKeys(columns).filter(
-    (key): key is string => key !== undefined,
-  ),
-);
-
-const searchForm = reactive({
-  mobile: '',
-  orgUnitId: undefined as number | undefined,
-  positionId: undefined as number | undefined,
-  realname: '',
-  roleId: undefined as number | undefined,
-  status: undefined as AdminUserStatus | undefined,
-  telephone: '',
-  username: '',
-});
-
-const pager = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-});
 
 const formModel = reactive<AdminUserFormModel>({
   address: '',
@@ -273,12 +137,34 @@ const formModel = reactive<AdminUserFormModel>({
 const modalTitle = computed(() =>
   editingId.value ? $t('page.user.editTitle') : $t('page.user.createTitle'),
 );
-const displayColumns = computed<TableColumnsType<AdminUser>>(() =>
-  filterVisibleAdminTableColumns(
-    applyAdminTableSorting(columns, sorting.value),
-    visibleColumnKeys.value,
-  ),
+
+const orgSelectOptions = computed(
+  () =>
+    orgOptions.value.map((item) => ({
+      label: item.name ?? `#${item.id}`,
+      meta: item.code ?? item.type ?? '-',
+      value: item.id as number,
+    })) satisfies UserSelectOption[],
 );
+
+const positionSelectOptions = computed(
+  () =>
+    positionOptions.value.map((item) => ({
+      label: item.name ?? `#${item.id}`,
+      meta: item.orgUnitName ?? item.code ?? '-',
+      value: item.id as number,
+    })) satisfies UserSelectOption[],
+);
+
+const roleSelectOptions = computed(
+  () =>
+    roleOptions.value.map((item) => ({
+      label: item.name ?? `#${item.id}`,
+      meta: item.code ?? item.type ?? '-',
+      value: item.id as number,
+    })) satisfies UserSelectOption[],
+);
+
 const formRules = computed<Record<string, Rule[]>>(() => ({
   email: [
     {
@@ -308,38 +194,253 @@ const formRules = computed<Record<string, Rule[]>>(() => ({
   ],
 }));
 
-const orgSelectOptions = computed(
-  () =>
-    orgOptions.value.map((item) => ({
-      label: item.name ?? `#${item.id}`,
-      meta: item.code ?? item.type ?? '-',
-      value: item.id as number,
-    })) satisfies UserSelectOption[],
-);
-const positionSelectOptions = computed(
-  () =>
-    positionOptions.value.map((item) => ({
-      label: item.name ?? `#${item.id}`,
-      meta: item.orgUnitName ?? item.code ?? '-',
-      value: item.id as number,
-    })) satisfies UserSelectOption[],
-);
-const roleSelectOptions = computed(
-  () =>
-    roleOptions.value.map((item) => ({
-      label: item.name ?? `#${item.id}`,
-      meta: item.code ?? item.type ?? '-',
-      value: item.id as number,
-    })) satisfies UserSelectOption[],
-);
+const formOptions: VbenFormProps = {
+  collapsed: false,
+  schema: [
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.user.searchUsername'),
+      },
+      fieldName: 'username',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.user.username'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.user.searchRealname'),
+      },
+      fieldName: 'realname',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.user.realname'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.user.searchMobile'),
+      },
+      fieldName: 'mobile',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.user.mobile'),
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: $t('page.user.searchTelephone'),
+      },
+      fieldName: 'telephone',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.user.telephone'),
+    },
+    {
+      component: 'Select',
+      componentProps: () => ({
+        allowClear: true,
+        loading: optionLoading.value,
+        options: unref(orgSelectOptions),
+        placeholder: $t('page.user.selectOrgUnit'),
+        showSearch: true,
+      }),
+      fieldName: 'orgUnitId',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.user.orgUnits'),
+    },
+    {
+      component: 'Select',
+      componentProps: () => ({
+        allowClear: true,
+        loading: optionLoading.value,
+        options: unref(positionSelectOptions),
+        placeholder: $t('page.user.selectPosition'),
+        showSearch: true,
+      }),
+      fieldName: 'positionId',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.user.positions'),
+    },
+    {
+      component: 'Select',
+      componentProps: () => ({
+        allowClear: true,
+        loading: optionLoading.value,
+        options: unref(roleSelectOptions),
+        placeholder: $t('page.user.selectRole'),
+        showSearch: true,
+      }),
+      fieldName: 'roleId',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.user.roles'),
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: statusOptions,
+        placeholder: $t('page.user.selectStatus'),
+      },
+      fieldName: 'status',
+      formItemClass: 'md:col-span-1',
+      label: $t('page.user.status'),
+    },
+  ],
+  showCollapseButton: false,
+  submitOnEnter: true,
+  wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5',
+};
 
-const tablePagination = computed<TablePaginationConfig>(() => ({
-  current: pager.page,
-  pageSize: pager.pageSize,
-  showSizeChanger: true,
-  showTotal: (total) => `${$t('page.loginAuditLog.total')} ${total}`,
-  total: pager.total,
-}));
+const gridOptions: VxeTableGridOptions<AdminUser> = {
+  border: false,
+  columnConfig: {
+    resizable: true,
+  },
+  columns: [
+    {
+      field: 'username',
+      slots: { default: 'identity' },
+      sortable: true,
+      title: $t('page.user.identity'),
+      width: 220,
+    },
+    {
+      field: 'mobile',
+      sortable: true,
+      title: $t('page.user.mobile'),
+      width: 140,
+    },
+    {
+      field: 'telephone',
+      sortable: true,
+      title: $t('page.user.telephone'),
+      width: 140,
+    },
+    {
+      field: 'orgUnits',
+      slots: { default: 'orgUnits' },
+      title: $t('page.user.orgUnits'),
+      width: 220,
+    },
+    {
+      field: 'positions',
+      slots: { default: 'positions' },
+      title: $t('page.user.positions'),
+      width: 220,
+    },
+    {
+      field: 'roles',
+      slots: { default: 'roles' },
+      title: $t('page.user.roles'),
+      width: 220,
+    },
+    {
+      field: 'tenantName',
+      slots: { default: 'tenant' },
+      sortable: true,
+      title: $t('page.tenant.tenant'),
+      width: 180,
+    },
+    {
+      field: 'status',
+      slots: { default: 'status' },
+      sortable: true,
+      title: $t('page.user.status'),
+      width: 100,
+    },
+    {
+      field: 'lastLoginAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.user.lastLoginAt'),
+      width: 170,
+    },
+    {
+      field: 'createdAt',
+      formatter: 'formatDateTime',
+      sortable: true,
+      title: $t('page.user.createdAt'),
+      width: 170,
+    },
+    {
+      field: 'action',
+      fixed: 'right',
+      slots: { default: 'action' },
+      title: $t('ui.table.action'),
+      width: 150,
+    },
+  ],
+  exportConfig: {
+    filename: 'system-users',
+    type: 'csv',
+  },
+  height: 'auto',
+  keepSource: true,
+  pagerConfig: {},
+  proxyConfig: {
+    ajax: {
+      query: async (
+        { page, sort }: { page: any; sort: any },
+        formValues: Record<string, any>,
+      ) => {
+        const sortField = String(sort.field || 'id');
+        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+
+        return await listAdminUsersApi({
+          mobile: formValues.mobile,
+          orgUnitId: formValues.orgUnitId,
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          positionId: formValues.positionId,
+          realname: formValues.realname,
+          roleId: formValues.roleId,
+          sorting: [
+            {
+              direction,
+              field: toUserSortField(sortField),
+            },
+          ],
+          status: formValues.status,
+          telephone: formValues.telephone,
+          username: formValues.username,
+        });
+      },
+    },
+    sort: true,
+  },
+  rowConfig: {
+    isHover: true,
+  },
+  stripe: true,
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    slots: {
+      toolPrefix: 'toolPrefix',
+    },
+    zoom: true,
+  },
+};
+
+function toUserSortField(sortField: string) {
+  switch (sortField) {
+    case 'createdAt': {
+      return 'created_at';
+    }
+    case 'lastLoginAt': {
+      return 'last_login_at';
+    }
+    case 'tenantName': {
+      return 'tenant_id';
+    }
+    default: {
+      return sortField;
+    }
+  }
+}
 
 function resetFormModel() {
   Object.assign(formModel, {
@@ -363,30 +464,36 @@ function resetFormModel() {
   });
 }
 
-function toAdminUser(record: AdminUserTableRecord) {
-  return record as AdminUser;
+function displayRoles(record: AdminUser) {
+  return record.roleNames?.length ? record.roleNames : (record.roles ?? []);
 }
 
-function displayRoles(record: AdminUserTableRecord) {
-  const user = toAdminUser(record);
-  return user.roleNames?.length ? user.roleNames : (user.roles ?? []);
+function displayOrgUnits(record: AdminUser) {
+  return record.orgUnitNames ?? [];
 }
 
-function displayOrgUnits(record: AdminUserTableRecord) {
-  return toAdminUser(record).orgUnitNames ?? [];
-}
-
-function displayPositions(record: AdminUserTableRecord) {
-  return toAdminUser(record).positionNames ?? [];
+function displayPositions(record: AdminUser) {
+  return record.positionNames ?? [];
 }
 
 function formatTime(value?: string) {
   return value ? dayjs(value).format('YYYY-MM-DD HH:mm') : '-';
 }
 
-function getTenantText(record: AdminUserTableRecord) {
-  const user = toAdminUser(record);
-  return user.tenantName || '-';
+function getTenantText(record: AdminUser) {
+  return record.tenantName || '-';
+}
+
+function getUserIdentityText(record: AdminUser) {
+  return record.realname || record.username || record.nickname || '-';
+}
+
+function getUserIdentityTooltip(record: AdminUser) {
+  return [
+    `${$t('page.user.username')}：${record.username || '-'}`,
+    `${$t('page.user.realname')}：${record.realname || '-'}`,
+    `${$t('page.user.nickname')}：${record.nickname || '-'}`,
+  ].join('\n');
 }
 
 function getStatusText(status?: AdminUserStatus) {
@@ -437,61 +544,6 @@ async function loadReferenceOptions() {
   }
 }
 
-async function loadUsers() {
-  loading.value = true;
-  try {
-    const response = await listAdminUsersApi({
-      mobile: searchForm.mobile,
-      orgUnitId: searchForm.orgUnitId,
-      page: pager.page,
-      pageSize: pager.pageSize,
-      positionId: searchForm.positionId,
-      realname: searchForm.realname,
-      roleId: searchForm.roleId,
-      sorting: sorting.value,
-      status: searchForm.status,
-      telephone: searchForm.telephone,
-      username: searchForm.username,
-    });
-    users.value = response.items;
-    pager.total = response.total;
-  } catch (error) {
-    message.error((error as Error).message || $t('page.user.loadFailed'));
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function handleSearch() {
-  pager.page = 1;
-  await loadUsers();
-}
-
-async function handleReset() {
-  searchForm.mobile = '';
-  searchForm.orgUnitId = undefined;
-  searchForm.positionId = undefined;
-  searchForm.realname = '';
-  searchForm.roleId = undefined;
-  searchForm.status = undefined;
-  searchForm.telephone = '';
-  searchForm.username = '';
-  sorting.value = [...defaultSorting];
-  pager.page = 1;
-  await loadUsers();
-}
-
-async function handleTableChange(
-  pagination: TablePaginationConfig,
-  _filters: Record<string, unknown>,
-  sorter: AdminTableChangeSorter,
-) {
-  pager.page = pagination.current ?? 1;
-  pager.pageSize = pagination.pageSize ?? 10;
-  sorting.value = toAdminTableSorting(sorter as any);
-  await loadUsers();
-}
-
 async function openCreate() {
   editingId.value = undefined;
   resetFormModel();
@@ -500,17 +552,16 @@ async function openCreate() {
   formRef.value?.clearValidate();
 }
 
-async function openEdit(record: AdminUserTableRecord) {
-  const user = toAdminUser(record);
-  if (!user.id) {
+async function openEdit(record: AdminUser) {
+  if (!record.id) {
     message.warning($t('page.user.missingId'));
     return;
   }
 
   optionLoading.value = true;
   try {
-    const detail = await getAdminUserApi(user.id);
-    editingId.value = user.id;
+    const detail = await getAdminUserApi(record.id);
+    editingId.value = record.id;
     Object.assign(formModel, {
       address: detail.address ?? '',
       avatar: detail.avatar ?? '',
@@ -580,7 +631,7 @@ async function submitUser() {
       message.success($t('page.user.createSuccess'));
     }
     modalOpen.value = false;
-    await loadUsers();
+    await gridApi.reload();
   } catch (error) {
     message.error((error as Error).message || $t('page.user.saveFailed'));
   } finally {
@@ -588,307 +639,146 @@ async function submitUser() {
   }
 }
 
-async function handleDelete(record: AdminUserTableRecord) {
-  const user = toAdminUser(record);
-  if (!user.id) {
+async function handleDelete(record: AdminUser) {
+  if (!record.id) {
     message.warning($t('page.user.missingId'));
     return;
   }
 
-  await deleteAdminUserApi(user.id);
+  await deleteAdminUserApi(record.id);
   message.success($t('page.user.deleteSuccess'));
-  await loadUsers();
+  await gridApi.reload();
 }
 
-onMounted(async () => {
-  await Promise.all([loadReferenceOptions(), loadUsers()]);
+const [Grid, gridApi] = useVbenVxeGrid<AdminUser>({
+  gridClass: 'admin-user-grid',
+  gridOptions,
+  formOptions,
+});
+
+onMounted(() => {
+  void loadReferenceOptions();
 });
 </script>
 
 <template>
   <Page auto-content-height :title="$t('menu.system.user')">
-    <div ref="tableSurfaceRef" class="admin-user-surface">
-      <div v-if="isTenantSession" class="tenant-session-banner">
-        <Tag color="blue">租户会话</Tag>
-        <span class="tenant-session-banner__text">
-          当前仅查看租户内用户数据，所属租户：{{ sessionTenantLabel }}
-        </span>
-      </div>
-      <div class="admin-user-toolbar">
-        <Form
-          class="admin-user-search"
-          :model="searchForm"
-          layout="inline"
-          @finish="handleSearch"
-        >
-          <Form.Item
-            class="admin-user-search__item"
-            :label="$t('page.user.username')"
-            name="username"
-          >
-            <Input
-              v-model:value="searchForm.username"
-              allow-clear
-              :placeholder="$t('page.user.searchUsername')"
-            />
-          </Form.Item>
-          <Form.Item
-            class="admin-user-search__item"
-            :label="$t('page.user.realname')"
-            name="realname"
-          >
-            <Input
-              v-model:value="searchForm.realname"
-              allow-clear
-              :placeholder="$t('page.user.searchRealname')"
-            />
-          </Form.Item>
-          <Form.Item
-            class="admin-user-search__item"
-            :label="$t('page.user.mobile')"
-            name="mobile"
-          >
-            <Input
-              v-model:value="searchForm.mobile"
-              allow-clear
-              :placeholder="$t('page.user.searchMobile')"
-            />
-          </Form.Item>
-          <Form.Item
-            class="admin-user-search__item"
-            :label="$t('page.user.telephone')"
-            name="telephone"
-          >
-            <Input
-              v-model:value="searchForm.telephone"
-              allow-clear
-              :placeholder="$t('page.user.searchTelephone')"
-            />
-          </Form.Item>
-          <Form.Item
-            class="admin-user-search__item"
-            :label="$t('page.user.orgUnits')"
-            name="orgUnitId"
-          >
-            <Select
-              v-model:value="searchForm.orgUnitId"
-              allow-clear
-              :loading="optionLoading"
-              :options="orgSelectOptions"
-              :placeholder="$t('page.user.selectOrgUnit')"
-              show-search
-            >
-              <template #option="{ label, meta }">
-                <div class="user-option">
-                  <span class="user-option-main">{{ label }}</span>
-                  <span class="user-option-meta">{{ meta }}</span>
-                </div>
-              </template>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            class="admin-user-search__item"
-            :label="$t('page.user.positions')"
-            name="positionId"
-          >
-            <Select
-              v-model:value="searchForm.positionId"
-              allow-clear
-              :loading="optionLoading"
-              :options="positionSelectOptions"
-              :placeholder="$t('page.user.selectPosition')"
-              show-search
-            >
-              <template #option="{ label, meta }">
-                <div class="user-option">
-                  <span class="user-option-main">{{ label }}</span>
-                  <span class="user-option-meta">{{ meta }}</span>
-                </div>
-              </template>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            class="admin-user-search__item"
-            :label="$t('page.user.roles')"
-            name="roleId"
-          >
-            <Select
-              v-model:value="searchForm.roleId"
-              allow-clear
-              :loading="optionLoading"
-              :options="roleSelectOptions"
-              :placeholder="$t('page.user.selectRole')"
-              show-search
-            >
-              <template #option="{ label, meta }">
-                <div class="user-option">
-                  <span class="user-option-main">{{ label }}</span>
-                  <span class="user-option-meta">{{ meta }}</span>
-                </div>
-              </template>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            class="admin-user-search__item"
-            :label="$t('page.user.status')"
-            name="status"
-          >
-            <Select
-              v-model:value="searchForm.status"
-              allow-clear
-              :options="statusOptions"
-              :placeholder="$t('page.user.selectStatus')"
-            />
-          </Form.Item>
-          <Form.Item class="admin-user-search__actions">
-            <Space>
-              <Button html-type="submit" type="primary">
-                <template #icon>
-                  <IconifyIcon icon="lucide:search" />
-                </template>
-                {{ $t('common.query') }}
-              </Button>
-              <Button @click="handleReset">
-                <template #icon>
-                  <IconifyIcon icon="lucide:rotate-ccw" />
-                </template>
-                {{ $t('common.reset') }}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
+    <div v-if="isTenantSession" class="tenant-session-banner">
+      <Tag color="blue">绉熸埛浼氳瘽</Tag>
+      <span class="tenant-session-banner__text">
+        褰撳墠浠呮煡鐪嬬鎴峰唴鐢ㄦ埛鏁版嵁锛屾墍灞炵鎴凤細{{
+          sessionTenantLabel
+        }}
+      </span>
+    </div>
 
-        <Space class="admin-user-toolbar__actions">
-          <AdminTableToolbar
-            v-model:column-keys="visibleColumnKeys"
-            :columns="columns"
-            :export-access-codes="USER_ACCESS.export"
-            :data-source="users"
-            file-name="system-users"
-            :fullscreen-target="tableSurfaceRef"
-            :refresh="loadUsers"
-            storage-key="system-user-list"
-          />
+    <Grid :table-title="$t('menu.system.user')">
+      <template #toolPrefix>
+        <div class="admin-user-tool-prefix">
+          <div class="admin-user-tool-prefix__item">
+            <Button
+              v-access:code="USER_ACCESS.create"
+              type="primary"
+              @click="openCreate"
+            >
+              <template #icon>
+                <IconifyIcon icon="lucide:plus" />
+              </template>
+              {{ $t('page.user.createTitle') }}
+            </Button>
+          </div>
+        </div>
+      </template>
+
+      <template #identity="{ row }">
+        <Tooltip :title="getUserIdentityTooltip(row)">
+          <span class="identity-main">
+            {{ getUserIdentityText(row) }}
+          </span>
+        </Tooltip>
+      </template>
+
+      <template #orgUnits="{ row }">
+        <Space v-if="displayOrgUnits(row).length > 0" wrap>
+          <Tag v-for="orgUnit in displayOrgUnits(row)" :key="orgUnit">
+            {{ orgUnit }}
+          </Tag>
+        </Space>
+        <span v-else>-</span>
+      </template>
+
+      <template #positions="{ row }">
+        <Space v-if="displayPositions(row).length > 0" wrap>
+          <Tag v-for="position in displayPositions(row)" :key="position">
+            {{ position }}
+          </Tag>
+        </Space>
+        <span v-else>-</span>
+      </template>
+
+      <template #roles="{ row }">
+        <Space v-if="displayRoles(row).length > 0" wrap>
+          <Tag v-for="role in displayRoles(row)" :key="role">
+            {{ role }}
+          </Tag>
+        </Space>
+        <span v-else>-</span>
+      </template>
+
+      <template #tenant="{ row }">
+        <Tag :color="row.tenantId ? 'blue' : 'default'">
+          {{ getTenantText(row) }}
+        </Tag>
+      </template>
+
+      <template #status="{ row }">
+        <Tag :color="getStatusColor(row.status)">
+          {{ getStatusText(row.status) }}
+        </Tag>
+      </template>
+
+      <template #lastLoginAt="{ row }">
+        {{ formatTime(row.lastLoginAt) }}
+      </template>
+
+      <template #createdAt="{ row }">
+        {{ formatTime(row.createdAt) }}
+      </template>
+
+      <template #action="{ row }">
+        <Space>
           <Button
-            v-access:code="USER_ACCESS.create"
-            type="primary"
-            @click="openCreate"
+            v-access:code="USER_ACCESS.edit"
+            size="small"
+            type="link"
+            @click="openEdit(row)"
           >
             <template #icon>
-              <IconifyIcon icon="lucide:plus" />
+              <IconifyIcon icon="lucide:pencil" />
             </template>
-            {{ $t('page.user.createTitle') }}
+            {{ $t('common.edit') }}
           </Button>
+          <Popconfirm
+            :title="
+              $t('ui.actionMessage.deleteConfirm', [$t('page.user.moduleName')])
+            "
+            @confirm="handleDelete(row)"
+          >
+            <Button
+              v-access:code="USER_ACCESS.delete"
+              danger
+              size="small"
+              type="link"
+            >
+              <template #icon>
+                <IconifyIcon icon="lucide:trash-2" />
+              </template>
+              {{ $t('common.delete') }}
+            </Button>
+          </Popconfirm>
         </Space>
-      </div>
-
-      <Table
-        class="admin-user-table"
-        :columns="displayColumns"
-        :data-source="users"
-        :loading="loading"
-        :pagination="tablePagination"
-        row-key="id"
-        size="middle"
-        @change="handleTableChange"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'identity'">
-            <div class="identity-cell">
-              <span class="identity-main">
-                {{ record.username || '-' }}
-              </span>
-              <span class="identity-sub">
-                {{ record.realname || record.nickname || '-' }}
-              </span>
-            </div>
-          </template>
-
-          <template v-else-if="column.key === 'orgUnits'">
-            <Space v-if="displayOrgUnits(record).length > 0" wrap>
-              <Tag v-for="orgUnit in displayOrgUnits(record)" :key="orgUnit">
-                {{ orgUnit }}
-              </Tag>
-            </Space>
-            <span v-else>-</span>
-          </template>
-
-          <template v-else-if="column.key === 'positions'">
-            <Space v-if="displayPositions(record).length > 0" wrap>
-              <Tag v-for="position in displayPositions(record)" :key="position">
-                {{ position }}
-              </Tag>
-            </Space>
-            <span v-else>-</span>
-          </template>
-
-          <template v-else-if="column.key === 'roles'">
-            <Space v-if="displayRoles(record).length > 0" wrap>
-              <Tag v-for="role in displayRoles(record)" :key="role">
-                {{ role }}
-              </Tag>
-            </Space>
-            <span v-else>-</span>
-          </template>
-
-          <template v-else-if="column.key === 'tenant'">
-            <Tag :color="record.tenantId ? 'blue' : 'default'">
-              {{ getTenantText(record) }}
-            </Tag>
-          </template>
-
-          <template v-else-if="column.key === 'status'">
-            <Tag :color="getStatusColor(record.status)">
-              {{ getStatusText(record.status) }}
-            </Tag>
-          </template>
-
-          <template v-else-if="column.key === 'lastLoginAt'">
-            {{ formatTime(record.lastLoginAt) }}
-          </template>
-
-          <template v-else-if="column.key === 'createdAt'">
-            {{ formatTime(record.createdAt) }}
-          </template>
-
-          <template v-else-if="column.key === 'action'">
-            <Space>
-              <Button
-                v-access:code="USER_ACCESS.edit"
-                size="small"
-                type="link"
-                @click="openEdit(record)"
-              >
-                <template #icon>
-                  <IconifyIcon icon="lucide:pencil" />
-                </template>
-                {{ $t('common.edit') }}
-              </Button>
-              <Popconfirm
-                :title="
-                  $t('ui.actionMessage.deleteConfirm', [
-                    $t('page.user.moduleName'),
-                  ])
-                "
-                @confirm="handleDelete(record)"
-              >
-                <Button
-                  v-access:code="USER_ACCESS.delete"
-                  danger
-                  size="small"
-                  type="link"
-                >
-                  <template #icon>
-                    <IconifyIcon icon="lucide:trash-2" />
-                  </template>
-                  {{ $t('common.delete') }}
-                </Button>
-              </Popconfirm>
-            </Space>
-          </template>
-        </template>
-      </Table>
-    </div>
+      </template>
+    </Grid>
 
     <Modal
       v-model:open="modalOpen"
@@ -959,7 +849,7 @@ onMounted(async () => {
           >
             <Input.Password
               v-model:value="formModel.password"
-              :autocomplete="editingId ? 'new-password' : 'new-password'"
+              autocomplete="new-password"
               name="admin-user-password"
               :placeholder="
                 editingId
@@ -1120,31 +1010,12 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.admin-user-surface {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 100%;
-  padding: 16px;
-  overflow-y: auto;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-}
-
-.admin-user-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .tenant-session-banner {
   display: flex;
   gap: 10px;
   align-items: center;
   padding: 12px 14px;
+  margin-bottom: 16px;
   background: linear-gradient(
     135deg,
     hsl(var(--primary) / 8%),
@@ -1159,6 +1030,23 @@ onMounted(async () => {
   color: hsl(var(--foreground) / 82%);
 }
 
+.admin-user-tool-prefix {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.admin-user-tool-prefix__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.admin-user-tool-prefix :deep(.ant-btn) {
+  display: inline-flex;
+  align-items: center;
+}
+
 .admin-user-autofill-guard {
   position: absolute;
   width: 0;
@@ -1169,46 +1057,6 @@ onMounted(async () => {
   pointer-events: none;
   border: 0;
   opacity: 0;
-}
-
-.admin-user-toolbar__actions {
-  align-items: center;
-}
-
-.admin-user-search {
-  display: grid;
-  flex: 1;
-  grid-template-columns: repeat(4, minmax(220px, 1fr));
-  gap: 12px 16px;
-  min-width: min(100%, 920px);
-}
-
-:deep(.admin-user-search .ant-form-item) {
-  margin-bottom: 0;
-}
-
-:deep(.admin-user-search .ant-form-item-row) {
-  width: 100%;
-}
-
-:deep(.admin-user-search .ant-form-item-control) {
-  min-width: 0;
-}
-
-:deep(.admin-user-search .ant-form-item-control-input),
-:deep(.admin-user-search .ant-form-item-control-input-content),
-:deep(.admin-user-search .ant-input),
-:deep(.admin-user-search .ant-select) {
-  width: 100%;
-}
-
-.admin-user-search__item {
-  min-width: 0;
-}
-
-.admin-user-search__actions {
-  display: flex;
-  align-items: flex-end;
 }
 
 .user-option {
@@ -1228,27 +1076,14 @@ onMounted(async () => {
   color: hsl(var(--muted-foreground));
 }
 
-.admin-user-table {
-  flex: 1;
-  min-height: 0;
-}
-
-.identity-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  line-height: 1.4;
-  text-align: left;
-}
-
 .identity-main {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 500;
   color: hsl(var(--foreground));
-}
-
-.identity-sub {
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
 }
 
 .admin-user-form-grid {
@@ -1262,19 +1097,6 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
-  .admin-user-surface {
-    padding: 12px;
-  }
-
-  .admin-user-toolbar {
-    align-items: stretch;
-  }
-
-  .admin-user-search {
-    grid-template-columns: minmax(0, 1fr);
-    min-width: 0;
-  }
-
   .admin-user-form-grid {
     grid-template-columns: minmax(0, 1fr);
   }
