@@ -18,6 +18,7 @@ import {
   Select,
   Space,
   Tag,
+  Tooltip,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
@@ -25,13 +26,17 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminTaskLogsApi } from '#/api/admin/tasks';
 import { $t } from '#/locales';
 
+type AdminTaskLogRow = AdminTaskLog & {
+  taskName?: string;
+};
+
 const TASK_LOG_ACCESS = {
   export: ['task:logs:export'],
 } as const;
 
 const { hasAccessByCodes } = useAccess();
 const detailOpen = ref(false);
-const currentLog = ref<AdminTaskLog>();
+const currentLog = ref<AdminTaskLogRow>();
 
 const statusOptions: Array<{ label: string; value: AdminTaskLogStatus }> = [
   { label: $t('page.taskLog.statusSuccess'), value: 'SUCCESS' },
@@ -45,7 +50,7 @@ const searchForm = reactive({
 });
 const gridKey = ref(0);
 
-const gridOptions: VxeTableGridOptions<AdminTaskLog> = {
+const gridOptions: VxeTableGridOptions<AdminTaskLogRow> = {
   border: false,
   columnConfig: {
     resizable: true,
@@ -68,8 +73,8 @@ const gridOptions: VxeTableGridOptions<AdminTaskLog> = {
       field: 'taskId',
       slots: { default: 'taskId' },
       sortable: true,
-      title: $t('page.taskLog.taskId'),
-      width: 100,
+      title: $t('page.taskLog.taskLabel'),
+      width: 180,
     },
     {
       field: 'processTime',
@@ -188,6 +193,24 @@ function formatText(value?: string) {
   return text || '-';
 }
 
+function getTaskDisplayName(log?: AdminTaskLogRow) {
+  const taskName = log?.taskName?.trim();
+  if (taskName) {
+    return taskName;
+  }
+  if (log?.taskId === undefined) {
+    return '-';
+  }
+  return `#${log.taskId}`;
+}
+
+function getTaskIdText(log?: AdminTaskLogRow) {
+  if (log?.taskId === undefined) {
+    return '-';
+  }
+  return String(log.taskId);
+}
+
 function toFilterTimeValue(value?: string, endOfSecond = false) {
   if (!value) {
     return undefined;
@@ -207,7 +230,7 @@ const detailTitle = computed(() =>
     : $t('page.taskLog.detailTitle'),
 );
 
-function openDetail(log: AdminTaskLog) {
+function openDetail(log: AdminTaskLogRow) {
   currentLog.value = log;
   detailOpen.value = true;
 }
@@ -227,7 +250,7 @@ function handleReset() {
   reloadGrid();
 }
 
-const [Grid] = useVbenVxeGrid({
+const [Grid] = useVbenVxeGrid<AdminTaskLogRow>({
   gridClass: 'log-audit-grid',
   gridOptions,
 });
@@ -303,12 +326,18 @@ const [Grid] = useVbenVxeGrid({
         </Tag>
       </template>
       <template #taskId="{ row }">
-        <span
-          class="task-log-id"
-          :title="row.taskId !== undefined ? String(row.taskId) : '-'"
-        >
-          {{ row.taskId ?? '-' }}
-        </span>
+        <Tooltip>
+          <template #title>
+            <div class="task-log-tooltip-lines">
+              <div>
+                {{ `${$t('page.taskLog.taskId')}: ${getTaskIdText(row)}` }}
+              </div>
+            </div>
+          </template>
+          <span class="task-log-task-name">
+            {{ getTaskDisplayName(row) }}
+          </span>
+        </Tooltip>
       </template>
       <template #processTime="{ row }">
         <span
@@ -358,12 +387,10 @@ const [Grid] = useVbenVxeGrid({
         <div class="task-log-detail__summary">
           <div class="task-log-detail__main">
             <div class="task-log-detail__name">
-              {{
-                `${$t('page.taskLog.taskLabel')} ${currentLog?.taskId ?? '-'}`
-              }}
+              {{ getTaskDisplayName(currentLog) }}
             </div>
             <div class="task-log-detail__meta">
-              {{ currentLog?.executeTime || '-' }}
+              {{ `${$t('page.taskLog.taskId')}: ${getTaskIdText(currentLog)}` }}
             </div>
           </div>
           <Space wrap>
@@ -387,7 +414,16 @@ const [Grid] = useVbenVxeGrid({
           size="small"
         >
           <Descriptions.Item :label="$t('page.taskLog.taskLabel')">
-            {{ currentLog?.taskId ?? '-' }}
+            <div class="task-log-detail-task">
+              <div class="task-log-detail-task__name">
+                {{ getTaskDisplayName(currentLog) }}
+              </div>
+              <div class="task-log-detail-task__id">
+                {{
+                  `${$t('page.taskLog.taskId')}: ${getTaskIdText(currentLog)}`
+                }}
+              </div>
+            </div>
           </Descriptions.Item>
           <Descriptions.Item :label="$t('page.taskLog.status')">
             <Tag :color="statusColor(currentLog?.status)">
@@ -420,9 +456,21 @@ const [Grid] = useVbenVxeGrid({
 </template>
 
 <style scoped>
-.task-log-id {
-  font-family: Consolas, Monaco, monospace;
-  font-size: 12px;
+.task-log-tooltip-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task-log-task-name {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  vertical-align: bottom;
+  color: hsl(var(--foreground));
+  white-space: nowrap;
 }
 
 .task-log-duration {
@@ -486,6 +534,23 @@ const [Grid] = useVbenVxeGrid({
 }
 
 .task-log-detail__meta {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.task-log-detail-task {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task-log-detail-task__name {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.task-log-detail-task__id {
+  font-family: Consolas, Monaco, monospace;
   font-size: 12px;
   color: hsl(var(--muted-foreground));
 }
