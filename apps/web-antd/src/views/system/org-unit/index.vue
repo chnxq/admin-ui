@@ -336,12 +336,12 @@ function getOrgUnitScopeText(record: AdminOrgUnit) {
   return record.tenantName || '-';
 }
 
-function getOrgUnitTooltip(record: AdminOrgUnit) {
+function getOrgUnitTooltipLines(record: AdminOrgUnit) {
   return [
     `${$t('page.orgUnit.code')}: ${record.code || '-'}`,
     `${$t('page.orgUnit.name')}: ${record.name || '-'}`,
     `${$t('page.orgUnit.description')}: ${record.description || '-'}`,
-  ].join('\n');
+  ];
 }
 
 async function openCreateModal() {
@@ -436,10 +436,14 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminOrgUnit>({
       </template>
 
       <template #orgUnit="{ row }">
-        <Tooltip
-          overlay-class-name="admin-multiline-tooltip"
-          :title="getOrgUnitTooltip(row)"
-        >
+        <Tooltip>
+          <template #title>
+            <div class="admin-tooltip-lines">
+              <div v-for="line in getOrgUnitTooltipLines(row)" :key="line">
+                {{ line }}
+              </div>
+            </div>
+          </template>
           <span class="admin-primary-main">{{ row.name || '-' }}</span>
         </Tooltip>
       </template>
@@ -671,8 +675,10 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminOrgUnit>({
   align-items: center;
 }
 
-:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
-  white-space: pre-line;
+.admin-tooltip-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .admin-primary-main {

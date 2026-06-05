@@ -373,11 +373,11 @@ function getDisplayTitle(title?: string) {
   return $te(normalizedTitle) ? $t(normalizedTitle) : normalizedTitle;
 }
 
-function getMenuTooltip(menu: AdminMenu) {
+function getMenuTooltipLines(menu: AdminMenu) {
   return [
     `${$t('page.menu.name')}: ${menu.name || '-'}`,
     `${$t('page.menu.path')}: ${menu.path || '-'}`,
-  ].join('\n');
+  ];
 }
 function buildParentTreeOptions(
   items: AdminMenu[],
@@ -626,10 +626,14 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminMenu>({
       </template>
 
       <template #menu="{ row }">
-        <Tooltip
-          overlay-class-name="admin-multiline-tooltip"
-          :title="getMenuTooltip(row)"
-        >
+        <Tooltip>
+          <template #title>
+            <div class="admin-tooltip-lines">
+              <div v-for="line in getMenuTooltipLines(row)" :key="line">
+                {{ line }}
+              </div>
+            </div>
+          </template>
           <span class="menu-main">
             {{ getDisplayTitle(row.meta?.title) }}
           </span>
@@ -940,8 +944,10 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminMenu>({
   align-items: center;
 }
 
-:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
-  white-space: pre-line;
+.admin-tooltip-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .menu-main {

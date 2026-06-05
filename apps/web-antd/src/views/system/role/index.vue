@@ -461,11 +461,11 @@ function getRoleScopeText(role: AdminRole) {
   return role.tenantName || '-';
 }
 
-function getRoleTooltip(role: AdminRole) {
+function getRoleTooltipLines(role: AdminRole) {
   return [
     `${$t('page.role.code')}: ${role.code || '-'}`,
     `${$t('page.role.role')}: ${role.name || '-'}`,
-  ].join('\n');
+  ];
 }
 function uniqueNumbers(values: Array<null | number | undefined>) {
   return [
@@ -956,10 +956,14 @@ onMounted(() => {
       </template>
 
       <template #role="{ row }">
-        <Tooltip
-          overlay-class-name="admin-multiline-tooltip"
-          :title="getRoleTooltip(row)"
-        >
+        <Tooltip>
+          <template #title>
+            <div class="admin-tooltip-lines">
+              <div v-for="line in getRoleTooltipLines(row)" :key="line">
+                {{ line }}
+              </div>
+            </div>
+          </template>
           <span class="role-main">{{ row.name || '-' }}</span>
         </Tooltip>
       </template>
@@ -1394,8 +1398,10 @@ onMounted(() => {
   align-items: center;
 }
 
-:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
-  white-space: pre-line;
+.admin-tooltip-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .role-main {

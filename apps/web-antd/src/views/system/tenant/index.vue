@@ -310,11 +310,11 @@ function toTenantSortField(sortField: string) {
   }
 }
 
-function getTenantTooltip(record: AdminTenant) {
+function getTenantTooltipLines(record: AdminTenant) {
   return [
     `${$t('page.tenant.code')}: ${record.code || '-'}`,
     `${$t('page.tenant.tenant')}: ${record.name || '-'}`,
-  ].join('\n');
+  ];
 }
 
 async function openCreateModal() {
@@ -421,10 +421,14 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminTenant>({
       </template>
 
       <template #tenant="{ row }">
-        <Tooltip
-          overlay-class-name="admin-multiline-tooltip"
-          :title="getTenantTooltip(row)"
-        >
+        <Tooltip>
+          <template #title>
+            <div class="admin-tooltip-lines">
+              <div v-for="line in getTenantTooltipLines(row)" :key="line">
+                {{ line }}
+              </div>
+            </div>
+          </template>
           <span class="admin-primary-main">{{ row.name || '-' }}</span>
         </Tooltip>
       </template>
@@ -629,8 +633,10 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminTenant>({
   align-items: center;
 }
 
-:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
-  white-space: pre-line;
+.admin-tooltip-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .admin-primary-main {

@@ -488,12 +488,12 @@ function getUserIdentityText(record: AdminUser) {
   return record.realname || record.username || record.nickname || '-';
 }
 
-function getUserIdentityTooltip(record: AdminUser) {
+function getUserIdentityTooltipLines(record: AdminUser) {
   return [
     `${$t('page.user.username')}: ${record.username || '-'}`,
     `${$t('page.user.realname')}: ${record.realname || '-'}`,
     `${$t('page.user.nickname')}: ${record.nickname || '-'}`,
-  ].join('\n');
+  ];
 }
 function getStatusText(status?: AdminUserStatus) {
   return status ? statusTextMap[status] : '-';
@@ -688,10 +688,14 @@ onMounted(() => {
       </template>
 
       <template #identity="{ row }">
-        <Tooltip
-          overlay-class-name="admin-multiline-tooltip"
-          :title="getUserIdentityTooltip(row)"
-        >
+        <Tooltip>
+          <template #title>
+            <div class="admin-tooltip-lines">
+              <div v-for="line in getUserIdentityTooltipLines(row)" :key="line">
+                {{ line }}
+              </div>
+            </div>
+          </template>
           <span class="identity-main">
             {{ getUserIdentityText(row) }}
           </span>
@@ -1076,8 +1080,10 @@ onMounted(() => {
   color: hsl(var(--muted-foreground));
 }
 
-:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
-  white-space: pre-line;
+.admin-tooltip-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .identity-main {

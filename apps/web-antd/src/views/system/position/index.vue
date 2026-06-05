@@ -296,11 +296,11 @@ function getPositionScopeText(record: AdminPosition) {
   return record.tenantName || '-';
 }
 
-function getPositionTooltip(record: AdminPosition) {
+function getPositionTooltipLines(record: AdminPosition) {
   return [
     `${$t('page.position.code')}: ${record.code || '-'}`,
     `${$t('page.position.position')}: ${record.name || '-'}`,
-  ].join('\n');
+  ];
 }
 
 function toPositionSortField(sortField: string) {
@@ -418,10 +418,14 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminPosition>({
       </template>
 
       <template #position="{ row }">
-        <Tooltip
-          overlay-class-name="admin-multiline-tooltip"
-          :title="getPositionTooltip(row)"
-        >
+        <Tooltip>
+          <template #title>
+            <div class="admin-tooltip-lines">
+              <div v-for="line in getPositionTooltipLines(row)" :key="line">
+                {{ line }}
+              </div>
+            </div>
+          </template>
           <span class="admin-primary-main">{{ row.name || '-' }}</span>
         </Tooltip>
       </template>
@@ -624,8 +628,10 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminPosition>({
   align-items: center;
 }
 
-:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
-  white-space: pre-line;
+.admin-tooltip-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .admin-primary-main {

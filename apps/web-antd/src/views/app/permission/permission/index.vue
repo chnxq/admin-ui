@@ -558,11 +558,11 @@ function getPermissionScopeText() {
   return $t('page.commonSession.platformOwner');
 }
 
-function getPermissionTooltip(record: AdminPermission) {
+function getPermissionTooltipLines(record: AdminPermission) {
   return [
     `${$t('page.permission.code')}: ${record.code || '-'}`,
     `${$t('page.permission.permission')}: ${record.name || '-'}`,
-  ].join('\n');
+  ];
 }
 
 async function loadGroups() {
@@ -867,10 +867,17 @@ const [PermissionGrid, permissionGridApi] = useVbenVxeGrid<AdminPermission>({
           </template>
 
           <template #permission="{ row }">
-            <Tooltip
-              overlay-class-name="admin-multiline-tooltip"
-              :title="getPermissionTooltip(row)"
-            >
+            <Tooltip>
+              <template #title>
+                <div class="admin-tooltip-lines">
+                  <div
+                    v-for="line in getPermissionTooltipLines(row)"
+                    :key="line"
+                  >
+                    {{ line }}
+                  </div>
+                </div>
+              </template>
               <span class="permission-main">{{ row.name || '-' }}</span>
             </Tooltip>
           </template>
@@ -1261,8 +1268,10 @@ const [PermissionGrid, permissionGridApi] = useVbenVxeGrid<AdminPermission>({
   min-height: 0;
 }
 
-:deep(.admin-multiline-tooltip .ant-tooltip-inner) {
-  white-space: pre-line;
+.admin-tooltip-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .permission-main {
