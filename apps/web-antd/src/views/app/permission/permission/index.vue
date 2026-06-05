@@ -558,6 +558,16 @@ function getPermissionScopeText() {
   return $t('page.commonSession.platformOwner');
 }
 
+function getPermissionGroupName(record: AdminPermission) {
+  if (record.groupName?.trim()) {
+    return record.groupName.trim();
+  }
+  if (record.groupId === undefined) {
+    return '-';
+  }
+  return groups.value.find((item) => item.id === record.groupId)?.name || '-';
+}
+
 function getPermissionTooltipLines(record: AdminPermission) {
   return [
     `${$t('page.permission.code')}: ${record.code || '-'}`,
@@ -832,7 +842,7 @@ const [PermissionGrid, permissionGridApi] = useVbenVxeGrid<AdminPermission>({
           </span>
         </div>
         <div class="permission-context">
-          <span>{{ selectedGroupName }}</span>
+          <span class="permission-context__value">{{ selectedGroupName }}</span>
         </div>
 
         <PermissionGrid
@@ -883,7 +893,7 @@ const [PermissionGrid, permissionGridApi] = useVbenVxeGrid<AdminPermission>({
           </template>
 
           <template #group="{ row }">
-            {{ row.groupName || '-' }}
+            {{ getPermissionGroupName(row) }}
           </template>
 
           <template #status="{ row }">

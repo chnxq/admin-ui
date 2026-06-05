@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { AdminTaskLog, AdminTaskLogStatus } from '#/api/admin/tasks';
-import type { taskservicev1_ListTaskResponse } from '#/api/generated/admin/service/v1';
 
 import { computed, reactive, ref } from 'vue';
 
@@ -24,7 +23,7 @@ import {
 import dayjs from 'dayjs';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { getAdminList, toPagingRequest } from '#/api/admin/paging';
+import { taskClient } from '#/api/admin/clients';
 import { listAdminTaskLogsApi } from '#/api/admin/tasks';
 import { $t } from '#/locales';
 
@@ -212,20 +211,21 @@ async function loadTaskNames(logs: AdminTaskLogRow[]) {
     return;
   }
 
-  const response = await getAdminList<taskservicev1_ListTaskResponse>(
-    '/admin/v1/tasks',
-    toPagingRequest({
-      conditions: [{ field: 'id', op: 'IN', values: taskIds }],
-      page: 1,
-      pageSize: taskIds.length,
-      sorting: [{ direction: 'ASC', field: 'id' }],
+  const taskDetails = await Promise.all(
+    taskIds.map(async (id) => {
+      try {
+        const task = await taskClient.Get({ id });
+        return { id, taskName: task.taskName?.trim() || '' };
+      } catch {
+        return { id, taskName: '' };
+      }
     }),
   );
 
   const nextMap: Record<number, string> = {};
-  for (const item of response.items ?? []) {
-    if (typeof item.id === 'number' && item.taskName?.trim()) {
-      nextMap[item.id] = item.taskName.trim();
+  for (const item of taskDetails) {
+    if (item.taskName) {
+      nextMap[item.id] = item.taskName;
     }
   }
   taskNameMap.value = nextMap;
@@ -361,7 +361,11 @@ const [Grid] = useVbenVxeGrid<AdminTaskLogRow>({
       </Form>
     </div>
 
-    <Grid :key="gridKey" :table-title="$t('menu.task.log')">
+    <Grid
+      :key="gridKey"
+      class="admin-task-log-grid-shell"
+      :table-title="$t('menu.task.log')"
+    >
       <template #status="{ row }">
         <Tag :color="statusColor(row.status)">
           {{ formatStatus(row.status) }}
@@ -613,6 +617,21 @@ const [Grid] = useVbenVxeGrid<AdminTaskLogRow>({
 
 .admin-task-log-toolbar {
   margin-bottom: 12px;
+}
+
+.admin-task-log-grid-shell {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: calc(100vh - 240px);
+}
+
+.admin-task-log-grid-shell :deep(.vxe-grid),
+.admin-task-log-grid-shell :deep(.vxe-grid--body-wrapper),
+.admin-task-log-grid-shell :deep(.vxe-grid--table-wrapper),
+.admin-task-log-grid-shell :deep(.vben-use-vxe-grid),
+.admin-task-log-grid-shell :deep(.vben-vxe-grid) {
+  min-height: 0;
 }
 
 .admin-task-log-search {
