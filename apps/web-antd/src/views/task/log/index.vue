@@ -27,6 +27,7 @@ import { listAdminTaskLogsApi } from '#/api/admin/tasks';
 import { $t } from '#/locales';
 
 type AdminTaskLogRow = AdminTaskLog & {
+  task_name?: string;
   taskName?: string;
 };
 
@@ -194,14 +195,14 @@ function formatText(value?: string) {
 }
 
 function getTaskDisplayName(log?: AdminTaskLogRow) {
-  const taskName = log?.taskName?.trim();
+  const taskName = log?.taskName?.trim() || log?.task_name?.trim();
   if (taskName) {
     return taskName;
   }
   if (log?.taskId === undefined) {
     return '-';
   }
-  return `#${log.taskId}`;
+  return String(log.taskId);
 }
 
 function getTaskIdText(log?: AdminTaskLogRow) {
