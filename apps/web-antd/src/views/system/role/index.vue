@@ -641,7 +641,7 @@ async function openCreate() {
 
 async function openEdit(record: AdminRole) {
   if (!canMutateRole(record)) {
-    message.warning('租户会话不可编辑全局角色');
+    message.warning($t('page.commonSession.globalRoleEditBlocked'));
     return;
   }
   if (!record.id) {
@@ -661,7 +661,7 @@ async function openEdit(record: AdminRole) {
 
 async function openAuthorize(record: AdminRole) {
   if (!canMutateRole(record)) {
-    message.warning('租户会话不可维护全局角色授权');
+    message.warning($t('page.commonSession.globalRoleAuthorizeBlocked'));
     return;
   }
   if (!record.id) {
@@ -932,9 +932,9 @@ onMounted(() => {
 <template>
   <Page auto-content-height :title="$t('menu.system.role')">
     <div v-if="isTenantSession" class="tenant-session-banner">
-      <Tag color="blue">租户会话</Tag>
+      <Tag color="blue">{{ $t('page.commonSession.tenantSession') }}</Tag>
       <span class="tenant-session-banner__text">
-        当前仅可维护租户角色，所属租户：{{ sessionTenantLabel }}
+        {{ $t('page.commonSession.roleReadonlyBanner', [sessionTenantLabel]) }}
       </span>
     </div>
 

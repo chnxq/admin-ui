@@ -512,8 +512,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminFile>({
             :placeholder="$t('page.file.placeholderBucket')"
           />
           <div class="file-form-help">
-            Bucket 可留空。留空后系统会按文件类型自动选择，如图片进
-            `images`，文档进 `docs`，其它文件进 `files`。
+            {{ $t('page.file.bucketHelp') }}
           </div>
         </Form.Item>
         <Form.Item :label="$t('page.file.directory')" name="folder">
@@ -522,8 +521,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminFile>({
             :placeholder="$t('page.file.placeholderFolderHint')"
           />
           <div class="file-form-help">
-            目录可留空。留空后会自动使用当前平台或租户的默认目录；如需自定义，可输入
-            `project/contracts` 这类相对目录。
+            {{ $t('page.file.directoryHelp') }}
           </div>
         </Form.Item>
       </Form>

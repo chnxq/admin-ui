@@ -99,7 +99,8 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(
-  () => userStore.userInfo?.tenantName || 'XAdmin平台',
+  () =>
+    userStore.userInfo?.tenantName || $t('page.commonSession.platformOwner'),
 );
 
 const statusOptions = [
@@ -554,7 +555,7 @@ function getStatusColor(status?: AdminPermissionStatus) {
 }
 
 function getPermissionScopeText() {
-  return 'XAdmin平台';
+  return $t('page.commonSession.platformOwner');
 }
 
 function getPermissionTooltip(record: AdminPermission) {
@@ -596,7 +597,7 @@ async function handleTreeSelect(keys: (number | string)[]) {
 
 async function openCreate() {
   if (isTenantSession.value) {
-    message.warning('租户会话下权限定义只读');
+    message.warning($t('page.commonSession.permissionReadonlyBlocked'));
     return;
   }
   editingId.value = undefined;
@@ -608,7 +609,7 @@ async function openCreate() {
 
 async function openEdit(record: PermissionRecord) {
   if (isTenantSession.value) {
-    message.warning('租户会话下权限定义只读');
+    message.warning($t('page.commonSession.permissionReadonlyBlocked'));
     return;
   }
   const permission = toPermission(record);
@@ -653,7 +654,7 @@ async function submitPermission() {
 
 async function handleDelete(record: PermissionRecord) {
   if (isTenantSession.value) {
-    message.warning('租户会话下权限定义只读');
+    message.warning($t('page.commonSession.permissionReadonlyBlocked'));
     return;
   }
   const permission = toPermission(record);
@@ -669,7 +670,7 @@ async function handleDelete(record: PermissionRecord) {
 
 async function handleSync() {
   if (isTenantSession.value) {
-    message.warning('租户会话下不可同步权限点');
+    message.warning($t('page.commonSession.permissionSyncBlocked'));
     return;
   }
   syncing.value = true;
@@ -821,9 +822,13 @@ const [PermissionGrid, permissionGridApi] = useVbenVxeGrid<AdminPermission>({
 
       <section class="admin-permission-surface">
         <div v-if="isTenantSession" class="tenant-session-banner">
-          <Tag color="blue">租户会话</Tag>
+          <Tag color="blue">{{ $t('page.commonSession.tenantSession') }}</Tag>
           <span class="tenant-session-banner__text">
-            当前权限定义仅可查看，不可编辑。所属租户：{{ sessionTenantLabel }}
+            {{
+              $t('page.commonSession.permissionReadonlyBanner', [
+                sessionTenantLabel,
+              ])
+            }}
           </span>
         </div>
         <div class="permission-context">

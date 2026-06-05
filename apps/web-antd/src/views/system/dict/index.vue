@@ -106,7 +106,8 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(
-  () => userStore.userInfo?.tenantName || 'XAdmin Platform',
+  () =>
+    userStore.userInfo?.tenantName || $t('page.commonSession.platformOwner'),
 );
 
 const enabledOptions = computed(() => [
@@ -552,7 +553,10 @@ function statusText(enabled?: boolean) {
 
 function resolveOwnershipTag(tenantId?: number, tenantName?: string) {
   if (!tenantId) {
-    return { color: 'gold', text: tenantName || 'XAdmin Platform' };
+    return {
+      color: 'gold',
+      text: tenantName || $t('page.commonSession.platformOwner'),
+    };
   }
   return {
     color: 'blue',

@@ -319,7 +319,7 @@ function getTenantTooltip(record: AdminTenant) {
 
 async function openCreateModal() {
   if (isTenantSession.value) {
-    message.warning('租户会话下不可创建租户');
+    message.warning($t('page.commonSession.tenantCreateBlocked'));
     return;
   }
   editingId.value = undefined;
@@ -331,7 +331,7 @@ async function openCreateModal() {
 
 async function openEditModal(record: AdminTenant) {
   if (isTenantSession.value) {
-    message.warning('租户会话下不可编辑租户');
+    message.warning($t('page.commonSession.tenantEditBlocked'));
     return;
   }
   editingId.value = record.id;
@@ -372,7 +372,7 @@ async function handleSubmit() {
 
 async function handleDelete(record: AdminTenant) {
   if (isTenantSession.value) {
-    message.warning('租户会话下不可删除租户');
+    message.warning($t('page.commonSession.tenantDeleteBlocked'));
     return;
   }
   if (!record.id) {
@@ -393,9 +393,11 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminTenant>({
 <template>
   <Page auto-content-height :title="$t('menu.system.tenant')">
     <div v-if="isTenantSession" class="tenant-session-banner">
-      <Tag color="blue">租户会话</Tag>
+      <Tag color="blue">{{ $t('page.commonSession.tenantSession') }}</Tag>
       <span class="tenant-session-banner__text">
-        当前不可维护租户主数据。所属租户：{{ sessionTenantLabel }}
+        {{
+          $t('page.commonSession.tenantReadonlyBanner', [sessionTenantLabel])
+        }}
       </span>
     </div>
 

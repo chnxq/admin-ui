@@ -409,9 +409,11 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminOrgUnit>({
 <template>
   <Page auto-content-height :title="$t('menu.system.orgUnit')">
     <div v-if="isTenantSession" class="tenant-session-banner">
-      <Tag color="blue">租户会话</Tag>
+      <Tag color="blue">{{ $t('page.commonSession.tenantSession') }}</Tag>
       <span class="tenant-session-banner__text">
-        当前组织数据已按租户隔离。所属租户：{{ sessionTenantLabel }}
+        {{
+          $t('page.commonSession.orgUnitReadonlyBanner', [sessionTenantLabel])
+        }}
       </span>
     </div>
 

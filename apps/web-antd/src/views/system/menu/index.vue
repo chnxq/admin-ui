@@ -86,7 +86,8 @@ const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
 const sessionTenantLabel = computed(
-  () => userStore.userInfo?.tenantName || 'XAdmin平台',
+  () =>
+    userStore.userInfo?.tenantName || $t('page.commonSession.platformOwner'),
 );
 
 const statusOptions = [
@@ -356,7 +357,11 @@ function ensurePlatformWritable() {
   if (!isTenantSession.value) {
     return true;
   }
-  message.warning(`租户会话 ${sessionTenantLabel.value} 仅可查看平台菜单`);
+  message.warning(
+    $t('page.commonSession.platformViewOnlyMenuWarning', [
+      sessionTenantLabel.value,
+    ]),
+  );
   return false;
 }
 
@@ -585,8 +590,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminMenu>({
     <div v-if="isTenantSession" class="tenant-session-banner">
       <IconifyIcon icon="lucide:building-2" />
       <span class="tenant-session-banner__text">
-        当前为租户会话
-        {{ sessionTenantLabel }}，菜单属于平台租户，仅支持查看。
+        {{ $t('page.commonSession.menuReadonlyBanner', [sessionTenantLabel]) }}
       </span>
     </div>
 
@@ -635,7 +639,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminMenu>({
       </template>
 
       <template #scope>
-        <Tag color="gold">XAdmin平台</Tag>
+        <Tag color="gold">{{ $t('page.commonSession.platformOwner') }}</Tag>
       </template>
 
       <template #status="{ row }">

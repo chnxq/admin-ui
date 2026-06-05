@@ -664,9 +664,9 @@ onMounted(() => {
 <template>
   <Page auto-content-height :title="$t('menu.system.user')">
     <div v-if="isTenantSession" class="tenant-session-banner">
-      <Tag color="blue">租户会话</Tag>
+      <Tag color="blue">{{ $t('page.commonSession.tenantSession') }}</Tag>
       <span class="tenant-session-banner__text">
-        当前仅查看租户内用户数据，所属租户：{{ sessionTenantLabel }}
+        {{ $t('page.commonSession.userReadonlyBanner', [sessionTenantLabel]) }}
       </span>
     </div>
 
