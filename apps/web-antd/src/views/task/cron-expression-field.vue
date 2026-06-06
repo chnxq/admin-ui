@@ -38,13 +38,7 @@ type SegmentConfig = {
   type: SegmentType;
 };
 
-type SegmentKey =
-  | 'day'
-  | 'hour'
-  | 'minute'
-  | 'month'
-  | 'second'
-  | 'week';
+type SegmentKey = 'day' | 'hour' | 'minute' | 'month' | 'second' | 'week';
 
 const model = defineModel<string>({ default: '' });
 const open = defineModel<boolean>('open', { default: false });
@@ -106,7 +100,14 @@ const segments = reactive<Record<SegmentKey, SegmentConfig>>({
   },
 });
 
-const segmentOrder: SegmentKey[] = ['second', 'minute', 'hour', 'day', 'month', 'week'];
+const segmentOrder: SegmentKey[] = [
+  'second',
+  'minute',
+  'hour',
+  'day',
+  'month',
+  'week',
+];
 
 const segmentLabels: Record<SegmentKey, string> = {
   day: $t('page.task.cronDay'),
@@ -265,8 +266,7 @@ function initFromModel() {
     syncModel();
     return;
   }
-  const normalizedParts =
-    parts.length === 6 ? parts : parts.slice(0, 6);
+  const normalizedParts = parts.length === 6 ? parts : parts.slice(0, 6);
   parseSegmentValue('second', normalizedParts[0]);
   parseSegmentValue('minute', normalizedParts[1]);
   parseSegmentValue('hour', normalizedParts[2]);
