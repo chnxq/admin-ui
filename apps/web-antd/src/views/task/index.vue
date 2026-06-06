@@ -59,7 +59,11 @@ import {
 import { $t } from '#/locales';
 
 import CronExpressionField from './cron-expression-field.vue';
-import { formatCronDescription, isValidCronExpression } from './cron-utils';
+import {
+  formatCronDescription,
+  isValidCronExpression,
+  normalizeCronExpression,
+} from './cron-utils';
 
 interface TaskFormModel extends AdminTaskSaveInput {
   args: string;
@@ -614,6 +618,9 @@ async function handleSubmitTask() {
 
   taskSubmitting.value = true;
   try {
+    taskFormModel.cronExpression = normalizeCronExpression(
+      taskFormModel.cronExpression,
+    );
     if (editingTaskId.value) {
       await updateAdminTaskApi(editingTaskId.value, taskFormModel);
       message.success($t('page.task.taskUpdateSuccess'));

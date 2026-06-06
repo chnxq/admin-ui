@@ -44,8 +44,7 @@ type SegmentKey =
   | 'minute'
   | 'month'
   | 'second'
-  | 'week'
-  | 'year';
+  | 'week';
 
 const model = defineModel<string>({ default: '' });
 const open = defineModel<boolean>('open', { default: false });
@@ -105,25 +104,9 @@ const segments = reactive<Record<SegmentKey, SegmentConfig>>({
     min: 1,
     type: 'none',
   },
-  year: {
-    appoint: [],
-    cycleEnd: new Date().getFullYear(),
-    cycleStart: new Date().getFullYear(),
-    max: new Date().getFullYear() + 20,
-    min: 2000,
-    type: 'none',
-  },
 });
 
-const segmentOrder: SegmentKey[] = [
-  'second',
-  'minute',
-  'hour',
-  'day',
-  'month',
-  'week',
-  'year',
-];
+const segmentOrder: SegmentKey[] = ['second', 'minute', 'hour', 'day', 'month', 'week'];
 
 const segmentLabels: Record<SegmentKey, string> = {
   day: $t('page.task.cronDay'),
@@ -132,7 +115,6 @@ const segmentLabels: Record<SegmentKey, string> = {
   month: $t('page.task.cronMonthUnit'),
   second: $t('page.task.cronSecondUnit'),
   week: $t('page.task.cronWeekUnit'),
-  year: $t('page.task.cronYearUnit'),
 };
 
 const previewRows = computed(() => [
@@ -144,7 +126,6 @@ const previewRows = computed(() => [
     month: toSegmentValue('month'),
     second: toSegmentValue('second'),
     week: toSegmentValue('week'),
-    year: toSegmentValue('year'),
   },
 ]);
 
@@ -155,7 +136,6 @@ const previewColumns = computed(() => [
   { dataIndex: 'day', key: 'day', title: $t('page.task.cronDay') },
   { dataIndex: 'month', key: 'month', title: $t('page.task.cronMonthUnit') },
   { dataIndex: 'week', key: 'week', title: $t('page.task.cronWeekUnit') },
-  { dataIndex: 'year', key: 'year', title: $t('page.task.cronYearUnit') },
 ]);
 
 const previewReadableValue = computed(
@@ -286,14 +266,13 @@ function initFromModel() {
     return;
   }
   const normalizedParts =
-    parts.length === 6 ? [...parts.slice(0, 5), '?', parts[5]] : parts;
+    parts.length === 6 ? parts : parts.slice(0, 6);
   parseSegmentValue('second', normalizedParts[0]);
   parseSegmentValue('minute', normalizedParts[1]);
   parseSegmentValue('hour', normalizedParts[2]);
   parseSegmentValue('day', normalizedParts[3]);
   parseSegmentValue('month', normalizedParts[4]);
   parseSegmentValue('week', normalizedParts[5]);
-  parseSegmentValue('year', normalizedParts[6]);
   syncModel();
 }
 
@@ -372,7 +351,6 @@ initFromModel();
               </div>
 
               <div
-                v-if="segment !== 'year'"
                 class="cron-segment__option"
                 :class="{
                   'cron-segment__option--active':

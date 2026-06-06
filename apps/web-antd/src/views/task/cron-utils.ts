@@ -6,8 +6,21 @@ function resolveCronLocale() {
   return preferences.app.locale === 'zh-CN' ? 'zh_CN' : 'en';
 }
 
-export function formatCronDescription(expression?: string) {
+export function normalizeCronExpression(expression?: string) {
   const cron = expression?.trim();
+  if (!cron) {
+    return '';
+  }
+
+  const parts = cron.split(/\s+/).filter(Boolean);
+  if (parts.length === 7) {
+    return parts.slice(0, 6).join(' ');
+  }
+  return parts.join(' ');
+}
+
+export function formatCronDescription(expression?: string) {
+  const cron = normalizeCronExpression(expression);
   if (!cron) {
     return '';
   }
@@ -25,7 +38,7 @@ export function formatCronDescription(expression?: string) {
 }
 
 export function isValidCronExpression(expression?: string) {
-  const cron = expression?.trim();
+  const cron = normalizeCronExpression(expression);
   if (!cron) {
     return false;
   }
