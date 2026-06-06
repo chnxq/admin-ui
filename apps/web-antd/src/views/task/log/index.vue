@@ -27,7 +27,10 @@ import { taskClient } from '#/api/admin/clients';
 import { listAdminTaskLogsApi } from '#/api/admin/tasks';
 import { $t } from '#/locales';
 
+import { formatCronDescription } from '../cron-utils';
+
 type AdminTaskLogRow = AdminTaskLog & {
+  cronExpression?: string;
   taskName?: string;
 };
 
@@ -215,9 +218,13 @@ async function loadTaskNames(logs: AdminTaskLogRow[]) {
     taskIds.map(async (id) => {
       try {
         const task = await taskClient.Get({ id });
-        return { id, taskName: task.taskName?.trim() || '' };
+        return {
+          cronExpression: task.cronExpression?.trim() || '',
+          id,
+          taskName: task.taskName?.trim() || '',
+        };
       } catch {
-        return { id, taskName: '' };
+        return { cronExpression: '', id, taskName: '' };
       }
     }),
   );
@@ -226,6 +233,11 @@ async function loadTaskNames(logs: AdminTaskLogRow[]) {
   for (const item of taskDetails) {
     if (item.taskName) {
       nextMap[item.id] = item.taskName;
+    }
+    const row = logs.find((log) => log.taskId === item.id);
+    if (row) {
+      row.taskName = item.taskName;
+      row.cronExpression = item.cronExpression;
     }
   }
   taskNameMap.value = nextMap;
@@ -251,6 +263,26 @@ function getTaskIdText(log?: AdminTaskLogRow) {
     return '-';
   }
   return String(log.taskId);
+}
+
+function getCronDescription(expression?: string) {
+  return formatCronDescription(expression) || $t('page.task.cronInvalidInline');
+}
+
+function getCronText(log?: AdminTaskLogRow) {
+  const cron = log?.cronExpression?.trim();
+  if (!cron) {
+    return $t('page.task.cronManual');
+  }
+  return cron;
+}
+
+function getCronReadableText(log?: AdminTaskLogRow) {
+  const cron = log?.cronExpression?.trim();
+  if (!cron) {
+    return $t('page.task.cronManual');
+  }
+  return getCronDescription(cron);
 }
 
 function toFilterTimeValue(value?: string, endOfSecond = false) {
@@ -486,6 +518,13 @@ const [Grid] = useVbenVxeGrid<AdminTaskLogRow>({
                 : '-'
             }}
           </Descriptions.Item>
+          <Descriptions.Item :label="$t('page.task.cronExpression')" :span="2">
+            <span class="task-log-cron-inline">
+              {{
+                `${getCronText(currentLog)} (${getCronReadableText(currentLog)})`
+              }}
+            </span>
+          </Descriptions.Item>
           <Descriptions.Item :label="$t('page.taskLog.input')" :span="2">
             <pre class="task-log-pre">{{ formatText(currentLog?.input) }}</pre>
           </Descriptions.Item>
@@ -547,6 +586,13 @@ const [Grid] = useVbenVxeGrid<AdminTaskLogRow>({
   background: hsl(var(--muted) / 18%);
   border: 1px solid hsl(var(--border));
   border-radius: 6px;
+}
+
+.task-log-cron-inline {
+  font-family: Consolas, Monaco, monospace;
+  color: hsl(var(--foreground));
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .task-log-detail {

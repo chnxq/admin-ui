@@ -58,6 +58,9 @@ import {
 } from '#/api/admin/tasks';
 import { $t } from '#/locales';
 
+import CronExpressionField from './cron-expression-field.vue';
+import { formatCronDescription, isValidCronExpression } from './cron-utils';
+
 interface TaskFormModel extends AdminTaskSaveInput {
   args: string;
   concurrent: boolean;
@@ -146,14 +149,13 @@ const selectedGroupLabel = computed(
   () => selectedGroup.value?.groupName || $t('page.task.allGroups'),
 );
 
-const taskGroupOptions = computed(() =>
-  groups.value
-    .filter((item) => typeof item.id === 'number')
-    .map((item) => ({
-      label: item.groupName || '-',
-      value: item.id as number,
-    })),
-);
+const currentTaskGroupName = computed(() => {
+  const groupId = taskFormModel.groupId;
+  if (groupId === undefined || groupId === null) {
+    return '';
+  }
+  return groups.value.find((item) => item.id === groupId)?.groupName || '';
+});
 
 const groupColumns: any[] = [
   {
@@ -174,6 +176,20 @@ const groupColumns: any[] = [
 ];
 
 const taskFormRules = computed<Record<string, Rule[]>>(() => ({
+  cronExpression: [
+    {
+      validator: (_rule, value: string) => {
+        const cron = value?.trim();
+        if (!cron) {
+          return Promise.reject(new Error($t('page.task.cronRequired')));
+        }
+        if (!isValidCronExpression(cron)) {
+          return Promise.reject(new Error($t('page.task.cronInvalid')));
+        }
+        return Promise.resolve();
+      },
+    },
+  ],
   groupId: [
     {
       message: $t('page.task.groupRequired'),
@@ -434,6 +450,10 @@ function getTaskTypeText(value?: AdminTaskType) {
   }
 }
 
+function getCronDescription(expression?: string) {
+  return formatCronDescription(expression) || $t('page.task.cronInvalidInline');
+}
+
 async function loadGroups() {
   groupLoading.value = true;
   try {
@@ -585,7 +605,13 @@ function handleOpenEditTask(task: AdminTask) {
 }
 
 async function handleSubmitTask() {
-  await taskFormRef.value?.validate();
+  try {
+    await taskFormRef.value?.validate();
+  } catch {
+    message.warning($t('page.task.taskValidateFailed'));
+    return;
+  }
+
   taskSubmitting.value = true;
   try {
     if (editingTaskId.value) {
@@ -843,9 +869,29 @@ onMounted(async () => {
 
           <template #cronExpression="{ row }">
             <div class="task-cron-cell">
-              <span class="task-cron-chip">
-                {{ row.cronExpression || $t('page.task.cronManual') }}
-              </span>
+              <Tooltip>
+                <template #title>
+                  <div class="admin-tooltip-lines">
+                    <div>
+                      {{
+                        `${$t('page.task.cronExpression')}: ${row.cronExpression || $t('page.task.cronManual')}`
+                      }}
+                    </div>
+                    <div>
+                      {{
+                        `${$t('page.task.cronReadableLabel')}: ${getCronDescription(row.cronExpression)}`
+                      }}
+                    </div>
+                  </div>
+                </template>
+                <span class="task-cron-natural">
+                  {{
+                    row.cronExpression
+                      ? getCronDescription(row.cronExpression)
+                      : $t('page.task.cronManual')
+                  }}
+                </span>
+              </Tooltip>
             </div>
           </template>
 
@@ -985,9 +1031,12 @@ onMounted(async () => {
     >
       <Form
         ref="taskFormRef"
+        class="admin-task-form"
+        :label-col="{ style: { width: '88px' } }"
         :model="taskFormModel"
         :rules="taskFormRules"
-        layout="vertical"
+        layout="horizontal"
+        :wrapper-col="{ style: { flex: 1 } }"
       >
         <div class="admin-task-form-grid">
           <Form.Item :label="$t('page.task.taskName')" name="taskName">
@@ -997,10 +1046,10 @@ onMounted(async () => {
             />
           </Form.Item>
           <Form.Item :label="$t('page.task.groupName')" name="groupId">
-            <Select
-              v-model:value="taskFormModel.groupId"
-              :options="taskGroupOptions"
+            <Input
+              :value="currentTaskGroupName"
               :placeholder="$t('page.task.placeholderGroup')"
+              readonly
             />
           </Form.Item>
           <Form.Item :label="$t('page.task.taskType')" name="taskType">
@@ -1021,10 +1070,7 @@ onMounted(async () => {
             :label="$t('page.task.cronExpression')"
             name="cronExpression"
           >
-            <Input
-              v-model:value="taskFormModel.cronExpression"
-              :placeholder="$t('page.task.placeholderCronExpression')"
-            />
+            <CronExpressionField v-model="taskFormModel.cronExpression" />
           </Form.Item>
           <Form.Item :label="$t('page.task.invokeTarget')" name="invokeTarget">
             <Input
@@ -1119,6 +1165,30 @@ onMounted(async () => {
   color: hsl(var(--foreground));
 }
 
+.admin-tooltip-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  white-space: pre-wrap;
+}
+
+.task-cron-cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.task-cron-natural {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--vben-text-secondary-color);
+  white-space: nowrap;
+}
+
 .admin-task-group-trigger {
   display: flex;
   flex-direction: column;
@@ -1150,25 +1220,6 @@ onMounted(async () => {
   background-color: rgb(24 144 255);
 }
 
-.task-cron-cell {
-  display: flex;
-  align-items: center;
-}
-
-.task-cron-chip {
-  display: inline-flex;
-  max-width: 100%;
-  padding: 6px 10px;
-  font-family: Consolas, Monaco, monospace;
-  font-size: 12px;
-  line-height: 1.2;
-  color: hsl(var(--foreground));
-  white-space: nowrap;
-  background: hsl(var(--muted) / 20%);
-  border: 1px solid hsl(var(--border));
-  border-radius: 999px;
-}
-
 .task-action-cell {
   display: inline-flex;
   flex-wrap: wrap;
@@ -1186,6 +1237,27 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.admin-task-form :deep(.ant-form-item) {
+  margin-bottom: 12px;
+}
+
+.admin-task-form :deep(.ant-form-item .ant-form-item-label) {
+  padding: 0 10px 0 0;
+  line-height: 32px;
+}
+
+.admin-task-form :deep(.ant-form-item .ant-form-item-control) {
+  min-width: 0;
+}
+
+.admin-task-form :deep(.ant-form-item .ant-form-item-control-input) {
+  min-height: 32px;
+}
+
+.admin-task-form :deep(.ant-form-item textarea) {
+  min-height: 84px;
 }
 
 .admin-task-surface :deep(.vben-use-vxe-grid),

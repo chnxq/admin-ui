@@ -42,6 +42,7 @@
     "@vben/utils": "workspace:*",
     "@vueuse/core": "catalog:",
     "ant-design-vue": "catalog:",
+    "cronstrue": "catalog:",
     "dayjs": "catalog:",
     "pinia": "catalog:",
     "vue": "catalog:",
