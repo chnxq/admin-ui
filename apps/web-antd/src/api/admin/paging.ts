@@ -37,12 +37,22 @@ interface ResponseEnvelope<T = unknown> {
 function toFilterCondition(
   condition: AdminFilterCondition,
 ): pagination_FilterCondition {
-  return {
+  const result: pagination_FilterCondition = {
     field: condition.field,
     op: condition.op,
-    value: condition.value === undefined ? undefined : String(condition.value),
-    values: condition.values?.map(String),
+    values: [],
   };
+
+  if (condition.values !== undefined && condition.values.length > 0) {
+    result.values = condition.values.map(String);
+    return result;
+  }
+
+  if (condition.value !== undefined && condition.value !== '') {
+    result.value = String(condition.value);
+  }
+
+  return result;
 }
 
 function toSorting(sorting: AdminSorting): pagination_Sorting {
