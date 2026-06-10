@@ -16,6 +16,8 @@
     "nickname": "昵称",
     "email": "邮箱",
     "mobile": "手机号",
+    "tenant": "租户",
+    "tenantPlaceholder": "请选择租户",
     "description": "个人简介",
     "profileUpdated": "个人信息已更新",
     "oldPassword": "旧密码",

@@ -8,12 +8,27 @@ import { ProfileBaseSetting } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 
 import { userProfileClient } from '#/api/admin/clients';
+import { getProfileTenantOptionsApi } from '#/api/admin/user';
 import { $t } from '#/locales';
+import { useAuthStore } from '#/store';
 
 const profileBaseSettingRef = ref();
+const authStore = useAuthStore();
+const tenantOptions = ref<{ label: string; value: number }[]>([]);
 
 const formSchema = computed((): VbenFormSchema[] => {
   return [
+    {
+      fieldName: 'tenantId',
+      component: 'Select',
+      label: $t('page.profile.tenant'),
+      componentProps: {
+        options: tenantOptions.value,
+        placeholder: $t('page.profile.tenantPlaceholder'),
+        showSearch: true,
+        optionFilterProp: 'label',
+      },
+    },
     {
       fieldName: 'realname',
       component: 'Input',
@@ -43,8 +58,18 @@ const formSchema = computed((): VbenFormSchema[] => {
 });
 
 onMounted(async () => {
-  const user = await userProfileClient.GetUser({});
+  const [tenantResult, user] = await Promise.all([
+    getProfileTenantOptionsApi(),
+    userProfileClient.GetUser({}),
+  ]);
+  tenantOptions.value = (tenantResult.items || [])
+    .map((item) => ({
+      label: `${item.name || '-'} (${item.code || item.id || '-'})`,
+      value: Number(item.id || 0),
+    }))
+    .filter((item) => item.value > 0);
   profileBaseSettingRef.value.getFormApi().setValues({
+    tenantId: user.tenantId || undefined,
     realname: user.realname || '',
     nickname: user.nickname || '',
     email: user.email || '',
@@ -56,8 +81,9 @@ onMounted(async () => {
 async function handleSubmit(values: Record<string, any>) {
   await userProfileClient.UpdateUser({
     id: 0,
-    updateMask: 'nickname,realname,email,mobile,description',
+    updateMask: 'tenantId,nickname,realname,email,mobile,description',
     data: {
+      tenantId: values.tenantId,
       realname: values.realname,
       nickname: values.nickname,
       email: values.email,
@@ -65,6 +91,7 @@ async function handleSubmit(values: Record<string, any>) {
       description: values.description,
     } as any,
   });
+  await authStore.fetchUserInfo();
   message.success($t('page.profile.profileUpdated'));
 }
 </script>

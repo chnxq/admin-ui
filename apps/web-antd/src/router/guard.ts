@@ -103,6 +103,12 @@ function setupAccessGuard(router: Router) {
     const userAccess = [
       ...new Set([...(userInfo.roles ?? []), ...accessCodes]),
     ];
+    if (userInfo?.profileCompleted === false && to.path !== '/profile') {
+      return {
+        path: '/profile',
+        replace: true,
+      };
+    }
 
     // 生成菜单和路由
     const { accessibleMenus, accessibleRoutes } = await generateAccess({

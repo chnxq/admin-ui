@@ -10,6 +10,7 @@ import { $t } from '@vben/locales';
 
 import { message } from 'ant-design-vue';
 
+import { getCaptchaApi } from '#/api';
 import { authenticationClient } from '#/api/admin/clients';
 
 defineOptions({ name: 'Register' });
@@ -17,6 +18,14 @@ defineOptions({ name: 'Register' });
 const loading = ref(false);
 const router = useRouter();
 const registerMode = ref<'email' | 'mobile' | 'username'>('username');
+const captchaImage = ref('');
+const captchaId = ref('');
+
+async function refreshCaptcha() {
+  const captcha = await getCaptchaApi();
+  captchaImage.value = captcha.imageBase64;
+  captchaId.value = captcha.captchaId;
+}
 
 const formSchema = computed((): VbenFormSchema[] => {
   const baseSchema: VbenFormSchema[] = [
@@ -63,6 +72,25 @@ const formSchema = computed((): VbenFormSchema[] => {
       },
       fieldName: 'confirmPassword',
       label: $t('authentication.confirmPassword'),
+    },
+    {
+      component: 'VbenInput',
+      componentProps: {
+        autocomplete: 'one-time-code',
+        name: 'captchaCode',
+        placeholder: $t('authentication.codeTip', [4]),
+      },
+      fieldName: 'captchaCode',
+      label: $t('authentication.code'),
+      rules: z.string().min(4, { message: $t('authentication.codeTip', [4]) }),
+      suffix: () =>
+        h('img', {
+          alt: 'captcha',
+          onClick: refreshCaptcha,
+          src: captchaImage.value,
+          style:
+            'height:32px;min-width:96px;cursor:pointer;border-radius:4px;border:1px solid #e5e7eb;',
+        }),
     },
     {
       component: 'VbenCheckbox',
@@ -163,6 +191,8 @@ async function handleSubmit(value: Recordable<any>) {
     }
     await authenticationClient.RegisterUser({
       byUsername: {
+        captchaCode: value.captchaCode,
+        captchaId: captchaId.value,
         password: value.password,
         username: value.username,
       },
@@ -171,10 +201,15 @@ async function handleSubmit(value: Recordable<any>) {
     });
     message.success($t('authentication.registerSuccess'));
     await router.push('/auth/login');
+  } catch (error: any) {
+    await refreshCaptcha();
+    throw error;
   } finally {
     loading.value = false;
   }
 }
+
+void refreshCaptcha();
 </script>
 
 <template>

@@ -27,6 +27,7 @@ interface UserInfo extends BasicUserInfo {
    * 当前会话范围
    */
   sessionScope?: 'platform' | 'tenant';
+  profileCompleted?: boolean;
 }
 
 export type { UserInfo };
