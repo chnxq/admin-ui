@@ -3,6 +3,7 @@ import {
   createApiAuditLogServiceClient,
   createApiServiceClient,
   createAuthenticationServiceClient,
+  createAuthFlowServiceClient,
   createDictCategoryServiceClient,
   createDictLabelServiceClient,
   createFileServiceClient,
@@ -16,6 +17,7 @@ import {
   createPermissionServiceClient,
   createPositionServiceClient,
   createRoleServiceClient,
+  createSocialAuthServiceClient,
   createTaskGroupServiceClient,
   createTaskLogServiceClient,
   createTaskServiceClient,
@@ -33,6 +35,8 @@ export const apiAuditLogClient =
   createApiAuditLogServiceClient(adminRequestHandler);
 
 export const apiClient = createApiServiceClient(adminRequestHandler);
+
+export const authFlowClient = createAuthFlowServiceClient(adminRequestHandler);
 
 export const authenticationClient =
   createAuthenticationServiceClient(adminRequestHandler);
@@ -70,6 +74,9 @@ export const permissionGroupClient =
 export const positionClient = createPositionServiceClient(adminRequestHandler);
 
 export const roleClient = createRoleServiceClient(adminRequestHandler);
+
+export const socialAuthClient =
+  createSocialAuthServiceClient(adminRequestHandler);
 
 export const taskClient = createTaskServiceClient(adminRequestHandler);
 

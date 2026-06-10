@@ -37,6 +37,12 @@ const formSchema = computed(() => {
       label: $t('page.profile.securityMfa'),
       description: $t('page.profile.securityMfaDesc'),
     },
+    {
+      value: true,
+      fieldName: 'socialBinding',
+      label: $t('page.profile.socialBinding'),
+      description: $t('page.profile.socialBindingDesc'),
+    },
   ];
 });
 </script>

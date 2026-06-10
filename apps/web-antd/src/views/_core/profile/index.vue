@@ -9,6 +9,7 @@ import { $t } from '#/locales';
 import ProfileBase from './base-setting.vue';
 import ProfileNotificationSetting from './notification-setting.vue';
 import ProfilePasswordSetting from './password-setting.vue';
+import ProfileSocialBindingSetting from './social-binding-setting.vue';
 
 const userStore = useUserStore();
 
@@ -27,6 +28,10 @@ const tabs = computed(() => [
     label: $t('page.profile.noticeSetting'),
     value: 'notice',
   },
+  {
+    label: $t('page.profile.socialBindingSetting'),
+    value: 'social',
+  },
 ]);
 </script>
 <template>
@@ -40,6 +45,7 @@ const tabs = computed(() => [
       <ProfileBase v-if="tabsValue === 'basic'" />
       <ProfilePasswordSetting v-if="tabsValue === 'password'" />
       <ProfileNotificationSetting v-if="tabsValue === 'notice'" />
+      <ProfileSocialBindingSetting v-if="tabsValue === 'social'" />
     </template>
   </Profile>
 </template>

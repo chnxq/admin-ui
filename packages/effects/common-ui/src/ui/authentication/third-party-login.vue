@@ -16,6 +16,10 @@ defineOptions({
   name: 'ThirdPartyLogin',
 });
 
+const emit = defineEmits<{
+  select: [provider: 'dingtalk' | 'github' | 'google' | 'qq' | 'wechat'];
+}>();
+
 const {
   auth: { dingding: dingdingAuthConfig },
 } = useAppConfig(import.meta.env, import.meta.env.PROD);
@@ -36,6 +40,7 @@ const {
         :tooltip="$t('authentication.wechatLogin')"
         tooltip-side="top"
         class="mb-3"
+        @click="emit('select', 'wechat')"
       >
         <SvgWeChatIcon />
       </VbenIconButton>
@@ -43,6 +48,7 @@ const {
         :tooltip="$t('authentication.qqLogin')"
         tooltip-side="top"
         class="mb-3"
+        @click="emit('select', 'qq')"
       >
         <SvgQQChatIcon />
       </VbenIconButton>
@@ -50,6 +56,7 @@ const {
         :tooltip="$t('authentication.githubLogin')"
         tooltip-side="top"
         class="mb-3"
+        @click="emit('select', 'github')"
       >
         <SvgGithubIcon />
       </VbenIconButton>
@@ -57,6 +64,7 @@ const {
         :tooltip="$t('authentication.googleLogin')"
         tooltip-side="top"
         class="mb-3"
+        @click="emit('select', 'google')"
       >
         <SvgGoogleIcon />
       </VbenIconButton>
@@ -65,6 +73,7 @@ const {
         :corp-id="dingdingAuthConfig.corpId"
         :client-id="dingdingAuthConfig.clientId"
         class="mb-3"
+        @click="emit('select', 'dingtalk')"
       />
     </div>
   </div>

@@ -11,6 +11,7 @@ export * from './permissions';
 export * from './portal';
 export * from './positions';
 export * from './roles';
+export * from './social-auth';
 export * from './tenants';
 export * from './user';
 export * from './users';

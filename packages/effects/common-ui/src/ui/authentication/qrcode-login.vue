@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { $t } from '@vben/locales';
@@ -35,6 +35,7 @@ interface Props {
    * @zh_CN 描述
    */
   description?: string;
+  qrCodeText?: string;
   /**
    * @zh_CN 是否显示返回按钮
    */
@@ -50,6 +51,7 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   showBack: true,
   loginPath: '/auth/login',
+  qrCodeText: '',
   submitButtonText: '',
   subTitle: '',
   title: '',
@@ -57,9 +59,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const router = useRouter();
 
-const text = ref('https://vben.vvbin.cn');
+const qrCodeValue = computed(() => props.qrCodeText || 'about:blank');
 
-const qrcode = useQRCode(text, {
+const qrcode = useQRCode(qrCodeValue, {
   errorCorrectionLevel: 'H',
   margin: 4,
 });

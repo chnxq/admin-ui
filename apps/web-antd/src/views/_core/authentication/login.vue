@@ -2,21 +2,28 @@
 import type { VbenFormSchema } from '@vben/common-ui';
 import type { Recordable } from '@vben/types';
 
-import type { AuthApi } from '#/api';
+import type { AuthApi, SocialProvider } from '#/api';
 
 import { computed, h, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { AuthenticationLogin, z } from '@vben/common-ui';
+import { SvgDingDingIcon, SvgGithubIcon, SvgWeChatIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
 
+import { Button, Tooltip } from 'ant-design-vue';
+
 import { getCaptchaApi } from '#/api';
-import { useAuthStore } from '#/store';
+import { useAuthStore, useSocialAuthStore } from '#/store';
 
 defineOptions({ name: 'Login' });
 
 const authStore = useAuthStore();
+const socialAuthStore = useSocialAuthStore();
+const router = useRouter();
 const captchaImage = ref('');
 const captchaId = ref('');
+const submitPending = ref(false);
 
 async function refreshCaptcha() {
   const captcha = await getCaptchaApi();
@@ -25,13 +32,21 @@ async function refreshCaptcha() {
 }
 
 async function handleSubmit(values: Recordable<any>) {
-  const result = await authStore.authLogin({
-    ...values,
-    captchaCode: values.captchaCode,
-    captchaId: captchaId.value,
-  } satisfies AuthApi.LoginParams);
-  if (result === null) {
-    await refreshCaptcha();
+  if (submitPending.value || authStore.loginLoading) {
+    return;
+  }
+  submitPending.value = true;
+  try {
+    const result = await authStore.authLogin({
+      ...values,
+      captchaCode: values.captchaCode,
+      captchaId: captchaId.value,
+    } satisfies AuthApi.LoginParams);
+    if (result === null) {
+      await refreshCaptcha();
+    }
+  } finally {
+    submitPending.value = false;
   }
 }
 
@@ -93,17 +108,99 @@ const formSchema = computed((): VbenFormSchema[] => {
 onMounted(async () => {
   await refreshCaptcha();
 });
+
+const socialProviders = computed<
+  Array<{
+    icon: any;
+    key: SocialProvider;
+    label: string;
+  }>
+>(() => [
+  {
+    icon: SvgGithubIcon,
+    key: 'github',
+    label: $t('authentication.githubLogin'),
+  },
+  {
+    icon: SvgDingDingIcon,
+    key: 'dingtalk',
+    label: $t('authentication.dingdingLogin'),
+  },
+  {
+    icon: SvgWeChatIcon,
+    key: 'wechat',
+    label: $t('authentication.wechatLogin'),
+  },
+  {
+    icon: SvgWeChatIcon,
+    key: 'alipay',
+    label: $t('authentication.alipayLogin'),
+  },
+]);
+
+async function openSocialBindPage(provider: SocialProvider = 'github') {
+  const session = await socialAuthStore.start(provider);
+  if (!session) {
+    return;
+  }
+  if (provider === 'wechat' || provider === 'dingtalk') {
+    void router.push('/auth/social/pending');
+    return;
+  }
+  const result = await socialAuthStore.complete(
+    `${provider}-demo-code`,
+    session.sessionToken,
+  );
+  if (result?.state === 'unbound') {
+    void router.push('/auth/social/bind');
+  }
+}
 </script>
 
 <template>
   <AuthenticationLogin
     :form-schema="formSchema"
     :loading="authStore.loginLoading"
-    :show-code-login="false"
+    :show-code-login="true"
     :show-forget-password="false"
-    :show-qrcode-login="false"
-    :show-register="false"
-    :show-third-party-login="false"
+    :show-qrcode-login="true"
+    :show-register="true"
+    :show-third-party-login="true"
     @submit="handleSubmit"
-  />
+  >
+    <template #third-party-login>
+      <div class="w-full sm:mx-auto md:max-w-md">
+        <div class="mt-4 flex items-center justify-between">
+          <span
+            class="w-[35%] border-b border-input dark:border-gray-600"
+          ></span>
+          <span class="text-center text-xs text-muted-foreground uppercase">
+            {{ $t('authentication.thirdPartyLogin') }}
+          </span>
+          <span
+            class="w-[35%] border-b border-input dark:border-gray-600"
+          ></span>
+        </div>
+
+        <div class="mt-4 flex flex-wrap justify-center gap-3">
+          <Tooltip
+            v-for="provider in socialProviders"
+            :key="provider.key"
+            :title="provider.label"
+          >
+            <Button shape="circle" @click="openSocialBindPage(provider.key)">
+              <component :is="provider.icon" />
+            </Button>
+          </Tooltip>
+        </div>
+      </div>
+    </template>
+    <template #third-party-login-extra>
+      <div class="mt-3 grid gap-2">
+        <Button block @click="openSocialBindPage()">
+          {{ $t('authentication.mockOpenSocialBind') }}
+        </Button>
+      </div>
+    </template>
+  </AuthenticationLogin>
 </template>

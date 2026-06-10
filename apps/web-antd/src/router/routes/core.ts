@@ -101,6 +101,24 @@ const coreRoutes: RouteRecordRaw[] = [
           title: $t('page.auth.register'),
         },
       },
+      {
+        name: 'SocialAuthPending',
+        path: 'social/pending',
+        component: () =>
+          import('#/views/_core/authentication/social-auth-pending.vue'),
+        meta: {
+          title: $t('page.auth.socialPending'),
+        },
+      },
+      {
+        name: 'SocialAuthBind',
+        path: 'social/bind',
+        component: () =>
+          import('#/views/_core/authentication/social-auth-bind.vue'),
+        meta: {
+          title: $t('page.auth.socialBind'),
+        },
+      },
     ],
   },
 ];

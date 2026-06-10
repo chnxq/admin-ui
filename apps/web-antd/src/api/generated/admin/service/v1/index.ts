@@ -1159,6 +1159,278 @@ export type auditservicev1_GetApiAuditLogRequest = {
   viewMask?: wellKnownFieldMask;
 };
 
+// 管理端认证流程状态服务
+export interface AuthFlowService {
+  // 创建认证流程会话
+  CreateAuthSession(
+    request: authenticationservicev1_CreateAuthSessionRequest,
+  ): Promise<authenticationservicev1_AuthSession>;
+  // 获取认证流程会话
+  GetAuthSession(
+    request: authenticationservicev1_GetAuthSessionRequest,
+  ): Promise<authenticationservicev1_AuthSession>;
+  // 轮询认证流程会话状态
+  PollAuthSession(
+    request: authenticationservicev1_PollAuthSessionRequest,
+  ): Promise<authenticationservicev1_AuthSession>;
+  // 确认认证流程会话
+  ConfirmAuthSession(
+    request: authenticationservicev1_ConfirmAuthSessionRequest,
+  ): Promise<authenticationservicev1_AuthSession>;
+  // 取消认证流程会话
+  CancelAuthSession(
+    request: authenticationservicev1_CancelAuthSessionRequest,
+  ): Promise<wellKnownEmpty>;
+}
+
+export function createAuthFlowServiceClient(
+  handler: RequestHandler,
+): AuthFlowService {
+  return {
+    CreateAuthSession(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/auth-sessions`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'AuthFlowService',
+          method: 'CreateAuthSession',
+        },
+      ) as Promise<authenticationservicev1_AuthSession>;
+    },
+    GetAuthSession(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.sessionId) {
+        throw new Error('missing required field request.session_id');
+      }
+      const path = `admin/v1/auth-sessions/${request.sessionId}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'GET',
+          body,
+        },
+        {
+          service: 'AuthFlowService',
+          method: 'GetAuthSession',
+        },
+      ) as Promise<authenticationservicev1_AuthSession>;
+    },
+    PollAuthSession(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.sessionId) {
+        throw new Error('missing required field request.session_id');
+      }
+      const path = `admin/v1/auth-sessions/${request.sessionId}/poll`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.sessionToken) {
+        queryParams.push(
+          `sessionToken=${encodeURIComponent(request.sessionToken.toString())}`,
+        );
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'GET',
+          body,
+        },
+        {
+          service: 'AuthFlowService',
+          method: 'PollAuthSession',
+        },
+      ) as Promise<authenticationservicev1_AuthSession>;
+    },
+    ConfirmAuthSession(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.sessionId) {
+        throw new Error('missing required field request.session_id');
+      }
+      const path = `admin/v1/auth-sessions/${request.sessionId}:confirm`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'AuthFlowService',
+          method: 'ConfirmAuthSession',
+        },
+      ) as Promise<authenticationservicev1_AuthSession>;
+    },
+    CancelAuthSession(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.sessionId) {
+        throw new Error('missing required field request.session_id');
+      }
+      const path = `admin/v1/auth-sessions/${request.sessionId}:cancel`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'AuthFlowService',
+          method: 'CancelAuthSession',
+        },
+      ) as Promise<wellKnownEmpty>;
+    },
+  };
+}
+export type authenticationservicev1_CreateAuthSessionRequest = {
+  //
+  // Behaviors: REQUIRED
+  scene: authenticationservicev1_AuthFlowScene | undefined;
+  tenantId?: number;
+  userId?: number;
+  providerKey?: string;
+  provider?: authenticationservicev1_OAuthProvider;
+  clientType?: authenticationservicev1_ClientType;
+  redirectUri?: string;
+  extraInfo?: string;
+};
+
+// 认证流程场景
+export type authenticationservicev1_AuthFlowScene =
+  | 'AUTH_FLOW_SCENE_UNSPECIFIED'
+  | 'LOGIN_QR'
+  | 'BIND_QR'
+  | 'SOCIAL_LOGIN'
+  | 'SOCIAL_BIND'
+  | 'MINIAPP_AUTH';
+// 第三方 OAuth 账号服务
+export type authenticationservicev1_OAuthProvider =
+  | 'OAUTH_PROVIDER_UNSPECIFIED'
+  | 'WECHAT'
+  | 'QQ'
+  | 'WEIBO'
+  | 'DOUYIN'
+  | 'KUAISHOU'
+  | 'BAIDU'
+  | 'ALIPAY'
+  | 'TAOBAO'
+  | 'JD'
+  | 'MEITUAN'
+  | 'DINGTALK'
+  | 'BILIBILI'
+  | 'XIAOHONGSHU'
+  | 'GOOGLE'
+  | 'FACEBOOK'
+  | 'APPLE'
+  | 'TELEGRAM'
+  | 'TWITTER'
+  | 'LINKEDIN'
+  | 'GITHUB'
+  | 'MICROSOFT'
+  | 'DISCORD'
+  | 'SLACK'
+  | 'INSTAGRAM'
+  | 'TIKTOK'
+  | 'REDDIT'
+  | 'YOUTUBE'
+  | 'SPOTIFY'
+  | 'PINTEREST'
+  | 'SNAPCHAT'
+  | 'TUMBLR'
+  | 'YAHOO'
+  | 'WHATSAPP'
+  | 'LINE';
+// 客户端类型
+export type authenticationservicev1_ClientType = 'admin' | 'app' | 'miniapp';
+// 认证流程会话
+export type authenticationservicev1_AuthSession = {
+  sessionId: string | undefined;
+  sessionToken?: string;
+  scene: authenticationservicev1_AuthFlowScene | undefined;
+  status: authenticationservicev1_AuthFlowStatus | undefined;
+  tenantId?: number;
+  userId?: number;
+  providerKey?: string;
+  provider?: authenticationservicev1_OAuthProvider;
+  providerAccountId?: string;
+  clientType?: authenticationservicev1_ClientType;
+  redirectUri?: string;
+  extraInfo?: string;
+  expiresAt?: wellKnownTimestamp;
+  confirmedAt?: wellKnownTimestamp;
+  qrCodeUrl?: string;
+  displayHint?: string;
+};
+
+// 认证流程状态
+export type authenticationservicev1_AuthFlowStatus =
+  | 'AUTH_FLOW_STATUS_UNSPECIFIED'
+  | 'AUTH_FLOW_PENDING'
+  | 'AUTH_FLOW_SCANNED'
+  | 'AUTH_FLOW_CONFIRMED'
+  | 'AUTH_FLOW_UNBOUND'
+  | 'AUTH_FLOW_EXPIRED'
+  | 'AUTH_FLOW_CANCELED'
+  | 'AUTH_FLOW_FAILED';
+export type authenticationservicev1_GetAuthSessionRequest = {
+  //
+  // Behaviors: REQUIRED
+  sessionId: string | undefined;
+};
+
+export type authenticationservicev1_PollAuthSessionRequest = {
+  //
+  // Behaviors: REQUIRED
+  sessionId: string | undefined;
+  sessionToken?: string;
+};
+
+export type authenticationservicev1_ConfirmAuthSessionRequest = {
+  //
+  // Behaviors: REQUIRED
+  sessionId: string | undefined;
+  sessionToken?: string;
+  userId?: number;
+  approved?: boolean;
+  extraInfo?: string;
+};
+
+export type authenticationservicev1_CancelAuthSessionRequest = {
+  //
+  // Behaviors: REQUIRED
+  sessionId: string | undefined;
+  sessionToken?: string;
+};
+
 // 用户后台登录认证服务
 export interface AuthenticationService {
   // 登录
@@ -1167,6 +1439,10 @@ export interface AuthenticationService {
   ): Promise<authenticationservicev1_LoginResponse>;
   // 登出
   Logout(request: wellKnownEmpty): Promise<wellKnownEmpty>;
+  // 注册用户
+  RegisterUser(
+    request: authenticationservicev1_RegisterUserRequest,
+  ): Promise<authenticationservicev1_RegisterUserResponse>;
   // 刷新认证令牌
   RefreshToken(
     request: authenticationservicev1_LoginRequest,
@@ -1219,6 +1495,27 @@ export function createAuthenticationServiceClient(
         },
       ) as Promise<wellKnownEmpty>;
     },
+    RegisterUser(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/register`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'AuthenticationService',
+          method: 'RegisterUser',
+        },
+      ) as Promise<authenticationservicev1_RegisterUserResponse>;
+    },
     RefreshToken(request) {
       // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `admin/v1/refresh-token`; // eslint-disable-line quotes
@@ -1270,8 +1567,6 @@ export type authenticationservicev1_GrantType =
   | 'authorization_code'
   | 'refresh_token'
   | 'implicit';
-// 客户端类型
-export type authenticationservicev1_ClientType = 'admin' | 'app';
 // 用户后台登录 - 回应
 export type authenticationservicev1_LoginResponse = {
   token_type: authenticationservicev1_TokenType | undefined;
@@ -1285,6 +1580,47 @@ export type authenticationservicev1_LoginResponse = {
 
 // 令牌类型
 export type authenticationservicev1_TokenType = 'bearer' | 'mac';
+export type authenticationservicev1_RegisterUserRequest = {
+  tenantCode: string | undefined;
+  clientType?: authenticationservicev1_ClientType;
+  deviceId?: string;
+  byUsername?: authenticationservicev1_RegisterByUsernameRequest;
+  byEmail?: authenticationservicev1_RegisterByEmailRequest;
+  byMobile?: authenticationservicev1_RegisterByMobileRequest;
+};
+
+export type authenticationservicev1_RegisterByUsernameRequest = {
+  username: string | undefined;
+  password: string | undefined;
+  email?: string;
+  mobile?: string;
+  captchaId?: string;
+  captchaCode?: string;
+};
+
+export type authenticationservicev1_RegisterByEmailRequest = {
+  email: string | undefined;
+  emailCode: string | undefined;
+  password: string | undefined;
+  username?: string;
+  captchaId?: string;
+  captchaCode?: string;
+};
+
+export type authenticationservicev1_RegisterByMobileRequest = {
+  mobile: string | undefined;
+  mobileCode: string | undefined;
+  password?: string;
+  username?: string;
+  captchaId?: string;
+  captchaCode?: string;
+};
+
+export type authenticationservicev1_RegisterUserResponse = {
+  userId: number | undefined;
+  login?: authenticationservicev1_LoginResponse;
+};
+
 // 数据访问审计日志管理服务
 export interface DataAccessAuditLogService {
   // 查询数据访问审计日志列表
@@ -7404,6 +7740,242 @@ export type permissionservicev1_UpdateRoleRequest = {
 // 删除角色 - 请求
 export type permissionservicev1_DeleteRoleRequest = {
   id?: number;
+};
+
+// 管理端第三方登录入口服务
+export interface SocialAuthService {
+  // 开始第三方登录流程
+  StartSocialLogin(
+    request: authenticationservicev1_StartSocialLoginRequest,
+  ): Promise<authenticationservicev1_StartSocialLoginResponse>;
+  // 完成网页回调式第三方登录
+  CompleteSocialLogin(
+    request: authenticationservicev1_CompleteSocialLoginRequest,
+  ): Promise<authenticationservicev1_CompleteSocialLoginResponse>;
+  // 处理小程序 code 或 authCode 登录交换
+  ExchangeMiniAppCode(
+    request: authenticationservicev1_ExchangeMiniAppCodeRequest,
+  ): Promise<authenticationservicev1_ExchangeMiniAppCodeResponse>;
+  // 确认绑定已有账号或创建并绑定新账号
+  ConfirmBindOrRegister(
+    request: authenticationservicev1_ConfirmBindOrRegisterRequest,
+  ): Promise<authenticationservicev1_ConfirmBindOrRegisterResponse>;
+}
+
+export function createSocialAuthServiceClient(
+  handler: RequestHandler,
+): SocialAuthService {
+  return {
+    StartSocialLogin(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/social-auth:start`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'SocialAuthService',
+          method: 'StartSocialLogin',
+        },
+      ) as Promise<authenticationservicev1_StartSocialLoginResponse>;
+    },
+    CompleteSocialLogin(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/social-auth:complete`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'SocialAuthService',
+          method: 'CompleteSocialLogin',
+        },
+      ) as Promise<authenticationservicev1_CompleteSocialLoginResponse>;
+    },
+    ExchangeMiniAppCode(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/social-auth/miniapp:exchange-code`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'SocialAuthService',
+          method: 'ExchangeMiniAppCode',
+        },
+      ) as Promise<authenticationservicev1_ExchangeMiniAppCodeResponse>;
+    },
+    ConfirmBindOrRegister(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/social-auth:confirm-bind-or-register`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'SocialAuthService',
+          method: 'ConfirmBindOrRegister',
+        },
+      ) as Promise<authenticationservicev1_ConfirmBindOrRegisterResponse>;
+    },
+  };
+}
+export type authenticationservicev1_StartSocialLoginRequest = {
+  //
+  // Behaviors: REQUIRED
+  provider: authenticationservicev1_OAuthProvider | undefined;
+  providerKey?: string;
+  clientType?: authenticationservicev1_ClientType;
+  redirectUri?: string;
+  scopes: string[] | undefined;
+  tenantId?: number;
+  deviceId?: string;
+};
+
+export type authenticationservicev1_StartSocialLoginResponse = {
+  authorizationUrl?: string;
+  qrCodeUrl?: string;
+  sessionId?: string;
+  state?: string;
+  expiresAt?: wellKnownTimestamp;
+  displayHint?: string;
+};
+
+export type authenticationservicev1_CompleteSocialLoginRequest = {
+  sessionId?: string;
+  //
+  // Behaviors: REQUIRED
+  provider: authenticationservicev1_OAuthProvider | undefined;
+  providerKey?: string;
+  //
+  // Behaviors: REQUIRED
+  code: string | undefined;
+  state?: string;
+  redirectUri?: string;
+  clientType?: authenticationservicev1_ClientType;
+  deviceId?: string;
+};
+
+export type authenticationservicev1_CompleteSocialLoginResponse = {
+  status: authenticationservicev1_SocialAuthStatus | undefined;
+  login?: authenticationservicev1_LoginResponse;
+  pending?: authenticationservicev1_SocialAuthPendingBinding;
+};
+
+// 第三方登录结果状态
+export type authenticationservicev1_SocialAuthStatus =
+  | 'SOCIAL_AUTH_STATUS_UNSPECIFIED'
+  | 'SOCIAL_AUTH_BOUND'
+  | 'SOCIAL_AUTH_UNBOUND'
+  | 'SOCIAL_AUTH_PENDING'
+  | 'SOCIAL_AUTH_EXPIRED'
+  | 'SOCIAL_AUTH_FAILED';
+// 未绑定状态载荷
+export type authenticationservicev1_SocialAuthPendingBinding = {
+  sessionId: string | undefined;
+  bindToken: string | undefined;
+  profile: authenticationservicev1_SocialProviderProfile | undefined;
+  expiresAt?: wellKnownTimestamp;
+  displayHint?: string;
+};
+
+// 第三方资料摘要
+export type authenticationservicev1_SocialProviderProfile = {
+  providerKey?: string;
+  provider?: authenticationservicev1_OAuthProvider;
+  providerAccountId?: string;
+  unionId?: string;
+  openId?: string;
+  appId?: string;
+  nickname?: string;
+  avatar?: string;
+  email?: string;
+  mobile?: string;
+  rawProfileJson?: string;
+};
+
+export type authenticationservicev1_ExchangeMiniAppCodeRequest = {
+  //
+  // Behaviors: REQUIRED
+  provider: authenticationservicev1_OAuthProvider | undefined;
+  providerKey?: string;
+  //
+  // Behaviors: REQUIRED
+  code: string | undefined;
+  appId?: string;
+  tenantId?: number;
+  deviceId?: string;
+};
+
+export type authenticationservicev1_ExchangeMiniAppCodeResponse = {
+  status: authenticationservicev1_SocialAuthStatus | undefined;
+  login?: authenticationservicev1_LoginResponse;
+  pending?: authenticationservicev1_SocialAuthPendingBinding;
+};
+
+export type authenticationservicev1_ConfirmBindOrRegisterRequest = {
+  //
+  // Behaviors: REQUIRED
+  bindToken: string | undefined;
+  //
+  // Behaviors: REQUIRED
+  operation: authenticationservicev1_ConfirmBindOrRegisterOperation | undefined;
+  clientType?: authenticationservicev1_ClientType;
+  deviceId?: string;
+  existing?: authenticationservicev1_ExistingAccountBinding;
+  registration?: authenticationservicev1_RegisterUserRequest;
+};
+
+export type authenticationservicev1_ConfirmBindOrRegisterOperation =
+  | 'CONFIRM_BIND_OR_REGISTER_OPERATION_UNSPECIFIED'
+  | 'BIND_EXISTING'
+  | 'REGISTER_NEW';
+export type authenticationservicev1_ExistingAccountBinding = {
+  tenantCode?: string;
+  username?: string;
+  email?: string;
+  mobile?: string;
+  password?: string;
+  captchaId?: string;
+  captchaCode?: string;
+};
+
+export type authenticationservicev1_ConfirmBindOrRegisterResponse = {
+  status: authenticationservicev1_SocialAuthStatus | undefined;
+  userId?: number;
+  login?: authenticationservicev1_LoginResponse;
 };
 
 // 任务管理服务

@@ -1,4 +1,7 @@
 {
   "updatePassword": "更新密码",
-  "updateBasicProfile": "更新基本信息"
+  "updateBasicProfile": "更新基本信息",
+  "socialBinding": "第三方账号",
+  "socialBindingDesc": "管理已绑定的第三方账号。",
+  "socialBindingSetting": "第三方账号"
 }
