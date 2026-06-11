@@ -11,6 +11,7 @@ import {
   createInternalMessageServiceClient,
   createLoginAuditLogServiceClient,
   createMenuServiceClient,
+  createOAuthServiceClient,
   createOrgUnitServiceClient,
   createPermissionAuditLogServiceClient,
   createPermissionGroupServiceClient,
@@ -64,6 +65,8 @@ export const permissionAuditLogClient =
   createPermissionAuditLogServiceClient(adminRequestHandler);
 
 export const orgUnitClient = createOrgUnitServiceClient(adminRequestHandler);
+
+export const oauthClient = createOAuthServiceClient(adminRequestHandler);
 
 export const permissionClient =
   createPermissionServiceClient(adminRequestHandler);

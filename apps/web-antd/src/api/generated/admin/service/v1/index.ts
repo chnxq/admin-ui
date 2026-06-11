@@ -1332,7 +1332,7 @@ export type authenticationservicev1_AuthFlowScene =
   | 'SOCIAL_LOGIN'
   | 'SOCIAL_BIND'
   | 'MINIAPP_AUTH';
-// 第三方 OAuth 账号服务
+// 第三方提供商枚举
 export type authenticationservicev1_OAuthProvider =
   | 'OAUTH_PROVIDER_UNSPECIFIED'
   | 'WECHAT'
@@ -5495,6 +5495,324 @@ export type resourceservicev1_DeleteMenuRequest = {
   id?: number;
 };
 
+// 管理端第三方账号绑定服务
+export interface OAuthService {
+  // 查询当前用户已绑定的第三方账号列表
+  ListLinkedAccounts(
+    request: authenticationservicev1_ListLinkedAccountsRequest,
+  ): Promise<authenticationservicev1_ListLinkedAccountsResponse>;
+  // 开始第三方账号绑定流程
+  StartLinkOAuth(
+    request: authenticationservicev1_StartLinkOAuthRequest,
+  ): Promise<authenticationservicev1_StartLinkOAuthResponse>;
+  // 确认第三方账号绑定
+  ConfirmLinkOAuth(
+    request: authenticationservicev1_ConfirmLinkOAuthRequest,
+  ): Promise<authenticationservicev1_ConfirmLinkOAuthResponse>;
+  // 解除第三方账号绑定
+  UnlinkOAuth(
+    request: authenticationservicev1_UnlinkOAuthRequest,
+  ): Promise<wellKnownEmpty>;
+  // 查询支持的第三方登录提供商列表
+  ListProviders(
+    request: authenticationservicev1_ListProvidersRequest,
+  ): Promise<authenticationservicev1_ListProvidersResponse>;
+}
+
+export function createOAuthServiceClient(
+  handler: RequestHandler,
+): OAuthService {
+  return {
+    ListLinkedAccounts(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/oauth/linked-accounts`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.userId) {
+        queryParams.push(
+          `userId=${encodeURIComponent(request.userId.toString())}`,
+        );
+      }
+      if (request.pageSize) {
+        queryParams.push(
+          `pageSize=${encodeURIComponent(request.pageSize.toString())}`,
+        );
+      }
+      if (request.pageToken) {
+        queryParams.push(
+          `pageToken=${encodeURIComponent(request.pageToken.toString())}`,
+        );
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'GET',
+          body,
+        },
+        {
+          service: 'OAuthService',
+          method: 'ListLinkedAccounts',
+        },
+      ) as Promise<authenticationservicev1_ListLinkedAccountsResponse>;
+    },
+    StartLinkOAuth(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/oauth:start-link`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'OAuthService',
+          method: 'StartLinkOAuth',
+        },
+      ) as Promise<authenticationservicev1_StartLinkOAuthResponse>;
+    },
+    ConfirmLinkOAuth(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/oauth:confirm-link`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'OAuthService',
+          method: 'ConfirmLinkOAuth',
+        },
+      ) as Promise<authenticationservicev1_ConfirmLinkOAuthResponse>;
+    },
+    UnlinkOAuth(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/oauth:unlink`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'POST',
+          body,
+        },
+        {
+          service: 'OAuthService',
+          method: 'UnlinkOAuth',
+        },
+      ) as Promise<wellKnownEmpty>;
+    },
+    ListProviders(request) {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `admin/v1/oauth/providers`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join('&')}`;
+      }
+      return handler(
+        {
+          path: uri,
+          method: 'GET',
+          body,
+        },
+        {
+          service: 'OAuthService',
+          method: 'ListProviders',
+        },
+      ) as Promise<authenticationservicev1_ListProvidersResponse>;
+    },
+  };
+}
+// 查询已绑定第三方账号列表请求
+export type authenticationservicev1_ListLinkedAccountsRequest = {
+  userId?: string;
+  pageSize?: number;
+  pageToken?: string;
+};
+
+// 查询已绑定第三方账号列表响应
+export type authenticationservicev1_ListLinkedAccountsResponse = {
+  items: authenticationservicev1_UserCredential[] | undefined;
+  total: number | undefined;
+  nextPageToken: string | undefined;
+};
+
+// 用户凭证
+export type authenticationservicev1_UserCredential = {
+  id: number | undefined;
+  userId?: number;
+  tenantId?: number;
+  identityType?: authenticationservicev1_UserCredential_IdentityType;
+  identifier?: string;
+  credentialType?: authenticationservicev1_UserCredential_CredentialType;
+  credential?: string;
+  isPrimary?: boolean;
+  status?: authenticationservicev1_UserCredential_Status;
+  extraInfo?: string;
+  provider?: string;
+  providerAccountId?: string;
+  createdBy?: number;
+  updatedBy?: number;
+  createdAt?: wellKnownTimestamp;
+  updatedAt?: wellKnownTimestamp;
+  deletedAt?: wellKnownTimestamp;
+};
+
+// 身份类型
+export type authenticationservicev1_UserCredential_IdentityType =
+  | 'USERNAME'
+  | 'USERID'
+  | 'EMAIL'
+  | 'PHONE'
+  // 通用的外部/第三方身份类型
+  | 'SOCIAL_OAUTH'
+  | 'ENTERPRISE_SSO'
+  | 'IDENTITY_API_KEY'
+  | 'DEVICE_ID'
+  // 可扩展/自定义
+  | 'IDENTITY_CUSTOM'
+  | 'IDENTITY_RESERVED_FOR_FUTURE';
+// 凭证类型
+export type authenticationservicev1_UserCredential_CredentialType =
+  | 'TYPE_UNSPECIFIED'
+  // 密码类
+  | 'PASSWORD_HASH'
+  // API / 静态密钥
+  | 'API_KEY'
+  | 'API_SECRET'
+  // 访问/刷新令牌
+  | 'ACCESS_TOKEN'
+  | 'REFRESH_TOKEN'
+  | 'JWT'
+  // OAuth / Social
+  | 'OAUTH_TOKEN'
+  | 'OAUTH_AUTHORIZATION_CODE'
+  | 'OAUTH_CLIENT_CREDENTIALS'
+  // OTP / 一次性密码与 MFA
+  | 'OTP'
+  | 'TOTP'
+  | 'SMS_OTP'
+  | 'EMAIL_OTP'
+  // 设备 / 硬件 / 软件令牌
+  | 'HARDWARE_TOKEN'
+  | 'SOFTWARE_TOKEN'
+  | 'SECURITY_KEY'
+  // 生物识别
+  | 'BIOMETRIC'
+  | 'BIOMETRIC_TOKEN'
+  // SSO / 断言
+  | 'SSO_TOKEN'
+  | 'SAML_ASSERTION'
+  | 'OPENID_CONNECT_ID_TOKEN'
+  // 临时 / 会话类
+  | 'SESSION_COOKIE'
+  | 'TEMPORARY_CREDENTIAL'
+  // 其他 / 自定义
+  | 'CUSTOM'
+  | 'RESERVED_FOR_FUTURE';
+// 用户凭证状态
+export type authenticationservicev1_UserCredential_Status =
+  | 'DISABLED'
+  | 'ENABLED'
+  | 'EXPIRED'
+  | 'UNVERIFIED'
+  | 'REMOVED'
+  | 'BLOCKED'
+  | 'TEMPORARY';
+// 开始第三方账号绑定流程请求
+export type authenticationservicev1_StartLinkOAuthRequest = {
+  //
+  // Behaviors: REQUIRED
+  provider: authenticationservicev1_OAuthProvider | undefined;
+  providerCustom: string | undefined;
+  redirectUri: string | undefined;
+  scopes: string[] | undefined;
+  state?: string;
+};
+
+// 开始第三方账号绑定流程响应
+export type authenticationservicev1_StartLinkOAuthResponse = {
+  authorizationUrl?: string;
+  operationId?: string;
+  expiresAt?: wellKnownTimestamp;
+  displayHint?: string;
+};
+
+// 确认第三方账号绑定请求
+export type authenticationservicev1_ConfirmLinkOAuthRequest = {
+  operationId?: string;
+  provider: authenticationservicev1_OAuthProvider | undefined;
+  providerCustom: string | undefined;
+  oauthToken?: string;
+  code?: string;
+  authorizationResponse?: string;
+  state?: string;
+  displayName?: string;
+};
+
+// 确认第三方账号绑定响应
+export type authenticationservicev1_ConfirmLinkOAuthResponse = {
+  account: authenticationservicev1_UserCredential | undefined;
+  secret?: authenticationservicev1_OAuthToken;
+};
+
+// 第三方访问令牌摘要
+export type authenticationservicev1_OAuthToken = {
+  accessToken: string | undefined;
+  refreshToken?: string;
+  scopes: string[] | undefined;
+  expiresAt?: wellKnownTimestamp;
+};
+
+// 解除第三方账号绑定请求
+export type authenticationservicev1_UnlinkOAuthRequest = {
+  credentialId?: string;
+  provider: authenticationservicev1_OAuthProvider | undefined;
+  providerCustom: string | undefined;
+};
+
+// 查询支持的第三方提供商列表请求
+export type authenticationservicev1_ListProvidersRequest = {};
+
+// 查询支持的第三方提供商列表响应
+export type authenticationservicev1_ListProvidersResponse = {
+  items: authenticationservicev1_ProviderMetadata[] | undefined;
+};
+
+// 第三方提供商元信息
+export type authenticationservicev1_ProviderMetadata = {
+  provider: authenticationservicev1_OAuthProvider | undefined;
+  providerCustom: string | undefined;
+  displayName: string | undefined;
+  authorizationEndpoint: string | undefined;
+  tokenEndpoint: string | undefined;
+  defaultScopes: string[] | undefined;
+  authorizeParams: { [key: string]: string } | undefined;
+  tokenParams: { [key: string]: string } | undefined;
+};
+
 // 操作审计日志管理服务
 export interface OperationAuditLogService {
   // 查询操作审计日志列表
@@ -7752,7 +8070,7 @@ export interface SocialAuthService {
   CompleteSocialLogin(
     request: authenticationservicev1_CompleteSocialLoginRequest,
   ): Promise<authenticationservicev1_CompleteSocialLoginResponse>;
-  // 处理小程序 code 或 authCode 登录交换
+  // 处理小程序 code 或 authCode 换取登录结果
   ExchangeMiniAppCode(
     request: authenticationservicev1_ExchangeMiniAppCodeRequest,
   ): Promise<authenticationservicev1_ExchangeMiniAppCodeResponse>;

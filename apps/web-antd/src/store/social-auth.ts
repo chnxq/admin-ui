@@ -9,10 +9,14 @@ import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 
 import {
+  applySocialLoginTokens,
   bindExistingSocialAuthApi,
+  clearSocialAuthSession,
   completeSocialAuthApi,
+  persistSocialAuthSession,
   pollSocialAuthApi,
   registerAndBindSocialAuthApi,
+  restoreSocialAuthSession,
   startSocialAuthApi,
 } from '#/api';
 
@@ -31,6 +35,7 @@ export const useSocialAuthStore = defineStore('social-auth', () => {
       currentProvider.value = provider;
       currentSession.value = result;
       currentPending.value = null;
+      persistSocialAuthSession(provider, result);
       return result;
     } finally {
       loading.value = false;
@@ -38,18 +43,21 @@ export const useSocialAuthStore = defineStore('social-auth', () => {
   }
 
   async function complete(code: string, state?: string) {
-    if (!currentProvider.value || !currentSession.value) {
+    if (!currentProvider.value) {
       return null;
     }
     loading.value = true;
     try {
       const result = await completeSocialAuthApi(
         currentProvider.value,
-        currentSession.value.sessionId,
+        currentSession.value?.sessionId,
         code,
-        state || currentSession.value.sessionToken,
+        state || currentSession.value?.sessionToken,
       );
       currentPending.value = result;
+      if (result.state === 'confirmed' || result.state === 'unbound') {
+        clearSocialAuthSession();
+      }
       return result;
     } finally {
       loading.value = false;
@@ -117,11 +125,26 @@ export const useSocialAuthStore = defineStore('social-auth', () => {
     currentPending.value = result;
   }
 
+  function restore() {
+    const restored = restoreSocialAuthSession();
+    if (!restored) {
+      return null;
+    }
+    currentProvider.value = restored.provider;
+    currentSession.value = restored.session;
+    return restored;
+  }
+
+  function applyLogin(login: SocialAuthPendingResult['login']) {
+    return applySocialLoginTokens(login);
+  }
+
   function reset() {
     currentProvider.value = null;
     currentSession.value = null;
     currentPending.value = null;
     loading.value = false;
+    clearSocialAuthSession();
   }
 
   function $reset() {
@@ -130,6 +153,7 @@ export const useSocialAuthStore = defineStore('social-auth', () => {
 
   return {
     $reset,
+    applyLogin,
     bindExisting,
     complete,
     currentPending,
@@ -140,6 +164,7 @@ export const useSocialAuthStore = defineStore('social-auth', () => {
     profileSummary,
     registerAndBind,
     reset,
+    restore,
     setMockPending,
     start,
   };

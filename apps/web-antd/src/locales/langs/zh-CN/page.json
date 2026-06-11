@@ -5,7 +5,10 @@
     "codeLogin": "验证码登录",
     "qrcodeLogin": "二维码登录",
     "forgetPassword": "忘记密码",
-    "profile": "个人中心"
+    "profile": "个人中心",
+    "socialBind": "第三方绑定",
+    "socialPending": "第三方处理中",
+    "socialCallback": "第三方回调"
   },
   "profile": {
     "title": "个人中心",
@@ -44,7 +47,17 @@
     "notificationSystem": "系统消息",
     "notificationSystemDesc": "系统消息将以站内信的形式通知",
     "notificationTodo": "待办任务",
-    "notificationTodoDesc": "待办任务将以站内信的形式通知"
+    "notificationTodoDesc": "待办任务将以站内信的形式通知",
+    "socialBinding": "第三方账号",
+    "socialBindingDesc": "管理当前账号已绑定的第三方登录方式。",
+    "socialBindingSetting": "第三方账号",
+    "socialBindingSettingCardTitle": "{0}账号",
+    "socialBindingSettingDesc": "为当前登录账号绑定或解绑第三方登录方式。",
+    "socialBindingSettingEmpty": "暂无可用第三方登录方式",
+    "socialBindingSettingLoadFailed": "加载第三方账号失败",
+    "socialBindingSettingStartFailed": "发起第三方账号绑定失败",
+    "socialBindingSettingUnbindFailed": "解绑第三方账号失败",
+    "socialBindingSettingUnbindSuccess": "第三方账号已解绑"
   },
   "dashboard": {
     "title": "概览",

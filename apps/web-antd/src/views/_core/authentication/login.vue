@@ -143,6 +143,10 @@ async function openSocialBindPage(provider: SocialProvider = 'github') {
   if (!session) {
     return;
   }
+  if (provider === 'github' && session.authorizationUrl) {
+    window.location.href = session.authorizationUrl;
+    return;
+  }
   if (provider === 'wechat' || provider === 'dingtalk') {
     void router.push('/auth/social/pending');
     return;

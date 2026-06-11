@@ -119,6 +119,15 @@ const coreRoutes: RouteRecordRaw[] = [
           title: $t('page.auth.socialBind'),
         },
       },
+      {
+        name: 'SocialAuthCallback',
+        path: 'social/callback/:provider',
+        component: () =>
+          import('#/views/_core/authentication/social-auth-callback.vue'),
+        meta: {
+          title: $t('page.auth.socialCallback'),
+        },
+      },
     ],
   },
 ];

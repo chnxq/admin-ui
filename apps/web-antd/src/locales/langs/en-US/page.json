@@ -5,7 +5,10 @@
     "codeLogin": "Code Login",
     "qrcodeLogin": "Qr Code Login",
     "forgetPassword": "Forget Password",
-    "profile": "Profile"
+    "profile": "Profile",
+    "socialBind": "Social Bind",
+    "socialPending": "Social Pending",
+    "socialCallback": "Social Callback"
   },
   "profile": {
     "title": "Profile",
@@ -44,7 +47,17 @@
     "notificationSystem": "System Messages",
     "notificationSystemDesc": "System messages will be delivered through internal messaging.",
     "notificationTodo": "Todo Tasks",
-    "notificationTodoDesc": "Todo task updates will be delivered through internal messaging."
+    "notificationTodoDesc": "Todo task updates will be delivered through internal messaging.",
+    "socialBinding": "Social Accounts",
+    "socialBindingDesc": "Manage your linked third-party accounts.",
+    "socialBindingSetting": "Social Accounts",
+    "socialBindingSettingCardTitle": "{0} Account",
+    "socialBindingSettingDesc": "Bind or unbind third-party sign-in methods for the current account.",
+    "socialBindingSettingEmpty": "No social providers available",
+    "socialBindingSettingLoadFailed": "Failed to load social accounts",
+    "socialBindingSettingStartFailed": "Failed to start social account binding",
+    "socialBindingSettingUnbindFailed": "Failed to unbind social account",
+    "socialBindingSettingUnbindSuccess": "Social account unbound"
   },
   "dashboard": {
     "title": "Dashboard",

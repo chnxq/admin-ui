@@ -2,21 +2,29 @@
 import type { VbenFormSchema } from '@vben/common-ui';
 import type { Recordable } from '@vben/types';
 
+import type { authenticationservicev1_LoginResponse } from '#/api/generated/admin/service/v1';
+
 import { computed, h, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { AuthenticationRegister, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
+import { preferences } from '@vben/preferences';
+import { useAccessStore } from '@vben/stores';
 
 import { message } from 'ant-design-vue';
 
 import { getCaptchaApi } from '#/api';
 import { authenticationClient } from '#/api/admin/clients';
+import { useAuthStore, useSocialAuthStore } from '#/store';
 
 defineOptions({ name: 'Register' });
 
 const loading = ref(false);
 const router = useRouter();
+const accessStore = useAccessStore();
+const authStore = useAuthStore();
+const socialAuthStore = useSocialAuthStore();
 const registerMode = ref<'email' | 'mobile' | 'username'>('username');
 const captchaImage = ref('');
 const captchaId = ref('');
@@ -25,6 +33,22 @@ async function refreshCaptcha() {
   const captcha = await getCaptchaApi();
   captchaImage.value = captcha.imageBase64;
   captchaId.value = captcha.captchaId;
+}
+
+async function finishSocialLogin(
+  login?: authenticationservicev1_LoginResponse,
+) {
+  const accessToken = socialAuthStore.applyLogin(login);
+  accessStore.setAccessToken(accessToken);
+  const [userInfo] = await Promise.all([
+    authStore.fetchUserInfo(),
+    authStore.fetchAccessCodes(),
+  ]);
+  if (userInfo?.profileCompleted === false) {
+    await router.replace('/profile');
+    return;
+  }
+  await router.replace(userInfo?.homePath || preferences.app.defaultHomePath);
 }
 
 const formSchema = computed((): VbenFormSchema[] => {
@@ -187,6 +211,21 @@ async function handleSubmit(value: Recordable<any>) {
     }
     if (registerMode.value === 'mobile') {
       message.warning($t('authentication.registerMobileNotImplemented'));
+      return;
+    }
+    if (socialAuthStore.currentPending?.bindToken) {
+      const response = await socialAuthStore.registerAndBind({
+        byUsername: {
+          captchaCode: value.captchaCode,
+          captchaId: captchaId.value,
+          password: value.password,
+          username: value.username,
+        },
+        clientType: 'admin',
+        tenantCode: '',
+      });
+      message.success($t('authentication.socialBindSuccess'));
+      await finishSocialLogin(response?.login);
       return;
     }
     await authenticationClient.RegisterUser({
