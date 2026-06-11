@@ -43,7 +43,7 @@ async function finishLogin() {
   void accessCodes;
 }
 
-async function finishBinding(provider: 'github') {
+async function finishBinding(provider: 'dingtalk' | 'github' | 'wechat') {
   const bindingContext = restoreLinkOAuthContext();
   const operationId = String(bindingContext?.operationId || '').trim();
   const code = String(route.query.code || '').trim();
@@ -68,19 +68,30 @@ onMounted(async () => {
     const provider = (route.params.provider as string) || 'github';
     const code = String(route.query.code || '').trim();
     const state = String(route.query.state || '').trim();
-    if (provider !== 'github') {
+    if (
+      provider !== 'github' &&
+      provider !== 'wechat' &&
+      provider !== 'dingtalk'
+    ) {
       throw new Error($t('authentication.socialProviderNotSupported'));
     }
     if (!code) {
       throw new Error($t('authentication.socialCallbackMissingCode'));
     }
     const bindingContext = restoreLinkOAuthContext();
-    if (bindingContext?.provider === 'github') {
-      await finishBinding('github');
+    if (
+      bindingContext?.provider === 'github' ||
+      bindingContext?.provider === 'wechat' ||
+      bindingContext?.provider === 'dingtalk'
+    ) {
+      await finishBinding(bindingContext.provider);
       return;
     }
     if (!restoredSession) {
-      socialAuthStore.currentProvider = 'github';
+      socialAuthStore.currentProvider = provider as
+        | 'dingtalk'
+        | 'github'
+        | 'wechat';
     }
     const result = await socialAuthStore.complete(code, state);
     if (!result) {

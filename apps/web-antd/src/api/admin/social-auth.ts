@@ -243,6 +243,20 @@ function toOAuthProvider(
   }
 }
 
+function toProviderKey(provider: SocialProvider) {
+  switch (provider) {
+    case 'dingtalk': {
+      return 'dingtalk_web';
+    }
+    case 'wechat': {
+      return 'wechat_web';
+    }
+    default: {
+      return provider;
+    }
+  }
+}
+
 function toPendingState(status?: authenticationservicev1_AuthFlowStatus) {
   switch (status) {
     case 'AUTH_FLOW_CONFIRMED': {
@@ -311,7 +325,7 @@ export async function startSocialAuthApi(
   const response = await socialAuthClient.StartSocialLogin({
     clientType: 'admin',
     provider: toOAuthProvider(provider),
-    providerKey: provider,
+    providerKey: toProviderKey(provider),
     redirectUri: undefined,
     scopes: [],
   });
@@ -319,8 +333,7 @@ export async function startSocialAuthApi(
     authorizationUrl: response.authorizationUrl,
     provider,
     qrCodeUrl: response.qrCodeUrl,
-    scene:
-      provider === 'wechat' || provider === 'dingtalk' ? 'qrcode' : 'oauth',
+    scene: 'oauth',
     sessionId: response.sessionId || '',
     sessionToken: response.state,
     state: 'pending',
@@ -337,11 +350,8 @@ export async function completeSocialAuthApi(
     clientType: 'admin',
     code,
     provider: toOAuthProvider(provider),
-    providerKey: provider,
-    redirectUri:
-      provider === 'github'
-        ? `${window.location.origin}/auth/social/callback/github`
-        : undefined,
+    providerKey: toProviderKey(provider),
+    redirectUri: undefined,
     sessionId,
     state,
   });
@@ -425,7 +435,12 @@ export async function listSocialProvidersApi() {
       authorizationEndpoint: item.authorizationEndpoint,
       defaultScopes: item.defaultScopes || [],
       displayName: item.displayName || providerLabel(provider),
-      enabled: Boolean(item.authorizationEndpoint || provider === 'github'),
+      enabled: Boolean(
+        item.authorizationEndpoint ||
+        provider === 'github' ||
+        provider === 'dingtalk' ||
+        provider === 'wechat',
+      ),
       provider,
       providerKey: item.providerCustom || provider,
     } satisfies SocialProviderOption;
@@ -435,7 +450,7 @@ export async function listSocialProvidersApi() {
 export async function startLinkSocialAccountApi(provider: SocialProvider) {
   return await oauthClient.StartLinkOAuth({
     provider: toOAuthProvider(provider),
-    providerCustom: provider,
+    providerCustom: toProviderKey(provider),
     redirectUri: undefined,
     scopes: [],
   });
@@ -452,7 +467,7 @@ export async function confirmLinkSocialAccountApi(params: {
       code: params.code,
       operationId: params.operationId,
       provider: toOAuthProvider(params.provider),
-      providerCustom: params.provider,
+      providerCustom: toProviderKey(params.provider),
       state: params.state,
     });
   return response;
