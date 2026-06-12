@@ -26,6 +26,23 @@ const socialAuthStore = useSocialAuthStore();
 const errorText = ref('');
 const loading = ref(true);
 
+function resolveBindingProvider() {
+  const mode = String(route.query.mode || '').trim();
+  const bindingContext = restoreLinkOAuthContext();
+  if (mode !== 'bind') {
+    return null;
+  }
+  if (
+    bindingContext?.scene !== 'bind' ||
+    (bindingContext?.provider !== 'github' &&
+      bindingContext?.provider !== 'wechat' &&
+      bindingContext?.provider !== 'dingtalk')
+  ) {
+    return null;
+  }
+  return bindingContext.provider;
+}
+
 async function finishLogin() {
   const accessToken = socialAuthStore.applyLogin(
     socialAuthStore.currentPending?.login,
@@ -78,13 +95,9 @@ onMounted(async () => {
     if (!code) {
       throw new Error($t('authentication.socialCallbackMissingCode'));
     }
-    const bindingContext = restoreLinkOAuthContext();
-    if (
-      bindingContext?.provider === 'github' ||
-      bindingContext?.provider === 'wechat' ||
-      bindingContext?.provider === 'dingtalk'
-    ) {
-      await finishBinding(bindingContext.provider);
+    const bindingProvider = resolveBindingProvider();
+    if (bindingProvider) {
+      await finishBinding(bindingProvider);
       return;
     }
     if (!restoredSession) {

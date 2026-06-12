@@ -132,6 +132,7 @@ export function clearSocialAuthSession() {
 export function persistLinkOAuthContext(context: {
   operationId: string;
   provider: SocialProvider;
+  scene: 'bind';
 }) {
   const storage = getSessionStorage();
   if (!storage) {
@@ -143,6 +144,7 @@ export function persistLinkOAuthContext(context: {
 export function restoreLinkOAuthContext(): null | {
   operationId: string;
   provider: SocialProvider;
+  scene: 'bind';
 } {
   const storage = getSessionStorage();
   if (!storage) {
@@ -156,6 +158,7 @@ export function restoreLinkOAuthContext(): null | {
     return JSON.parse(raw) as {
       operationId: string;
       provider: SocialProvider;
+      scene: 'bind';
     };
   } catch {
     storage.removeItem(SOCIAL_LINK_OAUTH_STORAGE_KEY);
@@ -322,6 +325,7 @@ function normalizeCompleteResponse(
 export async function startSocialAuthApi(
   provider: SocialProvider,
 ): Promise<SocialAuthStartResult> {
+  clearLinkOAuthContext();
   const response = await socialAuthClient.StartSocialLogin({
     clientType: 'admin',
     provider: toOAuthProvider(provider),

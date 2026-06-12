@@ -80,6 +80,7 @@ async function handleBind(provider: SocialProvider) {
     persistLinkOAuthContext({
       operationId: result.operationId,
       provider,
+      scene: 'bind',
     });
     window.location.href = result.authorizationUrl;
   } catch (error: any) {
