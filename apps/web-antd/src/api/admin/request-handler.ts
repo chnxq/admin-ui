@@ -107,7 +107,9 @@ export async function adminRequestHandler<T = unknown>(
         ? error.response.data.reason.trim().toUpperCase()
         : '';
     if (
-      (status === 401 || reason === 'UNAUTHORIZED') &&
+      (status === 401 ||
+        reason === 'UNAUTHORIZED' ||
+        reason === 'TOKEN_EXPIRED') &&
       shouldHandleUnauthorized(path)
     ) {
       await handleUnauthorizedError(false);

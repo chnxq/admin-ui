@@ -1,6 +1,3 @@
-/**
- * 该文件可自行根据业务逻辑进行调整
- */
 import type { RequestClientOptions } from '@vben/request';
 
 import { useAppConfig } from '@vben/hooks';
@@ -88,7 +85,9 @@ function isUnauthorizedError(error: any) {
       ? responseData.reason.trim().toUpperCase()
       : '';
 
-  return status === 401 || reason === 'UNAUTHORIZED';
+  return (
+    status === 401 || reason === 'UNAUTHORIZED' || reason === 'TOKEN_EXPIRED'
+  );
 }
 
 export async function handleUnauthorizedError(redirect: boolean = true) {
@@ -109,9 +108,6 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     baseURL,
   });
 
-  /**
-   * 重新认证逻辑
-   */
   async function doReAuthenticate() {
     console.warn('Access token or refresh token is invalid or expired. ');
     const accessStore = useAccessStore();
@@ -127,9 +123,6 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     }
   }
 
-  /**
-   * 刷新token逻辑
-   */
   async function doRefreshToken() {
     const accessStore = useAccessStore();
     const resp = await refreshTokenApi();
@@ -150,7 +143,6 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     return !publicRequestPaths.has(normalizedUrl);
   }
 
-  // 请求头处理
   client.addRequestInterceptor({
     fulfilled: async (config) => {
       const accessStore = useAccessStore();
@@ -165,7 +157,6 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     },
   });
 
-  // 处理返回的响应数据格式
   client.addResponseInterceptor(
     defaultResponseInterceptor({
       codeField: 'code',
@@ -174,7 +165,6 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     }),
   );
 
-  // token过期的处理
   client.addResponseInterceptor(
     authenticateResponseInterceptor({
       client,
@@ -185,7 +175,6 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     }),
   );
 
-  // 通用的错误处理,如果没有进入上面的错误处理逻辑，就会进入这里
   client.addResponseInterceptor(
     errorMessageResponseInterceptor((msg: string, error) => {
       if (isUnauthorizedError(error)) {

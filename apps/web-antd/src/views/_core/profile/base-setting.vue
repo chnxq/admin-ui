@@ -2,8 +2,11 @@
 import type { VbenFormSchema } from '#/adapter/form';
 
 import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { ProfileBaseSetting } from '@vben/common-ui';
+import { preferences } from '@vben/preferences';
+import { useAccessStore } from '@vben/stores';
 
 import { message } from 'ant-design-vue';
 
@@ -14,6 +17,8 @@ import { useAuthStore } from '#/store';
 
 const profileBaseSettingRef = ref();
 const authStore = useAuthStore();
+const accessStore = useAccessStore();
+const router = useRouter();
 const tenantOptions = ref<{ label: string; value: number }[]>([]);
 
 const formSchema = computed((): VbenFormSchema[] => {
@@ -91,8 +96,17 @@ async function handleSubmit(values: Record<string, any>) {
       description: values.description,
     } as any,
   });
-  await authStore.fetchUserInfo();
+  const [userInfo] = await Promise.all([
+    authStore.fetchUserInfo(),
+    authStore.fetchAccessCodes(),
+  ]);
+  accessStore.setAccessMenus([]);
+  accessStore.setAccessRoutes([]);
+  accessStore.setIsAccessChecked(false);
   message.success($t('page.profile.profileUpdated'));
+  if (userInfo?.profileCompleted) {
+    await router.replace(userInfo.homePath || preferences.app.defaultHomePath);
+  }
 }
 </script>
 <template>

@@ -20,6 +20,7 @@ export const overridesPreferences = defineOverridesPreferences({
   app: {
     accessMode: 'backend',
     defaultAvatar: '/brand/avatar.svg',
+    enableRefreshToken: true,
     name: import.meta.env.VITE_APP_TITLE,
   },
   logo: {
