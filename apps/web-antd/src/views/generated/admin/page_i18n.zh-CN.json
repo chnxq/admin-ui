@@ -61,6 +61,8 @@
   "page.internalMessage.selectFilterType": "Select 类型",
   "page.internalMessage.senderName": "发送人",
   "page.internalMessage.status": "状态",
+  "page.internalMessage.targetAll": "全部用户",
+  "page.internalMessage.targetUserIds": "指定用户",
   "page.internalMessage.tenantName": "消息归属",
   "page.internalMessage.title": "标题",
   "page.internalMessage.type": "类型",

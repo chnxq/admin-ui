@@ -61,6 +61,8 @@
   "page.internalMessage.selectFilterType": "Select Type",
   "page.internalMessage.senderName": "Sender Name",
   "page.internalMessage.status": "Status",
+  "page.internalMessage.targetAll": "Target All",
+  "page.internalMessage.targetUserIds": "Target Users",
   "page.internalMessage.tenantName": "Message Ownership",
   "page.internalMessage.title": "Title",
   "page.internalMessage.type": "Type",

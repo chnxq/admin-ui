@@ -9,17 +9,7 @@ import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 
-import {
-  Button,
-  Checkbox,
-  Form,
-  Input,
-  message,
-  Modal,
-  Popconfirm,
-  Select,
-  Tag,
-} from 'ant-design-vue';
+import { Button, Form, message, Modal, Popconfirm, Tag } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
@@ -29,10 +19,12 @@ import {
   sendAdminInternalMessageApi,
 } from '#/api/admin/internal-messages';
 import { listAdminUsersApi } from '#/api/admin/users';
+import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
 import { $t } from '#/locales';
 import {
   buildListGridColumns as buildGeneratedListGridColumns,
   buildSearchFormOptions as buildGeneratedSearchFormOptions,
+  buildFormOptions as buildGeneratedSendFormOptions,
 } from '#/views/generated/admin/app/internal-message/message.meta';
 
 type AdminInternalMessage = Awaited<
@@ -90,6 +82,7 @@ const typeOptions: Array<{ label: string; value: AdminInternalMessageType }> = [
 ];
 
 const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+const generatedSendFormOptions = buildGeneratedSendFormOptions($t);
 
 const formOptions: VbenFormProps = {
   ...generatedFormOptions,
@@ -106,6 +99,83 @@ const formOptions: VbenFormProps = {
     return item;
   }),
 };
+
+const sendDialogFormSchema = computed(() =>
+  (generatedSendFormOptions.schema || []).map((item) => {
+    const fieldName = item.fieldName;
+    if (fieldName === 'title') {
+      return {
+        ...item,
+        componentProps: {
+          placeholder: $t('page.internalMessage.placeholderTitle'),
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.required', [
+              $t('page.internalMessage.title'),
+            ]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (fieldName === 'type') {
+      return {
+        ...item,
+        componentProps: {
+          options: typeOptions,
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [
+              $t('page.internalMessage.type'),
+            ]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (fieldName === 'content') {
+      return {
+        ...item,
+        componentProps: {
+          autoSize: { minRows: 4, maxRows: 8 },
+          placeholder: $t('page.internalMessage.placeholderContent'),
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.required', [
+              $t('page.internalMessage.content'),
+            ]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (fieldName === 'targetAll') {
+      return {
+        ...item,
+        component: 'Checkbox',
+      };
+    }
+    if (fieldName === 'targetUserIds') {
+      return {
+        ...item,
+        component: 'Select',
+        componentProps: {
+          disabled: sendFormModel.targetAll,
+          loading: targetUserLoading.value,
+          mode: 'multiple',
+          options: targetUserOptions.value,
+          placeholder: $t('page.internalMessage.placeholderTargetUsers'),
+          showSearch: true,
+          onSearch: handleTargetUserSearch,
+        },
+      };
+    }
+    return item;
+  }),
+);
 
 const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
@@ -472,82 +542,10 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminInternalMessage>({
       @ok="submitSend"
     >
       <Form ref="formRef" :model="sendFormModel" layout="vertical">
-        <Form.Item
-          :label="$t('page.internalMessage.title')"
-          name="title"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [
-                $t('page.internalMessage.title'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Input
-            v-model:value="sendFormModel.title"
-            :placeholder="$t('page.internalMessage.placeholderTitle')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.internalMessage.type')"
-          name="type"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.internalMessage.type'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select v-model:value="sendFormModel.type" :options="typeOptions" />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.internalMessage.content')"
-          name="content"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [
-                $t('page.internalMessage.content'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Input.TextArea
-            v-model:value="sendFormModel.content"
-            :auto-size="{ minRows: 4, maxRows: 8 }"
-            :placeholder="$t('page.internalMessage.placeholderContent')"
-          />
-        </Form.Item>
-        <Form.Item>
-          <Checkbox v-model:checked="sendFormModel.targetAll">
-            {{ $t('page.internalMessage.targetAll') }}
-          </Checkbox>
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.internalMessage.targetUserIds')"
-          name="targetUserIds"
-        >
-          <Select
-            v-model:value="sendFormModel.targetUserIds"
-            :disabled="sendFormModel.targetAll"
-            :loading="targetUserLoading"
-            mode="multiple"
-            :options="targetUserOptions"
-            :placeholder="$t('page.internalMessage.placeholderTargetUsers')"
-            show-search
-            @search="handleTargetUserSearch"
-          >
-            <template #option="{ label, meta }">
-              <div class="message-target-option">
-                <span class="message-target-option__main">{{ label }}</span>
-                <span class="message-target-option__meta">{{ meta }}</span>
-              </div>
-            </template>
-          </Select>
-        </Form.Item>
+        <AdminGeneratedForm
+          :model="sendFormModel"
+          :schema="sendDialogFormSchema"
+        />
       </Form>
     </Modal>
   </Page>
