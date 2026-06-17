@@ -22,11 +22,9 @@ import { useUserStore } from '@vben/stores';
 import {
   Button,
   Form,
-  Input,
   message,
   Modal,
   Popconfirm,
-  Select,
   Space,
   Tag,
   Tooltip,
@@ -44,7 +42,13 @@ import {
   listAdminUsersApi,
   updateAdminUserApi,
 } from '#/api/admin/users';
+import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
 import { $t } from '#/locales';
+import {
+  buildFormOptions as buildGeneratedDialogFormOptions,
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/system/user.meta';
 
 interface AdminUserFormModel extends AdminUserSaveInput {
   address: string;
@@ -194,104 +198,226 @@ const formRules = computed<Record<string, Rule[]>>(() => ({
   ],
 }));
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+const generatedDialogFormOptions = buildGeneratedDialogFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.user.searchUsername'),
-      },
-      fieldName: 'username',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.user.username'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.user.searchRealname'),
-      },
-      fieldName: 'realname',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.user.realname'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.user.searchMobile'),
-      },
-      fieldName: 'mobile',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.user.mobile'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.user.searchTelephone'),
-      },
-      fieldName: 'telephone',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.user.telephone'),
-    },
-    {
-      component: 'Select',
-      componentProps: () => ({
-        allowClear: true,
-        loading: optionLoading.value,
-        options: unref(orgSelectOptions),
-        placeholder: $t('page.user.selectOrgUnit'),
-        showSearch: true,
-      }),
-      fieldName: 'orgUnitId',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.user.orgUnits'),
-    },
-    {
-      component: 'Select',
-      componentProps: () => ({
-        allowClear: true,
-        loading: optionLoading.value,
-        options: unref(positionSelectOptions),
-        placeholder: $t('page.user.selectPosition'),
-        showSearch: true,
-      }),
-      fieldName: 'positionId',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.user.positions'),
-    },
-    {
-      component: 'Select',
-      componentProps: () => ({
-        allowClear: true,
-        loading: optionLoading.value,
-        options: unref(roleSelectOptions),
-        placeholder: $t('page.user.selectRole'),
-        showSearch: true,
-      }),
-      fieldName: 'roleId',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.user.roles'),
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: statusOptions,
-        placeholder: $t('page.user.selectStatus'),
-      },
-      fieldName: 'status',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.user.status'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => {
+    switch (item.fieldName) {
+      case 'orgUnitId': {
+        return {
+          ...item,
+          formItemClass: 'md:col-span-1',
+          componentProps: () => ({
+            allowClear: true,
+            loading: optionLoading.value,
+            options: unref(orgSelectOptions),
+            placeholder: $t('page.user.selectFilterOrgUnitId'),
+            showSearch: true,
+          }),
+        };
+      }
+      case 'positionId': {
+        return {
+          ...item,
+          formItemClass: 'md:col-span-1',
+          componentProps: () => ({
+            allowClear: true,
+            loading: optionLoading.value,
+            options: unref(positionSelectOptions),
+            placeholder: $t('page.user.selectFilterPositionId'),
+            showSearch: true,
+          }),
+        };
+      }
+      case 'roleId': {
+        return {
+          ...item,
+          formItemClass: 'md:col-span-1',
+          componentProps: () => ({
+            allowClear: true,
+            loading: optionLoading.value,
+            options: unref(roleSelectOptions),
+            placeholder: $t('page.user.selectFilterRoleId'),
+            showSearch: true,
+          }),
+        };
+      }
+      case 'status': {
+        return {
+          ...item,
+          formItemClass: 'md:col-span-1',
+          componentProps: {
+            ...item.componentProps,
+            options: statusOptions,
+          },
+        };
+      }
+      default: {
+        return {
+          ...item,
+          formItemClass: 'md:col-span-1',
+        };
+      }
+    }
+  }),
   wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5',
 };
+
+const dialogFormSchema = computed(() =>
+  (generatedDialogFormOptions.schema || []).map((item) => {
+    const fieldName = item.fieldName;
+    const placeholderMap: Record<string, string> = {
+      address: $t('page.user.placeholderAddress'),
+      avatar: $t('page.user.placeholderAvatar'),
+      description: $t('page.user.placeholderDescription'),
+      email: $t('page.user.placeholderEmail'),
+      mobile: $t('page.user.placeholderMobile'),
+      nickname: $t('page.user.placeholderNickname'),
+      realname: $t('page.user.placeholderRealname'),
+      region: $t('page.user.placeholderRegion'),
+      remark: $t('page.user.placeholderRemark'),
+      telephone: $t('page.user.placeholderTelephone'),
+      username: $t('page.user.placeholderUsername'),
+    };
+    if (fieldName === 'status') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: statusOptions,
+        },
+        rules: formRules.value.status,
+      };
+    }
+    if (fieldName === 'gender') {
+      return {
+        ...item,
+        component: 'Select',
+        componentProps: {
+          ...item.componentProps,
+          allowClear: true,
+          options: genderOptions,
+          placeholder: $t('page.user.selectGender'),
+        },
+      };
+    }
+    if (fieldName === 'password') {
+      return {
+        ...item,
+        component: 'Password',
+        formItemClass: 'admin-user-form-grid--full',
+        componentProps: {
+          ...item.componentProps,
+          autocomplete: 'new-password',
+          name: 'admin-user-password',
+          placeholder: editingId.value
+            ? $t('page.user.placeholderPasswordKeepEmpty')
+            : $t('page.user.placeholderPassword'),
+        },
+        rules: formRules.value.password,
+      };
+    }
+    if (fieldName === 'orgUnitIds') {
+      return {
+        ...item,
+        formItemClass: 'admin-user-form-grid--full',
+        component: 'Select',
+        componentProps: {
+          ...item.componentProps,
+          loading: optionLoading.value,
+          mode: 'multiple',
+          options: unref(orgSelectOptions),
+          placeholder: $t('page.user.selectOrgUnit'),
+          showSearch: true,
+        },
+      };
+    }
+    if (fieldName === 'positionIds') {
+      return {
+        ...item,
+        formItemClass: 'admin-user-form-grid--full',
+        component: 'Select',
+        componentProps: {
+          ...item.componentProps,
+          loading: optionLoading.value,
+          mode: 'multiple',
+          options: unref(positionSelectOptions),
+          placeholder: $t('page.user.selectPosition'),
+          showSearch: true,
+        },
+      };
+    }
+    if (fieldName === 'roleIds') {
+      return {
+        ...item,
+        formItemClass: 'admin-user-form-grid--full',
+        component: 'Select',
+        componentProps: {
+          ...item.componentProps,
+          loading: optionLoading.value,
+          mode: 'multiple',
+          options: unref(roleSelectOptions),
+          placeholder: $t('page.user.selectRole'),
+          showSearch: true,
+        },
+      };
+    }
+    if (
+      fieldName === 'avatar' ||
+      fieldName === 'address' ||
+      fieldName === 'region'
+    ) {
+      return {
+        ...item,
+        formItemClass: 'admin-user-form-grid--full',
+        componentProps: {
+          ...item.componentProps,
+          autocomplete: 'off',
+          name: `admin-user-${fieldName}`,
+          placeholder: placeholderMap[fieldName],
+        },
+      };
+    }
+    if (fieldName === 'description') {
+      return {
+        ...item,
+        formItemClass: 'admin-user-form-grid--full',
+        componentProps: {
+          ...item.componentProps,
+          autoSize: { minRows: 3, maxRows: 5 },
+          placeholder: $t('page.user.placeholderDescription'),
+        },
+      };
+    }
+    if (fieldName === 'remark') {
+      return {
+        ...item,
+        formItemClass: 'admin-user-form-grid--full',
+        componentProps: {
+          ...item.componentProps,
+          autoSize: { minRows: 2, maxRows: 4 },
+          placeholder: $t('page.user.placeholderRemark'),
+        },
+      };
+    }
+    return {
+      ...item,
+      componentProps: {
+        ...item.componentProps,
+        autocomplete: 'off',
+        name: fieldName ? `admin-user-${fieldName}` : undefined,
+        placeholder: fieldName ? placeholderMap[fieldName] : undefined,
+        disabled:
+          fieldName === 'username' ? Boolean(editingId.value) : undefined,
+      },
+      rules: fieldName ? formRules.value[fieldName] : item.rules,
+    };
+  }),
+);
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
 const gridOptions: VxeTableGridOptions<AdminUser> = {
   border: false,
@@ -299,71 +425,7 @@ const gridOptions: VxeTableGridOptions<AdminUser> = {
     resizable: true,
   },
   columns: [
-    {
-      field: 'username',
-      slots: { default: 'identity' },
-      sortable: true,
-      title: $t('page.user.identity'),
-      width: 220,
-    },
-    {
-      field: 'mobile',
-      sortable: true,
-      title: $t('page.user.mobile'),
-      width: 140,
-    },
-    {
-      field: 'telephone',
-      sortable: true,
-      title: $t('page.user.telephone'),
-      width: 140,
-    },
-    {
-      field: 'orgUnits',
-      slots: { default: 'orgUnits' },
-      title: $t('page.user.orgUnits'),
-      width: 220,
-    },
-    {
-      field: 'positions',
-      slots: { default: 'positions' },
-      title: $t('page.user.positions'),
-      width: 220,
-    },
-    {
-      field: 'roles',
-      slots: { default: 'roles' },
-      title: $t('page.user.roles'),
-      width: 220,
-    },
-    {
-      field: 'tenantName',
-      slots: { default: 'tenant' },
-      sortable: true,
-      title: $t('page.tenant.tenant'),
-      width: 180,
-    },
-    {
-      field: 'status',
-      slots: { default: 'status' },
-      sortable: true,
-      title: $t('page.user.status'),
-      width: 100,
-    },
-    {
-      field: 'lastLoginAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.user.lastLoginAt'),
-      width: 170,
-    },
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.user.createdAt'),
-      width: 170,
-    },
+    ...generatedColumns,
     {
       field: 'action',
       fixed: 'right',
@@ -814,199 +876,7 @@ onMounted(() => {
           type="password"
         />
         <div class="admin-user-form-grid">
-          <Form.Item :label="$t('page.user.username')" name="username">
-            <Input
-              v-model:value="formModel.username"
-              :disabled="Boolean(editingId)"
-              autocomplete="off"
-              name="admin-user-username"
-              :placeholder="$t('page.user.placeholderUsername')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.user.nickname')" name="nickname">
-            <Input
-              v-model:value="formModel.nickname"
-              :placeholder="$t('page.user.placeholderNickname')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.user.realname')" name="realname">
-            <Input
-              v-model:value="formModel.realname"
-              :placeholder="$t('page.user.placeholderRealname')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.user.status')" name="status">
-            <Select v-model:value="formModel.status" :options="statusOptions" />
-          </Form.Item>
-          <Form.Item :label="$t('page.user.gender')" name="gender">
-            <Select
-              v-model:value="formModel.gender"
-              allow-clear
-              :options="genderOptions"
-              :placeholder="$t('page.user.selectGender')"
-            />
-          </Form.Item>
-          <Form.Item
-            class="admin-user-form-grid--full"
-            :label="$t('page.user.password')"
-            name="password"
-          >
-            <Input.Password
-              v-model:value="formModel.password"
-              autocomplete="new-password"
-              name="admin-user-password"
-              :placeholder="
-                editingId
-                  ? $t('page.user.placeholderPasswordKeepEmpty')
-                  : $t('page.user.placeholderPassword')
-              "
-            />
-          </Form.Item>
-          <Form.Item
-            class="admin-user-form-grid--full"
-            :label="$t('page.user.orgUnitIds')"
-            name="orgUnitIds"
-          >
-            <Select
-              v-model:value="formModel.orgUnitIds"
-              mode="multiple"
-              :loading="optionLoading"
-              :options="orgSelectOptions"
-              :placeholder="$t('page.user.selectOrgUnit')"
-              show-search
-            >
-              <template #option="{ label, meta }">
-                <div class="user-option">
-                  <span class="user-option-main">{{ label }}</span>
-                  <span class="user-option-meta">{{ meta }}</span>
-                </div>
-              </template>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            class="admin-user-form-grid--full"
-            :label="$t('page.user.positionIds')"
-            name="positionIds"
-          >
-            <Select
-              v-model:value="formModel.positionIds"
-              mode="multiple"
-              :loading="optionLoading"
-              :options="positionSelectOptions"
-              :placeholder="$t('page.user.selectPosition')"
-              show-search
-            >
-              <template #option="{ label, meta }">
-                <div class="user-option">
-                  <span class="user-option-main">{{ label }}</span>
-                  <span class="user-option-meta">{{ meta }}</span>
-                </div>
-              </template>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            class="admin-user-form-grid--full"
-            :label="$t('page.user.roleIds')"
-            name="roleIds"
-          >
-            <Select
-              v-model:value="formModel.roleIds"
-              mode="multiple"
-              :loading="optionLoading"
-              :options="roleSelectOptions"
-              :placeholder="$t('page.user.selectRole')"
-              show-search
-            >
-              <template #option="{ label, meta }">
-                <div class="user-option">
-                  <span class="user-option-main">{{ label }}</span>
-                  <span class="user-option-meta">{{ meta }}</span>
-                </div>
-              </template>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            class="admin-user-form-grid--full"
-            :label="$t('page.user.avatar')"
-            name="avatar"
-          >
-            <Input
-              v-model:value="formModel.avatar"
-              autocomplete="off"
-              name="admin-user-avatar"
-              :placeholder="$t('page.user.placeholderAvatar')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.user.email')" name="email">
-            <Input
-              v-model:value="formModel.email"
-              autocomplete="off"
-              name="admin-user-email"
-              :placeholder="$t('page.user.placeholderEmail')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.user.mobile')" name="mobile">
-            <Input
-              v-model:value="formModel.mobile"
-              autocomplete="off"
-              name="admin-user-mobile"
-              :placeholder="$t('page.user.placeholderMobile')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.user.telephone')" name="telephone">
-            <Input
-              v-model:value="formModel.telephone"
-              autocomplete="off"
-              name="admin-user-telephone"
-              :placeholder="$t('page.user.placeholderTelephone')"
-            />
-          </Form.Item>
-          <Form.Item
-            class="admin-user-form-grid--full"
-            :label="$t('page.user.address')"
-            name="address"
-          >
-            <Input
-              v-model:value="formModel.address"
-              autocomplete="off"
-              name="admin-user-address"
-              :placeholder="$t('page.user.placeholderAddress')"
-            />
-          </Form.Item>
-          <Form.Item
-            class="admin-user-form-grid--full"
-            :label="$t('page.user.region')"
-            name="region"
-          >
-            <Input
-              v-model:value="formModel.region"
-              autocomplete="off"
-              name="admin-user-region"
-              :placeholder="$t('page.user.placeholderRegion')"
-            />
-          </Form.Item>
-          <Form.Item
-            class="admin-user-form-grid--full"
-            :label="$t('page.user.description')"
-            name="description"
-          >
-            <Input.TextArea
-              v-model:value="formModel.description"
-              :auto-size="{ minRows: 3, maxRows: 5 }"
-              :placeholder="$t('page.user.placeholderDescription')"
-            />
-          </Form.Item>
-          <Form.Item
-            class="admin-user-form-grid--full"
-            :label="$t('page.user.remark')"
-            name="remark"
-          >
-            <Input.TextArea
-              v-model:value="formModel.remark"
-              :auto-size="{ minRows: 2, maxRows: 4 }"
-              :placeholder="$t('page.user.placeholderRemark')"
-            />
-          </Form.Item>
+          <AdminGeneratedForm :model="formModel" :schema="dialogFormSchema" />
         </div>
       </Form>
     </Modal>

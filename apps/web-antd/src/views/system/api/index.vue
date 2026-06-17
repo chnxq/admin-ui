@@ -14,16 +14,7 @@ import { computed, nextTick, reactive, ref } from 'vue';
 import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 
-import {
-  Button,
-  Form,
-  Input,
-  message,
-  Modal,
-  Popconfirm,
-  Select,
-  Tag,
-} from 'ant-design-vue';
+import { Button, Form, message, Modal, Popconfirm, Tag } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
@@ -34,7 +25,13 @@ import {
   syncAdminApisApi,
   updateAdminApiApi,
 } from '#/api/admin/apis';
+import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
 import { $t } from '#/locales';
+import {
+  buildFormOptions as buildGeneratedDialogFormOptions,
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/system/api.meta';
 
 interface AdminApiFormModel extends AdminApiSaveInput {
   method: string;
@@ -100,41 +97,108 @@ const modalTitle = computed(() =>
   editingId.value ? $t('page.api.editTitle') : $t('page.api.createTitle'),
 );
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+const generatedDialogFormOptions = buildGeneratedDialogFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: methodOptions,
-        placeholder: $t('page.api.selectMethod'),
-      },
-      fieldName: 'method',
-      label: $t('page.api.method'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.api.searchModule'),
-      },
-      fieldName: 'module',
-      label: $t('page.api.module'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.api.searchPath'),
-      },
-      fieldName: 'path',
-      label: $t('page.api.path'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => {
+    if (item.fieldName === 'method') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: methodOptions,
+        },
+      };
+    }
+    return item;
+  }),
 };
+
+const dialogFormSchema = computed(() =>
+  (generatedDialogFormOptions.schema || []).map((item: any) => {
+    const fieldName = item.fieldName;
+    if (fieldName === 'path') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          placeholder: $t('page.api.placeholderPath'),
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.required', [$t('page.api.path')]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (fieldName === 'method') {
+      return {
+        ...item,
+        component: 'Select',
+        componentProps: {
+          ...item.componentProps,
+          options: methodOptions,
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [$t('page.api.method')]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (fieldName === 'scope') {
+      return {
+        ...item,
+        component: 'Select',
+        componentProps: {
+          ...item.componentProps,
+          options: scopeOptions,
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [$t('page.api.scope')]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (fieldName === 'status') {
+      return {
+        ...item,
+        component: 'Select',
+        componentProps: {
+          ...item.componentProps,
+          options: statusOptions,
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [$t('page.api.status')]),
+            required: true,
+          },
+        ],
+      };
+    }
+    const placeholderMap: Record<string, string> = {
+      description: $t('page.api.placeholderDescription'),
+      module: $t('page.api.placeholderModule'),
+      moduleDescription: $t('page.api.placeholderModuleDescription'),
+      operation: $t('page.api.placeholderOperation'),
+    };
+    return {
+      ...item,
+      componentProps: {
+        ...item.componentProps,
+        placeholder: fieldName ? placeholderMap[fieldName] : undefined,
+      },
+    };
+  }),
+);
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
 const gridOptions: VxeTableGridOptions<AdminApi> = {
   border: false,
@@ -142,63 +206,7 @@ const gridOptions: VxeTableGridOptions<AdminApi> = {
     resizable: true,
   },
   columns: [
-    {
-      field: 'description',
-      sortable: true,
-      title: $t('page.api.description'),
-      width: 220,
-    },
-    {
-      field: 'path',
-      sortable: true,
-      title: $t('page.api.path'),
-      width: 260,
-    },
-    {
-      field: 'method',
-      slots: { default: 'method' },
-      sortable: true,
-      title: $t('page.api.method'),
-      width: 100,
-    },
-    {
-      field: 'module',
-      sortable: true,
-      title: $t('page.api.module'),
-      width: 150,
-    },
-    {
-      field: 'moduleDescription',
-      title: $t('page.api.moduleDescription'),
-      width: 180,
-    },
-    {
-      field: 'operation',
-      sortable: true,
-      title: $t('page.api.operation'),
-      width: 220,
-    },
-    {
-      field: 'scope',
-      slots: { default: 'scope' },
-      sortable: true,
-      title: $t('page.api.scope'),
-      width: 120,
-    },
-    {
-      field: 'status',
-      slots: { default: 'status' },
-      sortable: true,
-      title: $t('page.api.status'),
-      width: 100,
-    },
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.api.createdAt'),
-      width: 170,
-    },
+    ...generatedColumns,
     {
       field: 'action',
       fixed: 'right',
@@ -479,90 +487,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminApi>({
       @ok="submitApi"
     >
       <Form ref="formRef" :model="formModel" layout="vertical">
-        <Form.Item
-          :label="$t('page.api.path')"
-          name="path"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [$t('page.api.path')]),
-              required: true,
-            },
-          ]"
-        >
-          <Input
-            v-model:value="formModel.path"
-            :placeholder="$t('page.api.placeholderPath')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.api.method')"
-          name="method"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.api.method'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select v-model:value="formModel.method" :options="methodOptions" />
-        </Form.Item>
-        <Form.Item :label="$t('page.api.description')" name="description">
-          <Input
-            v-model:value="formModel.description"
-            :placeholder="$t('page.api.placeholderDescription')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.api.module')" name="module">
-          <Input
-            v-model:value="formModel.module"
-            :placeholder="$t('page.api.placeholderModule')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.api.moduleDescription')"
-          name="moduleDescription"
-        >
-          <Input
-            v-model:value="formModel.moduleDescription"
-            :placeholder="$t('page.api.placeholderModuleDescription')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.api.operation')" name="operation">
-          <Input
-            v-model:value="formModel.operation"
-            :placeholder="$t('page.api.placeholderOperation')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.api.scope')"
-          name="scope"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.api.scope'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select v-model:value="formModel.scope" :options="scopeOptions" />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.api.status')"
-          name="status"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.api.status'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select v-model:value="formModel.status" :options="statusOptions" />
-        </Form.Item>
+        <AdminGeneratedForm :model="formModel" :schema="dialogFormSchema" />
       </Form>
     </Modal>
   </Page>

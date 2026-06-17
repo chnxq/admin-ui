@@ -13,7 +13,10 @@ import dayjs from 'dayjs';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminApiAuditLogsApi } from '#/api/admin/api-audit-logs';
 import { $t } from '#/locales';
-import { buildSearchFormOptions as buildGeneratedSearchFormOptions } from '#/views/generated/admin/app/log/api-audit-log.meta';
+import {
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/app/log/api-audit-log.meta';
 
 const API_AUDIT_ACCESS = {
   export: ['api:audit:logs:export'],
@@ -59,72 +62,14 @@ const formOptions: VbenFormProps = {
   }),
 };
 
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
+
 const gridOptions: VxeTableGridOptions<AdminApiAuditLog> = {
   border: false,
   columnConfig: {
     resizable: true,
   },
-  columns: [
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.apiAuditLog.createdAt'),
-      width: 150,
-    },
-    {
-      field: 'successSummary',
-      slots: { default: 'successSummary' },
-      title: $t('page.apiAuditLog.statusCode'),
-      width: 120,
-    },
-    {
-      field: 'username',
-      sortable: true,
-      title: $t('page.apiAuditLog.username'),
-      width: 140,
-    },
-    {
-      field: 'httpMethod',
-      slots: { default: 'httpMethod' },
-      title: $t('page.apiAuditLog.httpMethod'),
-      width: 100,
-    },
-    {
-      field: 'path',
-      sortable: true,
-      title: $t('page.apiAuditLog.path'),
-      width: 260,
-    },
-    {
-      field: 'latencyMs',
-      slots: { default: 'latencyMs' },
-      title: $t('page.apiAuditLog.latencyMs'),
-      width: 120,
-    },
-    {
-      field: 'platformSummary',
-      slots: { default: 'platformSummary' },
-      title: $t('page.apiAuditLog.platform'),
-      width: 170,
-    },
-    {
-      field: 'geoLocationSummary',
-      slots: { default: 'geoLocationSummary' },
-      title: $t('page.apiAuditLog.geoLocation'),
-      width: 220,
-    },
-    {
-      field: 'ipAddress',
-      title: $t('page.apiAuditLog.ipAddress'),
-      width: 140,
-    },
-    {
-      field: 'apiOperation',
-      title: $t('page.apiAuditLog.apiOperation'),
-      width: 180,
-    },
-  ],
+  columns: generatedColumns,
   exportConfig: {
     filename: 'api-audit-logs',
     type: 'csv',

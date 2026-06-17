@@ -30,6 +30,10 @@ import {
 } from '#/api/admin/internal-messages';
 import { listAdminUsersApi } from '#/api/admin/users';
 import { $t } from '#/locales';
+import {
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/app/internal-message/message.meta';
 
 type AdminInternalMessage = Awaited<
   ReturnType<typeof listAdminInternalMessagesApi>
@@ -85,32 +89,25 @@ const typeOptions: Array<{ label: string; value: AdminInternalMessageType }> = [
   { label: $t('page.internalMessage.typeGroup'), value: 'GROUP' },
 ];
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.internalMessage.searchTitle'),
-      },
-      fieldName: 'title',
-      label: $t('page.internalMessage.title'),
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: typeOptions,
-        placeholder: $t('page.internalMessage.selectType'),
-      },
-      fieldName: 'type',
-      label: $t('page.internalMessage.type'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => {
+    if (item.fieldName === 'type') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: typeOptions,
+        },
+      };
+    }
+    return item;
+  }),
 };
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
 const gridOptions: VxeTableGridOptions<AdminInternalMessage> = {
   border: false,
@@ -118,51 +115,7 @@ const gridOptions: VxeTableGridOptions<AdminInternalMessage> = {
     resizable: true,
   },
   columns: [
-    {
-      field: 'title',
-      sortable: true,
-      title: $t('page.internalMessage.title'),
-      width: 220,
-    },
-    {
-      field: 'content',
-      slots: { default: 'content' },
-      sortable: true,
-      title: $t('page.internalMessage.content'),
-      width: 360,
-    },
-    {
-      field: 'type',
-      slots: { default: 'type' },
-      sortable: true,
-      title: $t('page.internalMessage.type'),
-      width: 120,
-    },
-    {
-      field: 'status',
-      slots: { default: 'status' },
-      sortable: true,
-      title: $t('page.internalMessage.status'),
-      width: 120,
-    },
-    {
-      field: 'senderName',
-      title: $t('page.internalMessage.senderName'),
-      width: 150,
-    },
-    {
-      field: 'tenantName',
-      slots: { default: 'tenant' },
-      title: $t('page.tenant.messageOwnership'),
-      width: 160,
-    },
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.internalMessage.createdAt'),
-      width: 170,
-    },
+    ...generatedColumns,
     {
       field: 'action',
       fixed: 'right',

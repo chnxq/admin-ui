@@ -42,6 +42,10 @@ import {
   syncAdminMenusApi,
   updateAdminMenuApi,
 } from '#/api/admin/menus';
+import {
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/system/menu.meta';
 
 interface AdminMenuFormModel extends Omit<
   AdminMenuSaveInput,
@@ -175,34 +179,18 @@ const componentAutoCompleteOptions = computed(() =>
   })),
 );
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.menu.placeholderSearchName'),
-      },
-      fieldName: 'name',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.menu.name'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.menu.placeholderSearchPath'),
-      },
-      fieldName: 'path',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.menu.path'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => ({
+    ...item,
+    formItemClass: 'md:col-span-1',
+  })),
   wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
 };
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
 const gridOptions: VxeTableGridOptions<AdminMenu> = {
   border: false,
@@ -210,52 +198,7 @@ const gridOptions: VxeTableGridOptions<AdminMenu> = {
     resizable: true,
   },
   columns: [
-    {
-      field: 'name',
-      treeNode: true,
-      slots: { default: 'menu' },
-      sortable: true,
-      title: $t('page.menu.menu'),
-      width: 260,
-    },
-    {
-      field: 'path',
-      sortable: true,
-      title: $t('page.menu.path'),
-      width: 180,
-    },
-    {
-      field: 'component',
-      title: $t('page.menu.component'),
-      width: 240,
-    },
-    {
-      field: 'type',
-      slots: { default: 'type' },
-      sortable: true,
-      title: $t('page.menu.type'),
-      width: 100,
-    },
-    {
-      field: 'scope',
-      slots: { default: 'scope' },
-      title: $t('page.tenant.resourceOwnership'),
-      width: 120,
-    },
-    {
-      field: 'status',
-      slots: { default: 'status' },
-      sortable: true,
-      title: $t('page.menu.status'),
-      width: 100,
-    },
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.menu.createdAt'),
-      width: 170,
-    },
+    ...generatedColumns,
     {
       field: 'action',
       fixed: 'right',

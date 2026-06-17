@@ -18,16 +18,12 @@ import { useUserStore } from '@vben/stores';
 import {
   Button,
   Form,
-  Input,
-  InputNumber,
   message,
   Modal,
   Popconfirm,
-  Select,
   Space,
   Tag,
   Tooltip,
-  TreeSelect,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
@@ -38,7 +34,13 @@ import {
   listAdminOrgUnitsApi,
   updateAdminOrgUnitApi,
 } from '#/api/admin/org-units';
+import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
 import { $t } from '#/locales';
+import {
+  buildFormOptions as buildGeneratedDialogFormOptions,
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/system/org-unit.meta';
 
 interface AdminOrgUnitFormModel extends AdminOrgUnitSaveInput {
   code: string;
@@ -137,34 +139,110 @@ const parentOptions = computed<OrgUnitTreeOption[]>(() =>
   buildParentTreeOptions(orgUnitTree.value, editingId.value),
 );
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+const generatedDialogFormOptions = buildGeneratedDialogFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.orgUnit.searchName'),
-      },
-      fieldName: 'name',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.orgUnit.name'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.orgUnit.searchCode'),
-      },
-      fieldName: 'code',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.orgUnit.code'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => ({
+    ...item,
+    formItemClass: 'md:col-span-1',
+  })),
   wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
 };
+
+const dialogFormSchema = computed(() =>
+  (generatedDialogFormOptions.schema || []).map((item) => {
+    const fieldName = item.fieldName;
+    const placeholderMap: Record<string, string> = {
+      address: $t('page.orgUnit.placeholderAddress'),
+      code: $t('page.orgUnit.placeholderCode'),
+      description: $t('page.orgUnit.placeholderDescription'),
+      email: $t('page.orgUnit.placeholderEmail'),
+      name: $t('page.orgUnit.placeholderName'),
+      phone: $t('page.orgUnit.placeholderPhone'),
+      remark: $t('page.orgUnit.placeholderRemark'),
+    };
+    if (fieldName === 'parentId') {
+      return {
+        ...item,
+        component: 'TreeSelect',
+        componentProps: {
+          ...item.componentProps,
+          allowClear: true,
+          placeholder: $t('page.orgUnit.placeholderParent'),
+          showSearch: true,
+          treeData: parentOptions.value,
+          treeDefaultExpandAll: true,
+          treeNodeFilterProp: 'label',
+        },
+      };
+    }
+    if (fieldName === 'type') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: typeOptions,
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [
+              $t('page.orgUnit.type'),
+            ]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (fieldName === 'status') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: statusOptions,
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [
+              $t('page.orgUnit.status'),
+            ]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (fieldName === 'sortOrder') {
+      return {
+        ...item,
+        component: 'InputNumber',
+        componentProps: {
+          ...item.componentProps,
+          class: 'full-input',
+        },
+      };
+    }
+    const requiredFields = new Set(['code', 'name']);
+    return {
+      ...item,
+      componentProps: {
+        ...item.componentProps,
+        placeholder: fieldName ? placeholderMap[fieldName] : undefined,
+      },
+      rules:
+        fieldName && requiredFields.has(fieldName)
+          ? [
+              {
+                message: $t('ui.formRules.required', [item.label || '']),
+                required: true,
+              },
+            ]
+          : item.rules,
+    };
+  }),
+);
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
 const gridOptions: VxeTableGridOptions<AdminOrgUnit> = {
   border: false,
@@ -172,59 +250,7 @@ const gridOptions: VxeTableGridOptions<AdminOrgUnit> = {
     resizable: true,
   },
   columns: [
-    {
-      field: 'name',
-      treeNode: true,
-      slots: { default: 'orgUnit' },
-      sortable: true,
-      title: $t('page.orgUnit.orgUnit'),
-      width: 280,
-    },
-    {
-      field: 'code',
-      sortable: true,
-      title: $t('page.orgUnit.code'),
-      width: 160,
-    },
-    {
-      field: 'type',
-      slots: { default: 'type' },
-      sortable: true,
-      title: $t('page.orgUnit.type'),
-      width: 120,
-    },
-    {
-      field: 'sortOrder',
-      sortable: true,
-      title: $t('page.orgUnit.sortOrder'),
-      width: 90,
-    },
-    {
-      field: 'tenantName',
-      slots: { default: 'tenant' },
-      sortable: true,
-      title: $t('page.tenant.resourceOwnership'),
-      width: 180,
-    },
-    {
-      field: 'status',
-      slots: { default: 'status' },
-      sortable: true,
-      title: $t('page.orgUnit.status'),
-      width: 100,
-    },
-    {
-      field: 'leaderName',
-      title: $t('page.orgUnit.leaderName'),
-      width: 140,
-    },
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.orgUnit.createdAt'),
-      width: 170,
-    },
+    ...generatedColumns,
     {
       field: 'action',
       fixed: 'right',
@@ -509,129 +535,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminOrgUnit>({
         :model="formModel"
         autocomplete="off"
       >
-        <Form.Item
-          :label="$t('page.orgUnit.name')"
-          name="name"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [$t('page.orgUnit.name')]),
-              required: true,
-            },
-          ]"
-        >
-          <Input
-            v-model:value="formModel.name"
-            autocomplete="off"
-            name="admin-org-unit-name"
-            :placeholder="$t('page.orgUnit.placeholderName')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.orgUnit.code')"
-          name="code"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [$t('page.orgUnit.code')]),
-              required: true,
-            },
-          ]"
-        >
-          <Input
-            v-model:value="formModel.code"
-            autocomplete="off"
-            name="admin-org-unit-code"
-            :placeholder="$t('page.orgUnit.placeholderCode')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.orgUnit.parentId')" name="parentId">
-          <TreeSelect
-            v-model:value="formModel.parentId"
-            allow-clear
-            :placeholder="$t('page.orgUnit.placeholderParent')"
-            show-search
-            :tree-data="parentOptions"
-            tree-default-expand-all
-            tree-node-filter-prop="label"
-          >
-            <template #title="{ label, subtitle }">
-              <div class="org-unit-parent-option">
-                <span class="org-unit-parent-option__main">{{ label }}</span>
-                <span v-if="subtitle" class="org-unit-parent-option__meta">
-                  {{ subtitle }}
-                </span>
-              </div>
-            </template>
-          </TreeSelect>
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.orgUnit.type')"
-          name="type"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.orgUnit.type'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select v-model:value="formModel.type" :options="typeOptions" />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.orgUnit.status')"
-          name="status"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.orgUnit.status'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select v-model:value="formModel.status" :options="statusOptions" />
-        </Form.Item>
-        <Form.Item :label="$t('page.orgUnit.sortOrder')" name="sortOrder">
-          <InputNumber v-model:value="formModel.sortOrder" class="full-input" />
-        </Form.Item>
-        <Form.Item :label="$t('page.orgUnit.phone')" name="phone">
-          <Input
-            v-model:value="formModel.phone"
-            autocomplete="off"
-            name="admin-org-unit-phone"
-            :placeholder="$t('page.orgUnit.placeholderPhone')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.orgUnit.email')" name="email">
-          <Input
-            v-model:value="formModel.email"
-            autocomplete="off"
-            name="admin-org-unit-email"
-            :placeholder="$t('page.orgUnit.placeholderEmail')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.orgUnit.address')" name="address">
-          <Input
-            v-model:value="formModel.address"
-            autocomplete="off"
-            name="admin-org-unit-address"
-            :placeholder="$t('page.orgUnit.placeholderAddress')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.orgUnit.description')" name="description">
-          <Input.TextArea
-            v-model:value="formModel.description"
-            :rows="3"
-            :placeholder="$t('page.orgUnit.placeholderDescription')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.orgUnit.remark')" name="remark">
-          <Input.TextArea
-            v-model:value="formModel.remark"
-            :rows="2"
-            :placeholder="$t('page.orgUnit.placeholderRemark')"
-          />
-        </Form.Item>
+        <AdminGeneratedForm :model="formModel" :schema="dialogFormSchema" />
       </Form>
     </Modal>
   </Page>

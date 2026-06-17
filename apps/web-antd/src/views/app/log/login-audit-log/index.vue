@@ -19,7 +19,10 @@ import dayjs from 'dayjs';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminLoginAuditLogsApi } from '#/api/admin/login-audit-logs';
 import { $t } from '#/locales';
-import { buildSearchFormOptions as buildGeneratedSearchFormOptions } from '#/views/generated/admin/app/log/login-audit-log.meta';
+import {
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/app/log/login-audit-log.meta';
 
 const LOGIN_AUDIT_ACCESS = {
   export: ['login:audit:logs:export'],
@@ -101,73 +104,14 @@ const formOptions: VbenFormProps = {
   }),
 };
 
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
+
 const gridOptions: VxeTableGridOptions<AdminLoginAuditLog> = {
   border: false,
   columnConfig: {
     resizable: true,
   },
-  columns: [
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.loginAuditLog.createdAt'),
-      width: 150,
-    },
-    {
-      field: 'status',
-      slots: { default: 'status' },
-      title: $t('page.loginAuditLog.status'),
-      width: 110,
-    },
-    {
-      field: 'username',
-      sortable: true,
-      title: $t('page.loginAuditLog.username'),
-      width: 140,
-    },
-    {
-      field: 'actionType',
-      slots: { default: 'actionType' },
-      title: $t('page.loginAuditLog.actionType'),
-      width: 130,
-    },
-    {
-      field: 'riskLevel',
-      slots: { default: 'riskLevel' },
-      title: $t('page.loginAuditLog.riskLevel'),
-      width: 120,
-    },
-    {
-      field: 'platformSummary',
-      slots: { default: 'platformSummary' },
-      title: $t('page.loginAuditLog.platform'),
-      width: 170,
-    },
-    {
-      field: 'geoLocationSummary',
-      slots: { default: 'geoLocationSummary' },
-      title: $t('page.loginAuditLog.geoLocation'),
-      width: 240,
-    },
-    {
-      field: 'ipAddress',
-      title: $t('page.loginAuditLog.ipAddress'),
-      width: 140,
-    },
-    {
-      field: 'loginMethod',
-      slots: { default: 'loginMethod' },
-      title: $t('page.loginAuditLog.loginMethod'),
-      width: 130,
-    },
-    {
-      field: 'deviceInfo.userAgent',
-      slots: { default: 'userAgent' },
-      title: 'User-Agent',
-      width: 280,
-    },
-  ],
+  columns: generatedColumns,
   exportConfig: {
     filename: 'login-audit-logs',
     type: 'csv',

@@ -17,14 +17,10 @@ import { useUserStore } from '@vben/stores';
 
 import {
   Button,
-  Checkbox,
   Form,
-  Input,
-  InputNumber,
   message,
   Modal,
   Popconfirm,
-  Select,
   Space,
   Tag,
   Tooltip,
@@ -38,7 +34,13 @@ import {
   listAdminPositionsApi,
   updateAdminPositionApi,
 } from '#/api/admin/positions';
+import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
 import { $t } from '#/locales';
+import {
+  buildFormOptions as buildGeneratedDialogFormOptions,
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/system/position.meta';
 
 interface AdminPositionFormModel extends AdminPositionSaveInput {
   code: string;
@@ -122,34 +124,104 @@ const modalTitle = computed(() =>
     : $t('page.position.createTitle'),
 );
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+const generatedDialogFormOptions = buildGeneratedDialogFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.position.searchName'),
-      },
-      fieldName: 'name',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.position.name'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.position.searchCode'),
-      },
-      fieldName: 'code',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.position.code'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => ({
+    ...item,
+    formItemClass: 'md:col-span-1',
+  })),
   wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
 };
+
+const dialogFormSchema = computed(() =>
+  (generatedDialogFormOptions.schema || []).map((item) => {
+    const fieldName = item.fieldName;
+    const placeholderMap: Record<string, string> = {
+      code: $t('page.position.placeholderCode'),
+      description: $t('page.position.placeholderDescription'),
+      jobFamily: $t('page.position.placeholderJobFamily'),
+      jobGrade: $t('page.position.placeholderJobGrade'),
+      name: $t('page.position.placeholderName'),
+      remark: $t('page.position.placeholderRemark'),
+    };
+    if (fieldName === 'type') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: typeOptions,
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [
+              $t('page.position.type'),
+            ]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (fieldName === 'status') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: statusOptions,
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [
+              $t('page.position.status'),
+            ]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (
+      fieldName === 'sortOrder' ||
+      fieldName === 'level' ||
+      fieldName === 'headcount'
+    ) {
+      return {
+        ...item,
+        component: 'InputNumber',
+        componentProps: {
+          ...item.componentProps,
+          class: 'full-input',
+        },
+      };
+    }
+    if (fieldName === 'isKeyPosition') {
+      return {
+        ...item,
+        component: 'Checkbox',
+      };
+    }
+    const requiredFields = new Set(['code', 'name']);
+    return {
+      ...item,
+      componentProps: {
+        ...item.componentProps,
+        placeholder: fieldName ? placeholderMap[fieldName] : undefined,
+      },
+      rules:
+        fieldName && requiredFields.has(fieldName)
+          ? [
+              {
+                message: $t('ui.formRules.required', [item.label || '']),
+                required: true,
+              },
+            ]
+          : item.rules,
+    };
+  }),
+);
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
 const gridOptions: VxeTableGridOptions<AdminPosition> = {
   border: false,
@@ -157,59 +229,7 @@ const gridOptions: VxeTableGridOptions<AdminPosition> = {
     resizable: true,
   },
   columns: [
-    {
-      field: 'name',
-      slots: { default: 'position' },
-      sortable: true,
-      title: $t('page.position.position'),
-      width: 260,
-    },
-    {
-      field: 'orgUnitName',
-      sortable: true,
-      title: $t('page.position.orgUnitName'),
-      width: 180,
-    },
-    {
-      field: 'tenantName',
-      slots: { default: 'tenant' },
-      sortable: true,
-      title: $t('page.tenant.resourceOwnership'),
-      width: 180,
-    },
-    {
-      field: 'type',
-      slots: { default: 'type' },
-      sortable: true,
-      title: $t('page.position.type'),
-      width: 120,
-    },
-    {
-      field: 'level',
-      sortable: true,
-      title: $t('page.position.level'),
-      width: 90,
-    },
-    {
-      field: 'headcount',
-      sortable: true,
-      title: $t('page.position.headcount'),
-      width: 90,
-    },
-    {
-      field: 'status',
-      slots: { default: 'status' },
-      sortable: true,
-      title: $t('page.position.status'),
-      width: 100,
-    },
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.position.createdAt'),
-      width: 170,
-    },
+    ...generatedColumns,
     {
       field: 'action',
       fixed: 'right',
@@ -486,105 +506,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminPosition>({
       @ok="handleSubmit"
     >
       <Form ref="formRef" :model="formModel" :label-col="{ span: 5 }">
-        <Form.Item
-          :label="$t('page.position.name')"
-          name="name"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [$t('page.position.name')]),
-              required: true,
-            },
-          ]"
-        >
-          <Input
-            v-model:value="formModel.name"
-            :placeholder="$t('page.position.placeholderName')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.position.code')"
-          name="code"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [$t('page.position.code')]),
-              required: true,
-            },
-          ]"
-        >
-          <Input
-            v-model:value="formModel.code"
-            :placeholder="$t('page.position.placeholderCode')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.position.type')"
-          name="type"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.position.type'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select v-model:value="formModel.type" :options="typeOptions" />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.position.status')"
-          name="status"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.position.status'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select v-model:value="formModel.status" :options="statusOptions" />
-        </Form.Item>
-        <Form.Item :label="$t('page.position.sortOrder')" name="sortOrder">
-          <InputNumber v-model:value="formModel.sortOrder" class="full-input" />
-        </Form.Item>
-        <Form.Item :label="$t('page.position.level')" name="level">
-          <InputNumber v-model:value="formModel.level" class="full-input" />
-        </Form.Item>
-        <Form.Item :label="$t('page.position.headcount')" name="headcount">
-          <InputNumber v-model:value="formModel.headcount" class="full-input" />
-        </Form.Item>
-        <Form.Item :label="$t('page.position.jobFamily')" name="jobFamily">
-          <Input
-            v-model:value="formModel.jobFamily"
-            :placeholder="$t('page.position.placeholderJobFamily')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.position.jobGrade')" name="jobGrade">
-          <Input
-            v-model:value="formModel.jobGrade"
-            :placeholder="$t('page.position.placeholderJobGrade')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.position.isKeyPosition')"
-          name="isKeyPosition"
-        >
-          <Checkbox v-model:checked="formModel.isKeyPosition" />
-        </Form.Item>
-        <Form.Item :label="$t('page.position.description')" name="description">
-          <Input.TextArea
-            v-model:value="formModel.description"
-            :rows="3"
-            :placeholder="$t('page.position.placeholderDescription')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.position.remark')" name="remark">
-          <Input.TextArea
-            v-model:value="formModel.remark"
-            :rows="2"
-            :placeholder="$t('page.position.placeholderRemark')"
-          />
-        </Form.Item>
+        <AdminGeneratedForm :model="formModel" :schema="dialogFormSchema" />
       </Form>
     </Modal>
   </Page>

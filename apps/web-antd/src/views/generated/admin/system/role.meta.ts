@@ -6,7 +6,7 @@ import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 
-export const i18nPrefix = 'page.tenant';
+export const i18nPrefix = 'page.role';
 export const defaultSortField = 'created_at';
 export const defaultSortDirection = 'DESC';
 
@@ -19,19 +19,19 @@ export function buildSearchFormOptions(
       {
         component: 'Input',
         fieldName: 'code',
-        label: t('page.tenant.filterCode'),
+        label: t('page.role.filterCode'),
         componentProps: {
           allowClear: true,
-          placeholder: t('page.tenant.searchFilterCode'),
+          placeholder: t('page.role.searchFilterCode'),
         },
       },
       {
         component: 'Input',
         fieldName: 'name',
-        label: t('page.tenant.filterName'),
+        label: t('page.role.filterName'),
         componentProps: {
           allowClear: true,
-          placeholder: t('page.tenant.searchFilterName'),
+          placeholder: t('page.role.searchFilterName'),
         },
       },
     ],
@@ -46,47 +46,47 @@ export function buildListGridColumns(
   return [
     {
       field: 'name',
-      title: t('page.tenant.tenant'),
-      slots: { default: 'tenant' },
+      title: t('page.role.role'),
+      slots: { default: 'role' },
       sortable: true,
-      width: 220,
-    },
-    {
-      field: 'domain',
-      title: t('page.tenant.domain'),
-      sortable: true,
-      width: 220,
+      width: 260,
     },
     {
       field: 'type',
-      title: t('page.tenant.type'),
+      title: t('page.role.type'),
       slots: { default: 'type' },
       sortable: true,
       width: 120,
     },
     {
+      field: 'scope',
+      title: t('page.tenant.resourceOwnership'),
+      slots: { default: 'scope' },
+      sortable: true,
+      width: 180,
+    },
+    {
+      field: 'sortOrder',
+      title: t('ui.table.sortOrder'),
+      sortable: true,
+      width: 90,
+    },
+    {
       field: 'status',
-      title: t('page.tenant.status'),
+      title: t('page.role.status'),
       slots: { default: 'status' },
       sortable: true,
       width: 100,
     },
     {
-      field: 'auditStatus',
-      title: t('page.tenant.auditStatus'),
-      slots: { default: 'auditStatus' },
-      sortable: true,
-      width: 120,
-    },
-    {
       field: 'memberCount',
-      title: t('page.tenant.memberCount'),
+      title: t('page.role.memberCount'),
       sortable: true,
       width: 100,
     },
     {
       field: 'createdAt',
-      title: t('page.tenant.createdAt'),
+      title: t('page.role.createdAt'),
       formatter: 'formatDateTime',
       sortable: true,
       width: 170,
@@ -103,52 +103,32 @@ export function buildFormOptions(
       {
         component: 'Input',
         fieldName: 'name',
-        label: t('page.tenant.name'),
+        label: t('page.role.name'),
       },
       {
         component: 'Input',
         fieldName: 'code',
-        label: t('page.tenant.code'),
-      },
-      {
-        component: 'Input',
-        fieldName: 'domain',
-        label: t('page.tenant.domain'),
-      },
-      {
-        component: 'Input',
-        fieldName: 'logoUrl',
-        label: t('page.tenant.logoUrl'),
-      },
-      {
-        component: 'Input',
-        fieldName: 'industry',
-        label: t('page.tenant.industry'),
+        label: t('page.role.code'),
       },
       {
         component: 'Select',
         fieldName: 'type',
-        label: t('page.tenant.type'),
+        label: t('page.role.type'),
       },
       {
         component: 'Select',
         fieldName: 'status',
-        label: t('page.tenant.status'),
-      },
-      {
-        component: 'Select',
-        fieldName: 'auditStatus',
-        label: t('page.tenant.auditStatus'),
+        label: t('page.role.status'),
       },
       {
         component: 'Input',
-        fieldName: 'subscriptionPlan',
-        label: t('page.tenant.subscriptionPlan'),
+        fieldName: 'sortOrder',
+        label: t('page.role.sortOrder'),
       },
       {
         component: 'Textarea',
-        fieldName: 'remark',
-        label: t('page.tenant.remark'),
+        fieldName: 'description',
+        label: t('page.role.description'),
       },
     ],
     showCollapseButton: false,

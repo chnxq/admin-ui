@@ -6,7 +6,7 @@ import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 
-export const i18nPrefix = 'page.tenant';
+export const i18nPrefix = 'page.orgUnit';
 export const defaultSortField = 'created_at';
 export const defaultSortDirection = 'DESC';
 
@@ -19,19 +19,19 @@ export function buildSearchFormOptions(
       {
         component: 'Input',
         fieldName: 'code',
-        label: t('page.tenant.filterCode'),
+        label: t('page.orgUnit.filterCode'),
         componentProps: {
           allowClear: true,
-          placeholder: t('page.tenant.searchFilterCode'),
+          placeholder: t('page.orgUnit.searchFilterCode'),
         },
       },
       {
         component: 'Input',
         fieldName: 'name',
-        label: t('page.tenant.filterName'),
+        label: t('page.orgUnit.filterName'),
         componentProps: {
           allowClear: true,
-          placeholder: t('page.tenant.searchFilterName'),
+          placeholder: t('page.orgUnit.searchFilterName'),
         },
       },
     ],
@@ -46,47 +46,54 @@ export function buildListGridColumns(
   return [
     {
       field: 'name',
-      title: t('page.tenant.tenant'),
-      slots: { default: 'tenant' },
+      title: t('page.orgUnit.orgUnit'),
+      treeNode: true,
+      slots: { default: 'orgUnit' },
       sortable: true,
-      width: 220,
+      width: 280,
     },
     {
-      field: 'domain',
-      title: t('page.tenant.domain'),
+      field: 'code',
+      title: t('page.orgUnit.code'),
       sortable: true,
-      width: 220,
+      width: 160,
     },
     {
       field: 'type',
-      title: t('page.tenant.type'),
+      title: t('page.orgUnit.type'),
       slots: { default: 'type' },
       sortable: true,
       width: 120,
     },
     {
+      field: 'sortOrder',
+      title: t('page.orgUnit.sortOrder'),
+      sortable: true,
+      width: 90,
+    },
+    {
+      field: 'tenantName',
+      title: t('page.tenant.resourceOwnership'),
+      slots: { default: 'tenant' },
+      sortable: true,
+      width: 180,
+    },
+    {
       field: 'status',
-      title: t('page.tenant.status'),
+      title: t('page.orgUnit.status'),
       slots: { default: 'status' },
       sortable: true,
       width: 100,
     },
     {
-      field: 'auditStatus',
-      title: t('page.tenant.auditStatus'),
-      slots: { default: 'auditStatus' },
+      field: 'leaderName',
+      title: t('page.orgUnit.leaderName'),
       sortable: true,
-      width: 120,
-    },
-    {
-      field: 'memberCount',
-      title: t('page.tenant.memberCount'),
-      sortable: true,
-      width: 100,
+      width: 140,
     },
     {
       field: 'createdAt',
-      title: t('page.tenant.createdAt'),
+      title: t('page.orgUnit.createdAt'),
       formatter: 'formatDateTime',
       sortable: true,
       width: 170,
@@ -103,52 +110,57 @@ export function buildFormOptions(
       {
         component: 'Input',
         fieldName: 'name',
-        label: t('page.tenant.name'),
+        label: t('page.orgUnit.name'),
       },
       {
         component: 'Input',
         fieldName: 'code',
-        label: t('page.tenant.code'),
+        label: t('page.orgUnit.code'),
       },
       {
         component: 'Input',
-        fieldName: 'domain',
-        label: t('page.tenant.domain'),
-      },
-      {
-        component: 'Input',
-        fieldName: 'logoUrl',
-        label: t('page.tenant.logoUrl'),
-      },
-      {
-        component: 'Input',
-        fieldName: 'industry',
-        label: t('page.tenant.industry'),
+        fieldName: 'parentId',
+        label: t('page.orgUnit.parentId'),
       },
       {
         component: 'Select',
         fieldName: 'type',
-        label: t('page.tenant.type'),
+        label: t('page.orgUnit.type'),
       },
       {
         component: 'Select',
         fieldName: 'status',
-        label: t('page.tenant.status'),
-      },
-      {
-        component: 'Select',
-        fieldName: 'auditStatus',
-        label: t('page.tenant.auditStatus'),
+        label: t('page.orgUnit.status'),
       },
       {
         component: 'Input',
-        fieldName: 'subscriptionPlan',
-        label: t('page.tenant.subscriptionPlan'),
+        fieldName: 'sortOrder',
+        label: t('page.orgUnit.sortOrder'),
+      },
+      {
+        component: 'Input',
+        fieldName: 'phone',
+        label: t('page.orgUnit.phone'),
+      },
+      {
+        component: 'Input',
+        fieldName: 'email',
+        label: t('page.orgUnit.email'),
+      },
+      {
+        component: 'Input',
+        fieldName: 'address',
+        label: t('page.orgUnit.address'),
+      },
+      {
+        component: 'Textarea',
+        fieldName: 'description',
+        label: t('page.orgUnit.description'),
       },
       {
         component: 'Textarea',
         fieldName: 'remark',
-        label: t('page.tenant.remark'),
+        label: t('page.orgUnit.remark'),
       },
     ],
     showCollapseButton: false,

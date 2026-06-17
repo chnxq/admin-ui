@@ -28,11 +28,9 @@ import {
   Empty,
   Form,
   Input,
-  InputNumber,
   message,
   Modal,
   Popconfirm,
-  Select,
   Space,
   Spin,
   TabPane,
@@ -57,7 +55,13 @@ import {
   listAdminRolesApi,
   updateAdminRoleApi,
 } from '#/api/admin/roles';
+import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
 import { $t } from '#/locales';
+import {
+  buildFormOptions as buildGeneratedDialogFormOptions,
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/system/role.meta';
 
 interface AdminRoleFormModel extends AdminRoleSaveInput {
   code: string;
@@ -253,34 +257,68 @@ const formRules = computed<Record<string, Rule[]>>(() => ({
   ],
 }));
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+const generatedDialogFormOptions = buildGeneratedDialogFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.role.searchName'),
-      },
-      fieldName: 'name',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.role.name'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.role.searchCode'),
-      },
-      fieldName: 'code',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.role.code'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => ({
+    ...item,
+    formItemClass: 'md:col-span-1',
+  })),
   wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
 };
+
+const dialogFormSchema = computed(() =>
+  (generatedDialogFormOptions.schema || []).map((item) => {
+    const fieldName = item.fieldName;
+    const placeholderMap: Record<string, string> = {
+      code: $t('page.role.placeholderCode'),
+      description: $t('page.user.placeholderDescription'),
+      name: $t('page.role.placeholderName'),
+    };
+    if (fieldName === 'type') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          disabled: isTenantSession.value,
+          options: typeOptions,
+        },
+      };
+    }
+    if (fieldName === 'status') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: statusOptions,
+        },
+      };
+    }
+    if (fieldName === 'sortOrder') {
+      return {
+        ...item,
+        component: 'InputNumber',
+        componentProps: {
+          ...item.componentProps,
+          class: 'full-width-control',
+          min: 0,
+        },
+      };
+    }
+    return {
+      ...item,
+      componentProps: {
+        ...item.componentProps,
+        placeholder: fieldName ? placeholderMap[fieldName] : undefined,
+      },
+      rules: fieldName ? formRules.value[fieldName] : item.rules,
+    };
+  }),
+);
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
 const gridOptions: VxeTableGridOptions<AdminRole> = {
   border: false,
@@ -288,47 +326,7 @@ const gridOptions: VxeTableGridOptions<AdminRole> = {
     resizable: true,
   },
   columns: [
-    {
-      field: 'name',
-      slots: { default: 'role' },
-      sortable: true,
-      title: $t('page.role.role'),
-      width: 260,
-    },
-    {
-      field: 'type',
-      slots: { default: 'type' },
-      sortable: true,
-      title: $t('page.role.type'),
-      width: 120,
-    },
-    {
-      field: 'scope',
-      slots: { default: 'scope' },
-      sortable: true,
-      title: $t('page.tenant.resourceOwnership'),
-      width: 180,
-    },
-    {
-      field: 'sortOrder',
-      sortable: true,
-      title: $t('ui.table.sortOrder'),
-      width: 90,
-    },
-    {
-      field: 'status',
-      slots: { default: 'status' },
-      sortable: true,
-      title: $t('page.role.status'),
-      width: 100,
-    },
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.role.createdAt'),
-      width: 170,
-    },
+    ...generatedColumns,
     {
       field: 'action',
       fixed: 'right',
@@ -1054,47 +1052,7 @@ onMounted(() => {
             :rules="formRules"
             layout="vertical"
           >
-            <Form.Item :label="$t('page.role.name')" name="name">
-              <Input
-                v-model:value="formModel.name"
-                :placeholder="$t('page.role.placeholderName')"
-              />
-            </Form.Item>
-            <Form.Item :label="$t('page.role.code')" name="code">
-              <Input
-                v-model:value="formModel.code"
-                :placeholder="$t('page.role.placeholderCode')"
-              />
-            </Form.Item>
-            <div class="form-row-grid-2">
-              <Form.Item :label="$t('page.role.type')" name="type">
-                <Select
-                  v-model:value="formModel.type"
-                  :disabled="isTenantSession"
-                  :options="typeOptions"
-                />
-              </Form.Item>
-              <Form.Item :label="$t('page.role.status')" name="status">
-                <Select
-                  v-model:value="formModel.status"
-                  :options="statusOptions"
-                />
-              </Form.Item>
-            </div>
-            <Form.Item :label="$t('ui.table.sortOrder')" name="sortOrder">
-              <InputNumber
-                v-model:value="formModel.sortOrder"
-                class="full-width-control"
-                :min="0"
-              />
-            </Form.Item>
-            <Form.Item :label="$t('page.role.description')" name="description">
-              <Input.TextArea
-                v-model:value="formModel.description"
-                :auto-size="{ minRows: 4, maxRows: 6 }"
-                :placeholder="$t('page.user.placeholderDescription')"
-              />
-            </Form.Item>
+            <AdminGeneratedForm :model="formModel" :schema="dialogFormSchema" />
           </Form>
         </div>
 

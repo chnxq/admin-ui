@@ -19,11 +19,9 @@ import { useUserStore } from '@vben/stores';
 import {
   Button,
   Form,
-  Input,
   message,
   Modal,
   Popconfirm,
-  Select,
   Space,
   Tag,
   Tooltip,
@@ -37,8 +35,13 @@ import {
   listAdminTenantsApi,
   updateAdminTenantApi,
 } from '#/api/admin/tenants';
+import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
 import { $t } from '#/locales';
-import { buildSearchFormOptions as buildGeneratedSearchFormOptions } from '#/views/generated/admin/system/tenant.meta';
+import {
+  buildFormOptions as buildGeneratedDialogFormOptions,
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/system/tenant.meta';
 
 interface AdminTenantFormModel extends AdminTenantSaveInput {
   auditStatus: AdminTenantAuditStatus;
@@ -132,6 +135,7 @@ const modalTitle = computed(() =>
 );
 
 const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+const generatedDialogFormOptions = buildGeneratedDialogFormOptions($t);
 
 const formOptions: VbenFormProps = {
   ...generatedFormOptions,
@@ -142,59 +146,90 @@ const formOptions: VbenFormProps = {
   wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
 };
 
+const dialogFormSchema = computed(() =>
+  (generatedDialogFormOptions.schema || []).map((item) => {
+    const fieldName = item.fieldName;
+    const placeholderMap: Record<string, string> = {
+      name: $t('page.tenant.placeholderName'),
+      code: $t('page.tenant.placeholderCode'),
+      domain: $t('page.tenant.placeholderDomain'),
+      logoUrl: $t('page.tenant.placeholderLogoUrl'),
+      industry: $t('page.tenant.placeholderIndustry'),
+      subscriptionPlan: $t('page.tenant.placeholderSubscriptionPlan'),
+      remark: $t('page.tenant.placeholderRemark'),
+    };
+    if (fieldName === 'type') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: typeOptions,
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [
+              $t('page.tenant.type'),
+            ]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (fieldName === 'status') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: statusOptions,
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [
+              $t('page.tenant.status'),
+            ]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (fieldName === 'auditStatus') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: auditStatusOptions,
+        },
+      };
+    }
+    const requiredFields = new Set(['code', 'name']);
+    return {
+      ...item,
+      componentProps: {
+        ...item.componentProps,
+        placeholder: fieldName ? placeholderMap[fieldName] : undefined,
+      },
+      rules:
+        fieldName && requiredFields.has(fieldName)
+          ? [
+              {
+                message: $t('ui.formRules.required', [item.label || '']),
+                required: true,
+              },
+            ]
+          : item.rules,
+    };
+  }),
+);
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
+
 const gridOptions: VxeTableGridOptions<AdminTenant> = {
   border: false,
   columnConfig: {
     resizable: true,
   },
   columns: [
-    {
-      field: 'name',
-      slots: { default: 'tenant' },
-      sortable: true,
-      title: $t('page.tenant.tenant'),
-      width: 260,
-    },
-    {
-      field: 'domain',
-      sortable: true,
-      title: $t('page.tenant.domain'),
-      width: 180,
-    },
-    {
-      field: 'type',
-      slots: { default: 'type' },
-      sortable: true,
-      title: $t('page.tenant.type'),
-      width: 120,
-    },
-    {
-      field: 'status',
-      slots: { default: 'status' },
-      sortable: true,
-      title: $t('page.tenant.status'),
-      width: 100,
-    },
-    {
-      field: 'auditStatus',
-      slots: { default: 'auditStatus' },
-      sortable: true,
-      title: $t('page.tenant.auditStatus'),
-      width: 120,
-    },
-    {
-      field: 'memberCount',
-      sortable: true,
-      title: $t('page.tenant.memberCount'),
-      width: 100,
-    },
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.tenant.createdAt'),
-      width: 170,
-    },
+    ...generatedColumns,
     {
       field: 'action',
       fixed: 'right',
@@ -475,104 +510,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminTenant>({
       @ok="handleSubmit"
     >
       <Form ref="formRef" :model="formModel" :label-col="{ span: 5 }">
-        <Form.Item
-          :label="$t('page.tenant.name')"
-          name="name"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [$t('page.tenant.name')]),
-              required: true,
-            },
-          ]"
-        >
-          <Input
-            v-model:value="formModel.name"
-            :placeholder="$t('page.tenant.placeholderName')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.tenant.code')"
-          name="code"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [$t('page.tenant.code')]),
-              required: true,
-            },
-          ]"
-        >
-          <Input
-            v-model:value="formModel.code"
-            :placeholder="$t('page.tenant.placeholderCode')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.tenant.domain')" name="domain">
-          <Input
-            v-model:value="formModel.domain"
-            :placeholder="$t('page.tenant.placeholderDomain')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.tenant.logoUrl')" name="logoUrl">
-          <Input
-            v-model:value="formModel.logoUrl"
-            :placeholder="$t('page.tenant.placeholderLogoUrl')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.tenant.industry')" name="industry">
-          <Input
-            v-model:value="formModel.industry"
-            :placeholder="$t('page.tenant.placeholderIndustry')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.tenant.type')"
-          name="type"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.tenant.type'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select v-model:value="formModel.type" :options="typeOptions" />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.tenant.status')"
-          name="status"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.tenant.status'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select v-model:value="formModel.status" :options="statusOptions" />
-        </Form.Item>
-        <Form.Item :label="$t('page.tenant.auditStatus')" name="auditStatus">
-          <Select
-            v-model:value="formModel.auditStatus"
-            :options="auditStatusOptions"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.tenant.subscriptionPlan')"
-          name="subscriptionPlan"
-        >
-          <Input
-            v-model:value="formModel.subscriptionPlan"
-            :placeholder="$t('page.tenant.placeholderSubscriptionPlan')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.tenant.remark')" name="remark">
-          <Input.TextArea
-            v-model:value="formModel.remark"
-            :rows="3"
-            :placeholder="$t('page.tenant.placeholderRemark')"
-          />
-        </Form.Item>
+        <AdminGeneratedForm :model="formModel" :schema="dialogFormSchema" />
       </Form>
     </Modal>
   </Page>

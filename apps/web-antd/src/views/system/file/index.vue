@@ -42,6 +42,10 @@ import {
   uploadAdminFileApi,
 } from '#/api/admin/files';
 import { $t } from '#/locales';
+import {
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/system/file.meta';
 
 const FILE_ACCESS = {
   delete: ['files:delete'],
@@ -113,50 +117,25 @@ const previewTitle = computed(
   () => currentPreview.value?.fileName || $t('page.file.previewTitle'),
 );
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.file.placeholderFileName'),
-      },
-      fieldName: 'fileName',
-      label: $t('page.file.fileName'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.file.placeholderDirectory'),
-      },
-      fieldName: 'fileDirectory',
-      label: $t('page.file.directory'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.file.placeholderBucket'),
-      },
-      fieldName: 'bucketName',
-      label: $t('page.file.bucketName'),
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: extensionOptions,
-        placeholder: $t('page.file.placeholderExtension'),
-      },
-      fieldName: 'extension',
-      label: $t('page.file.extension'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => {
+    if (item.fieldName === 'extension') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: extensionOptions,
+        },
+      };
+    }
+    return item;
+  }),
 };
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
 const gridOptions: VxeTableGridOptions<AdminFile> = {
   border: false,
@@ -164,50 +143,7 @@ const gridOptions: VxeTableGridOptions<AdminFile> = {
     resizable: true,
   },
   columns: [
-    {
-      field: 'fileName',
-      sortable: true,
-      title: $t('page.file.fileName'),
-      width: 240,
-    },
-    {
-      field: 'extension',
-      slots: { default: 'extension' },
-      sortable: true,
-      title: $t('page.file.extension'),
-      width: 100,
-    },
-    {
-      field: 'bucketName',
-      sortable: true,
-      title: $t('page.file.bucketName'),
-      width: 130,
-    },
-    {
-      field: 'fileDirectory',
-      sortable: true,
-      title: $t('page.file.directory'),
-      width: 220,
-    },
-    {
-      field: 'sizeFormat',
-      sortable: true,
-      title: $t('page.file.size'),
-      width: 120,
-    },
-    {
-      field: 'tenantName',
-      slots: { default: 'tenantName' },
-      title: $t('page.file.owner'),
-      width: 140,
-    },
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.file.createdAt'),
-      width: 180,
-    },
+    ...generatedColumns,
     {
       field: 'action',
       fixed: 'right',

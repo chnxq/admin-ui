@@ -57,6 +57,10 @@ import {
   updateAdminTaskGroupApi,
 } from '#/api/admin/tasks';
 import { $t } from '#/locales';
+import {
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/task.meta';
 
 import CronExpressionField from './cron-expression-field.vue';
 import {
@@ -217,42 +221,38 @@ const groupFormRules = computed<Record<string, Rule[]>>(() => ({
   ],
 }));
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.task.placeholderSearchTaskName'),
-      },
-      fieldName: 'name',
-      label: $t('page.task.taskName'),
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: statusOptions,
-        placeholder: $t('page.task.placeholderStatus'),
-      },
-      fieldName: 'status',
-      label: $t('page.task.status'),
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: typeOptions,
-        placeholder: $t('page.task.placeholderTaskType'),
-      },
-      fieldName: 'taskType',
-      label: $t('page.task.taskType'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => {
+    switch (item.fieldName) {
+      case 'status': {
+        return {
+          ...item,
+          componentProps: {
+            ...item.componentProps,
+            options: statusOptions,
+          },
+        };
+      }
+      case 'taskType': {
+        return {
+          ...item,
+          componentProps: {
+            ...item.componentProps,
+            options: typeOptions,
+          },
+        };
+      }
+      default: {
+        return item;
+      }
+    }
+  }),
 };
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
 const gridOptions: VxeTableGridOptions<AdminTask> = {
   border: false,
@@ -260,60 +260,7 @@ const gridOptions: VxeTableGridOptions<AdminTask> = {
     resizable: true,
   },
   columns: [
-    {
-      field: 'taskName',
-      slots: { default: 'taskName' },
-      sortable: true,
-      title: $t('page.task.taskName'),
-      width: 180,
-    },
-    {
-      field: 'taskType',
-      slots: { default: 'taskType' },
-      sortable: true,
-      title: $t('page.task.taskType'),
-      width: 120,
-    },
-    {
-      field: 'cronExpression',
-      slots: { default: 'cronExpression' },
-      sortable: true,
-      title: $t('page.task.cronExpression'),
-      width: 220,
-    },
-    {
-      field: 'invokeTarget',
-      sortable: true,
-      title: $t('page.task.invokeTarget'),
-      width: 240,
-    },
-    {
-      field: 'retry',
-      sortable: true,
-      title: $t('page.task.retry'),
-      width: 90,
-    },
-    {
-      field: 'concurrent',
-      slots: { default: 'concurrent' },
-      sortable: true,
-      title: $t('page.task.concurrent'),
-      width: 100,
-    },
-    {
-      field: 'status',
-      slots: { default: 'status' },
-      sortable: true,
-      title: $t('page.task.status'),
-      width: 110,
-    },
-    {
-      field: 'updatedAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.task.updatedAt'),
-      width: 170,
-    },
+    ...generatedColumns,
     {
       field: 'action',
       fixed: 'right',
