@@ -20,22 +20,123 @@ import dayjs from 'dayjs';
 const antdLocale = ref<Locale>(antdDefaultLocale);
 
 const modules = import.meta.glob('./langs/**/*.json');
+const generatedPageI18nModules = import.meta.glob(
+  '../views/generated/**/page_i18n.*.json',
+);
+const generatedLocaleModules = import.meta.glob(
+  '../views/generated/**/langs/**/*.json',
+);
 
 const localesMap = loadLocalesMapFromDir(
   /\.\/langs\/([^/]+)\/(.*)\.json$/,
   modules,
 );
+const generatedLocalesMap = loadLocalesMapFromDir(
+  /\.\.\/views\/generated\/.*\/langs\/([^/]+)\/(.*)\.json$/,
+  generatedLocaleModules,
+);
+
+function setNestedValue(
+  target: Record<string, any>,
+  path: string[],
+  value: unknown,
+) {
+  let current = target;
+  for (const segment of path.slice(0, -1)) {
+    const existing = current[segment];
+    if (!existing || typeof existing !== 'object' || Array.isArray(existing)) {
+      current[segment] = {};
+    }
+    current = current[segment];
+  }
+  const leaf = path.at(-1);
+  if (leaf) {
+    current[leaf] = value;
+  }
+}
+
+function expandFlatMessages(source: Record<string, unknown>) {
+  const expanded: Record<string, any> = {};
+  for (const [key, value] of Object.entries(source)) {
+    setNestedValue(expanded, key.split('.'), value);
+  }
+  return expanded;
+}
+
+function isPlainObject(value: unknown): value is Record<string, any> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function mergeLocaleMessages(
+  target: Record<string, any>,
+  source: Record<string, any>,
+) {
+  const result: Record<string, any> = { ...target };
+  for (const [key, value] of Object.entries(source)) {
+    const existing = result[key];
+    if (isPlainObject(existing) && isPlainObject(value)) {
+      result[key] = mergeLocaleMessages(existing, value);
+      continue;
+    }
+    result[key] = value;
+  }
+  return result;
+}
+
+async function loadGeneratedPageMessages(lang: SupportedLanguagesType) {
+  const fileName =
+    lang === 'zh-CN' ? 'page_i18n.zh-CN.json' : 'page_i18n.en-US.json';
+  const matchedEntries = Object.entries(generatedPageI18nModules).filter(
+    ([path]) => path.endsWith(`/${fileName}`),
+  );
+  if (matchedEntries.length === 0) {
+    return {};
+  }
+
+  const messageModules = await Promise.all(
+    matchedEntries.map(([, importer]) => importer()),
+  );
+  const mergedMessages: Record<string, any> = {};
+  for (const mod of messageModules) {
+    const raw = (mod as any)?.default;
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+      const expandedMessages = expandFlatMessages(
+        raw as Record<string, unknown>,
+      );
+      const nextMessages = mergeLocaleMessages(
+        mergedMessages,
+        expandedMessages,
+      );
+      for (const [key, value] of Object.entries(nextMessages)) {
+        mergedMessages[key] = value;
+      }
+    }
+  }
+  return mergedMessages;
+}
+
+async function loadGeneratedLocaleMessages(lang: SupportedLanguagesType) {
+  const generatedLocaleMessages = await generatedLocalesMap[lang]?.();
+  return generatedLocaleMessages?.default ?? {};
+}
 /**
  * 加载应用特有的语言包
  * 这里也可以改造为从服务端获取翻译数据
  * @param lang
  */
 async function loadMessages(lang: SupportedLanguagesType) {
-  const [appLocaleMessages] = await Promise.all([
-    localesMap[lang]?.(),
-    loadThirdPartyMessage(lang),
-  ]);
-  return appLocaleMessages?.default;
+  const [appLocaleMessages, generatedLocaleMessages, generatedPageMessages] =
+    await Promise.all([
+      localesMap[lang]?.(),
+      loadGeneratedLocaleMessages(lang),
+      loadGeneratedPageMessages(lang),
+      loadThirdPartyMessage(lang),
+    ]);
+  const baseMessages = appLocaleMessages?.default ?? {};
+  return mergeLocaleMessages(
+    mergeLocaleMessages(baseMessages, generatedLocaleMessages),
+    generatedPageMessages,
+  );
 }
 
 /**

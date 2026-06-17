@@ -13,6 +13,7 @@ import dayjs from 'dayjs';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminApiAuditLogsApi } from '#/api/admin/api-audit-logs';
 import { $t } from '#/locales';
+import { buildSearchFormOptions as buildGeneratedSearchFormOptions } from '#/views/generated/admin/app/log/api-audit-log.meta';
 
 const API_AUDIT_ACCESS = {
   export: ['api:audit:logs:export'],
@@ -27,77 +28,35 @@ const methodOptions = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(
 
 const { hasAccessByCodes } = useAccess();
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.apiAuditLog.searchUsername'),
-      },
-      fieldName: 'username',
-      label: $t('page.apiAuditLog.username'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.apiAuditLog.searchPath'),
-      },
-      fieldName: 'path',
-      label: $t('page.apiAuditLog.path'),
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: methodOptions,
-        placeholder: $t('page.apiAuditLog.selectHttpMethod'),
-      },
-      fieldName: 'httpMethod',
-      label: $t('page.apiAuditLog.httpMethod'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.apiAuditLog.searchApiModule'),
-      },
-      fieldName: 'apiModule',
-      label: $t('page.apiAuditLog.apiModule'),
-    },
-    {
-      component: 'InputNumber',
-      componentProps: {
-        controls: false,
-        placeholder: $t('page.apiAuditLog.searchStatusCode'),
-      },
-      fieldName: 'statusCode',
-      label: $t('page.apiAuditLog.statusCode'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.apiAuditLog.searchReason'),
-      },
-      fieldName: 'reason',
-      label: $t('page.apiAuditLog.reason'),
-    },
-    {
-      component: 'RangePicker',
-      componentProps: {
-        allowClear: true,
-        showTime: true,
-        valueFormat: 'YYYY-MM-DD HH:mm:ss',
-      },
-      fieldName: 'createdAtRange',
-      label: $t('page.apiAuditLog.createdAtRange'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => {
+    switch (item.fieldName) {
+      case 'httpMethod': {
+        return {
+          ...item,
+          componentProps: {
+            ...item.componentProps,
+            options: methodOptions,
+          },
+        };
+      }
+      case 'statusCode': {
+        return {
+          ...item,
+          componentProps: {
+            ...item.componentProps,
+            controls: false,
+          },
+        };
+      }
+      default: {
+        return item;
+      }
+    }
+  }),
 };
 
 const gridOptions: VxeTableGridOptions<AdminApiAuditLog> = {

@@ -19,6 +19,7 @@ import dayjs from 'dayjs';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminLoginAuditLogsApi } from '#/api/admin/login-audit-logs';
 import { $t } from '#/locales';
+import { buildSearchFormOptions as buildGeneratedSearchFormOptions } from '#/views/generated/admin/app/log/login-audit-log.meta';
 
 const LOGIN_AUDIT_ACCESS = {
   export: ['login:audit:logs:export'],
@@ -60,70 +61,44 @@ const statusOptions: Array<{ label: string; value: AdminLoginAuditLogStatus }> =
 
 const { hasAccessByCodes } = useAccess();
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.loginAuditLog.searchUsername'),
-      },
-      fieldName: 'username',
-      label: $t('page.loginAuditLog.username'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.loginAuditLog.searchIpAddress'),
-      },
-      fieldName: 'ipAddress',
-      label: $t('page.loginAuditLog.ipAddress'),
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: actionTypeOptions,
-        placeholder: $t('page.loginAuditLog.selectActionType'),
-      },
-      fieldName: 'actionType',
-      label: $t('page.loginAuditLog.actionType'),
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: riskLevelOptions,
-        placeholder: $t('page.loginAuditLog.selectRiskLevel'),
-      },
-      fieldName: 'riskLevel',
-      label: $t('page.loginAuditLog.riskLevel'),
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: statusOptions,
-        placeholder: $t('page.loginAuditLog.selectStatus'),
-      },
-      fieldName: 'status',
-      label: $t('page.loginAuditLog.status'),
-    },
-    {
-      component: 'RangePicker',
-      componentProps: {
-        allowClear: true,
-        showTime: true,
-        valueFormat: 'YYYY-MM-DD HH:mm:ss',
-      },
-      fieldName: 'createdAtRange',
-      label: $t('page.loginAuditLog.createdAtRange'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => {
+    switch (item.fieldName) {
+      case 'actionType': {
+        return {
+          ...item,
+          componentProps: {
+            ...item.componentProps,
+            options: actionTypeOptions,
+          },
+        };
+      }
+      case 'riskLevel': {
+        return {
+          ...item,
+          componentProps: {
+            ...item.componentProps,
+            options: riskLevelOptions,
+          },
+        };
+      }
+      case 'status': {
+        return {
+          ...item,
+          componentProps: {
+            ...item.componentProps,
+            options: statusOptions,
+          },
+        };
+      }
+      default: {
+        return item;
+      }
+    }
+  }),
 };
 
 const gridOptions: VxeTableGridOptions<AdminLoginAuditLog> = {

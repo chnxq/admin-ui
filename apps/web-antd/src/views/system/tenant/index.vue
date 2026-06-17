@@ -38,6 +38,7 @@ import {
   updateAdminTenantApi,
 } from '#/api/admin/tenants';
 import { $t } from '#/locales';
+import { buildSearchFormOptions as buildGeneratedSearchFormOptions } from '#/views/generated/admin/system/tenant.meta';
 
 interface AdminTenantFormModel extends AdminTenantSaveInput {
   auditStatus: AdminTenantAuditStatus;
@@ -130,32 +131,14 @@ const modalTitle = computed(() =>
   editingId.value ? $t('page.tenant.editTitle') : $t('page.tenant.createTitle'),
 );
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.tenant.searchName'),
-      },
-      fieldName: 'name',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.tenant.name'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.tenant.searchCode'),
-      },
-      fieldName: 'code',
-      formItemClass: 'md:col-span-1',
-      label: $t('page.tenant.code'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => ({
+    ...item,
+    formItemClass: 'md:col-span-1',
+  })),
   wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
 };
 
