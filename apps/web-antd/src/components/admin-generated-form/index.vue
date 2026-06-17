@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { IconPicker } from '@vben/common-ui';
+
 import {
+  AutoComplete,
   Checkbox,
   DatePicker,
   Form,
@@ -15,10 +18,12 @@ import {
 type SchemaItem = {
   component?: any;
   componentProps?: any;
+  extra?: any;
   fieldName?: string;
   formItemClass?: any;
   label?: any;
   name?: string;
+  render?: any;
   rules?: any;
 };
 
@@ -42,6 +47,7 @@ function normalizeProps(componentProps: any, model: Record<string, any>) {
   <template v-for="item in items" :key="item.fieldName || item.name">
     <Form.Item
       :class="item.formItemClass"
+      :extra="item.extra"
       :label="item.label"
       :name="item.fieldName || item.name"
       :rules="item.rules"
@@ -72,6 +78,11 @@ function normalizeProps(componentProps: any, model: Record<string, any>) {
         v-model:value="model[item.fieldName || item.name || '']"
         v-bind="normalizeProps(item.componentProps, model)"
       />
+      <AutoComplete
+        v-else-if="item.component === 'AutoComplete'"
+        v-model:value="model[item.fieldName || item.name || '']"
+        v-bind="normalizeProps(item.componentProps, model)"
+      />
       <DatePicker
         v-else-if="item.component === 'DatePicker'"
         v-model:value="model[item.fieldName || item.name || '']"
@@ -91,6 +102,17 @@ function normalizeProps(componentProps: any, model: Record<string, any>) {
       <TreeSelect
         v-else-if="item.component === 'TreeSelect'"
         v-model:value="model[item.fieldName || item.name || '']"
+        v-bind="normalizeProps(item.componentProps, model)"
+      />
+      <IconPicker
+        v-else-if="item.component === 'IconPicker'"
+        v-model="model[item.fieldName || item.name || '']"
+        v-bind="normalizeProps(item.componentProps, model)"
+      />
+      <component
+        :is="item.component"
+        v-else-if="typeof item.component !== 'string' && item.component"
+        v-model="model[item.fieldName || item.name || '']"
         v-bind="normalizeProps(item.componentProps, model)"
       />
       <Input

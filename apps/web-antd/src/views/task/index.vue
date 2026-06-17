@@ -25,15 +25,12 @@ import {
   Empty,
   Form,
   Input,
-  InputNumber,
   Menu,
   message,
   Modal,
   Popconfirm,
   Radio,
-  Select,
   Space,
-  Switch,
   Table,
   Tag,
   Tooltip,
@@ -56,11 +53,13 @@ import {
   updateAdminTaskApi,
   updateAdminTaskGroupApi,
 } from '#/api/admin/tasks';
+import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
 import { $t } from '#/locales';
 import {
   buildListGridColumns as buildGeneratedListGridColumns,
   buildSearchFormOptions as buildGeneratedSearchFormOptions,
-} from '#/views/generated/admin/task.meta';
+  buildFormOptions as buildGeneratedTaskDialogFormOptions,
+} from '#/views/generated/admin/task/task.meta';
 
 import CronExpressionField from './cron-expression-field.vue';
 import {
@@ -222,6 +221,7 @@ const groupFormRules = computed<Record<string, Rule[]>>(() => ({
 }));
 
 const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+const generatedTaskDialogFormOptions = buildGeneratedTaskDialogFormOptions($t);
 
 const formOptions: VbenFormProps = {
   ...generatedFormOptions,
@@ -251,6 +251,97 @@ const formOptions: VbenFormProps = {
     }
   }),
 };
+
+const taskDialogFormSchema = computed(() => {
+  const schema: any[] = [];
+  for (const item of generatedTaskDialogFormOptions.schema || []) {
+    const fieldName = item.fieldName;
+    if (fieldName === 'groupId') {
+      continue;
+    }
+    if (fieldName === 'taskType') {
+      schema.push({
+        ...item,
+        componentProps: {
+          options: typeOptions,
+          placeholder: $t('page.task.placeholderTaskType'),
+        },
+      });
+      continue;
+    }
+    if (fieldName === 'status') {
+      schema.push({
+        ...item,
+        componentProps: {
+          options: statusOptions,
+          placeholder: $t('page.task.placeholderStatus'),
+        },
+      });
+      continue;
+    }
+    if (fieldName === 'cronExpression') {
+      schema.push({
+        ...item,
+        component: CronExpressionField,
+        rules: taskFormRules.value.cronExpression,
+      });
+      continue;
+    }
+    if (fieldName === 'retry') {
+      schema.push({
+        ...item,
+        component: 'InputNumber',
+        componentProps: {
+          max: 5,
+          min: 0,
+          style: { width: '100%' },
+        },
+      });
+      continue;
+    }
+    if (fieldName === 'concurrent') {
+      schema.push({
+        ...item,
+        component: 'Switch',
+      });
+      continue;
+    }
+    if (fieldName === 'args') {
+      schema.push({
+        ...item,
+        componentProps: {
+          placeholder: $t('page.task.placeholderArgs'),
+          rows: 4,
+        },
+      });
+      continue;
+    }
+    if (fieldName === 'remark') {
+      schema.push({
+        ...item,
+        componentProps: {
+          placeholder: $t('page.task.placeholderRemark'),
+          rows: 3,
+        },
+      });
+      continue;
+    }
+    const placeholderMap: Record<string, string> = {
+      invokeTarget: $t('page.task.placeholderInvokeTarget'),
+      taskName: $t('page.task.placeholderTaskName'),
+    };
+    schema.push({
+      ...item,
+      componentProps: {
+        ...item.componentProps,
+        placeholder: fieldName ? placeholderMap[fieldName] : undefined,
+      },
+      rules:
+        fieldName === 'taskName' ? taskFormRules.value.taskName : item.rules,
+    });
+  }
+  return schema;
+});
 
 const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
@@ -993,12 +1084,6 @@ onMounted(async () => {
         :wrapper-col="{ style: { flex: 1 } }"
       >
         <div class="admin-task-form-grid">
-          <Form.Item :label="$t('page.task.taskName')" name="taskName">
-            <Input
-              v-model:value="taskFormModel.taskName"
-              :placeholder="$t('page.task.placeholderTaskName')"
-            />
-          </Form.Item>
           <Form.Item :label="$t('page.task.groupName')" name="groupId">
             <Input
               :value="currentTaskGroupName"
@@ -1006,58 +1091,11 @@ onMounted(async () => {
               readonly
             />
           </Form.Item>
-          <Form.Item :label="$t('page.task.taskType')" name="taskType">
-            <Select
-              v-model:value="taskFormModel.taskType"
-              :options="typeOptions"
-              :placeholder="$t('page.task.placeholderTaskType')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.task.status')" name="status">
-            <Select
-              v-model:value="taskFormModel.status"
-              :options="statusOptions"
-              :placeholder="$t('page.task.placeholderStatus')"
-            />
-          </Form.Item>
-          <Form.Item
-            :label="$t('page.task.cronExpression')"
-            name="cronExpression"
-          >
-            <CronExpressionField v-model="taskFormModel.cronExpression" />
-          </Form.Item>
-          <Form.Item :label="$t('page.task.invokeTarget')" name="invokeTarget">
-            <Input
-              v-model:value="taskFormModel.invokeTarget"
-              :placeholder="$t('page.task.placeholderInvokeTarget')"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.task.retry')" name="retry">
-            <InputNumber
-              v-model:value="taskFormModel.retry"
-              :max="5"
-              :min="0"
-              style="width: 100%"
-            />
-          </Form.Item>
-          <Form.Item :label="$t('page.task.concurrent')" name="concurrent">
-            <Switch v-model:checked="taskFormModel.concurrent" />
-          </Form.Item>
+          <AdminGeneratedForm
+            :model="taskFormModel"
+            :schema="taskDialogFormSchema"
+          />
         </div>
-        <Form.Item :label="$t('page.task.args')" name="args">
-          <Input.TextArea
-            v-model:value="taskFormModel.args"
-            :placeholder="$t('page.task.placeholderArgs')"
-            :rows="4"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.task.remark')" name="remark">
-          <Input.TextArea
-            v-model:value="taskFormModel.remark"
-            :placeholder="$t('page.task.placeholderRemark')"
-            :rows="3"
-          />
-        </Form.Item>
       </Form>
     </Modal>
   </Page>

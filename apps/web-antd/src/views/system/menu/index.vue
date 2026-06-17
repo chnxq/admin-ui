@@ -13,24 +13,20 @@ import type {
 
 import { computed, nextTick, reactive, ref } from 'vue';
 
-import { IconPicker, Page } from '@vben/common-ui';
+import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { $t, $te } from '@vben/locales';
 import { useUserStore } from '@vben/stores';
 
 import {
-  AutoComplete,
   Button,
   Form,
-  Input,
   message,
   Modal,
   Popconfirm,
-  Select,
   Space,
   Tag,
   Tooltip,
-  TreeSelect,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
@@ -42,7 +38,9 @@ import {
   syncAdminMenusApi,
   updateAdminMenuApi,
 } from '#/api/admin/menus';
+import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
 import {
+  buildFormOptions as buildGeneratedDialogFormOptions,
   buildListGridColumns as buildGeneratedListGridColumns,
   buildSearchFormOptions as buildGeneratedSearchFormOptions,
 } from '#/views/generated/admin/system/menu.meta';
@@ -180,6 +178,7 @@ const componentAutoCompleteOptions = computed(() =>
 );
 
 const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+const generatedDialogFormOptions = buildGeneratedDialogFormOptions($t);
 
 const formOptions: VbenFormProps = {
   ...generatedFormOptions,
@@ -189,6 +188,156 @@ const formOptions: VbenFormProps = {
   })),
   wrapperClass: 'grid-cols-1 md:grid-cols-3 xl:grid-cols-4',
 };
+
+const dialogFormSchema = computed(() =>
+  (generatedDialogFormOptions.schema || []).map((item) => {
+    const fieldName = item.fieldName;
+    const yesNoOptions = [
+      { label: $t('page.menu.no'), value: 'false' },
+      { label: $t('page.menu.yes'), value: 'true' },
+    ];
+    const placeholderMap: Record<string, string> = {
+      authority: $t('page.menu.placeholderAuthority'),
+      name: $t('page.menu.placeholderName'),
+      path: $t('page.menu.placeholderPath'),
+      redirect: $t('page.menu.placeholderRedirect'),
+      title: $t('page.menu.placeholderTitle'),
+    };
+    const requiredMap: Record<string, string> = {
+      name: $t('page.menu.name'),
+      path: $t('page.menu.path'),
+      title: $t('page.menu.title'),
+    };
+    if (fieldName === 'parentId') {
+      return {
+        ...item,
+        component: 'TreeSelect',
+        componentProps: {
+          allowClear: true,
+          class: 'full-width-control',
+          fieldNames: {
+            children: 'children',
+            label: 'label',
+            value: 'value',
+          },
+          placeholder: $t('page.menu.placeholderRootParent'),
+          showSearch: true,
+          treeData: parentTreeOptions.value,
+          treeDefaultExpandAll: true,
+          treeNodeFilterProp: 'label',
+        },
+        extra: $t('page.menu.parentHint'),
+      };
+    }
+    if (fieldName === 'component') {
+      return {
+        ...item,
+        component: 'AutoComplete',
+        componentProps: {
+          allowClear: true,
+          disabled:
+            formModel.type === 'BUTTON' ||
+            formModel.type === 'CATALOG' ||
+            formModel.type === 'LINK',
+          options: componentAutoCompleteOptions.value,
+          placeholder: $t('page.menu.placeholderComponent'),
+        },
+        extra: $t('page.menu.componentHint'),
+      };
+    }
+    if (fieldName === 'redirect') {
+      return {
+        ...item,
+        componentProps: {
+          disabled: formModel.type === 'BUTTON' || formModel.type === 'CATALOG',
+          placeholder: $t('page.menu.placeholderRedirect'),
+        },
+      };
+    }
+    if (fieldName === 'icon') {
+      return {
+        ...item,
+        component: 'IconPicker',
+        componentProps: {
+          disabled: formModel.type === 'BUTTON',
+          placeholder: $t('page.menu.placeholderIcon'),
+          prefix: 'lucide',
+        },
+        extra: $t('page.menu.iconHint'),
+      };
+    }
+    if (fieldName === 'authority') {
+      return {
+        ...item,
+        componentProps: {
+          disabled: formModel.type === 'CATALOG',
+          placeholder: $t('page.menu.placeholderAuthority'),
+        },
+        extra: $t('page.menu.authorityHint'),
+      };
+    }
+    if (fieldName === 'type') {
+      return {
+        ...item,
+        componentProps: {
+          options: typeOptions,
+          onChange: handleTypeChange,
+        },
+        extra: getTypeHint(formModel.type),
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [$t('page.menu.type')]),
+            required: true,
+          },
+        ],
+      };
+    }
+    if (
+      fieldName === 'ignoreAccess' ||
+      fieldName === 'menuVisibleWithForbidden'
+    ) {
+      return {
+        ...item,
+        component: 'Select',
+        componentProps: {
+          options: yesNoOptions,
+        },
+      };
+    }
+    if (fieldName === 'status') {
+      return {
+        ...item,
+        componentProps: {
+          options: statusOptions,
+        },
+        rules: [
+          {
+            message: $t('ui.formRules.selectRequired', [
+              $t('page.menu.status'),
+            ]),
+            required: true,
+          },
+        ],
+      };
+    }
+    return {
+      ...item,
+      componentProps: {
+        ...item.componentProps,
+        placeholder: fieldName ? placeholderMap[fieldName] : undefined,
+      },
+      rules:
+        fieldName && requiredMap[fieldName]
+          ? [
+              {
+                message: $t('ui.formRules.required', [requiredMap[fieldName]]),
+                required: true,
+              },
+            ]
+          : item.rules,
+    };
+  }),
+);
 
 const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
@@ -659,189 +808,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminMenu>({
       @ok="submitMenu"
     >
       <Form ref="formRef" :model="formModel" layout="vertical">
-        <Form.Item :label="$t('page.menu.parent')" name="parentId">
-          <TreeSelect
-            v-model:value="formModel.parentId"
-            allow-clear
-            class="full-width-control"
-            :field-names="{
-              label: 'label',
-              value: 'value',
-              children: 'children',
-            }"
-            :placeholder="$t('page.menu.placeholderRootParent')"
-            show-search
-            :tree-data="parentTreeOptions"
-            tree-default-expand-all
-            tree-node-filter-prop="label"
-          >
-            <template #title="{ label, subtitle }">
-              <div class="menu-option">
-                <span class="menu-option-main">{{ label }}</span>
-                <span class="menu-option-meta">{{ subtitle }}</span>
-              </div>
-            </template>
-          </TreeSelect>
-          <div class="menu-form-hint">
-            {{ $t('page.menu.parentHint') }}
-          </div>
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.menu.title')"
-          name="title"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [$t('page.menu.title')]),
-              required: true,
-            },
-          ]"
-        >
-          <Input
-            v-model:value="formModel.title"
-            :placeholder="$t('page.menu.placeholderTitle')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.menu.name')"
-          name="name"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [$t('page.menu.name')]),
-              required: true,
-            },
-          ]"
-        >
-          <Input
-            v-model:value="formModel.name"
-            :placeholder="$t('page.menu.placeholderName')"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.menu.path')"
-          name="path"
-          :rules="[
-            {
-              message: $t('ui.formRules.required', [$t('page.menu.path')]),
-              required: true,
-            },
-          ]"
-        >
-          <Input
-            v-model:value="formModel.path"
-            :placeholder="$t('page.menu.placeholderPath')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.menu.component')" name="component">
-          <AutoComplete
-            v-model:value="formModel.component"
-            allow-clear
-            :disabled="
-              formModel.type === 'BUTTON' ||
-              formModel.type === 'CATALOG' ||
-              formModel.type === 'LINK'
-            "
-            :options="componentAutoCompleteOptions"
-            :placeholder="$t('page.menu.placeholderComponent')"
-          >
-            <template #option="{ value }">
-              <div class="menu-option">
-                <span class="menu-option-main">{{ value }}</span>
-                <span class="menu-option-meta">{{
-                  componentOptions.find((item) => item.value === value)?.meta
-                }}</span>
-              </div>
-            </template>
-          </AutoComplete>
-          <div class="menu-form-hint">
-            {{ $t('page.menu.componentHint') }}
-          </div>
-        </Form.Item>
-        <Form.Item :label="$t('page.menu.redirect')" name="redirect">
-          <Input
-            v-model:value="formModel.redirect"
-            :disabled="
-              formModel.type === 'BUTTON' || formModel.type === 'CATALOG'
-            "
-            :placeholder="$t('page.menu.placeholderRedirect')"
-          />
-        </Form.Item>
-        <Form.Item :label="$t('page.menu.icon')" name="icon">
-          <IconPicker
-            v-model="formModel.icon"
-            :disabled="formModel.type === 'BUTTON'"
-            prefix="lucide"
-            :placeholder="$t('page.menu.placeholderIcon')"
-          />
-          <div class="menu-form-hint">
-            {{ $t('page.menu.iconHint') }}
-          </div>
-        </Form.Item>
-        <Form.Item :label="$t('page.menu.authority')" name="authority">
-          <Input
-            v-model:value="formModel.authority"
-            :disabled="formModel.type === 'CATALOG'"
-            :placeholder="$t('page.menu.placeholderAuthority')"
-          />
-          <div class="menu-form-hint">
-            {{ $t('page.menu.authorityHint') }}
-          </div>
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.menu.type')"
-          name="type"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.menu.type'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select
-            v-model:value="formModel.type"
-            :options="typeOptions"
-            @change="handleTypeChange"
-          />
-          <div class="menu-form-hint">
-            {{ getTypeHint(formModel.type) }}
-          </div>
-        </Form.Item>
-        <Form.Item :label="$t('page.menu.ignoreAccess')" name="ignoreAccess">
-          <Select
-            v-model:value="formModel.ignoreAccess"
-            :options="[
-              { label: $t('page.menu.no'), value: 'false' },
-              { label: $t('page.menu.yes'), value: 'true' },
-            ]"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.menu.menuVisibleWithForbidden')"
-          name="menuVisibleWithForbidden"
-        >
-          <Select
-            v-model:value="formModel.menuVisibleWithForbidden"
-            :options="[
-              { label: $t('page.menu.no'), value: 'false' },
-              { label: $t('page.menu.yes'), value: 'true' },
-            ]"
-          />
-        </Form.Item>
-        <Form.Item
-          :label="$t('page.menu.status')"
-          name="status"
-          :rules="[
-            {
-              message: $t('ui.formRules.selectRequired', [
-                $t('page.menu.status'),
-              ]),
-              required: true,
-            },
-          ]"
-        >
-          <Select v-model:value="formModel.status" :options="statusOptions" />
-        </Form.Item>
+        <AdminGeneratedForm :model="formModel" :schema="dialogFormSchema" />
       </Form>
     </Modal>
   </Page>
