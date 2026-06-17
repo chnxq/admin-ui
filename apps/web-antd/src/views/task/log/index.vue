@@ -1,8 +1,10 @@
 <script lang="ts" setup>
+import type { VbenFormProps } from '@vben/common-ui';
+
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { AdminTaskLog, AdminTaskLogStatus } from '#/api/admin/tasks';
 
-import { computed, reactive, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { Page } from '@vben/common-ui';
@@ -10,12 +12,8 @@ import { IconifyIcon } from '@vben/icons';
 
 import {
   Button,
-  DatePicker,
   Descriptions,
-  Form,
-  InputNumber,
   Modal,
-  Select,
   Space,
   Tag,
   Tooltip,
@@ -26,6 +24,10 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { taskClient } from '#/api/admin/clients';
 import { listAdminTaskLogsApi } from '#/api/admin/tasks';
 import { $t } from '#/locales';
+import {
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/task/log.meta';
 
 import { formatCronDescription } from '../cron-utils';
 
@@ -48,12 +50,34 @@ const statusOptions: Array<{ label: string; value: AdminTaskLogStatus }> = [
   { label: $t('page.taskLog.statusFailure'), value: 'FAILURE' },
 ];
 
-const searchForm = reactive({
-  executeTimeRange: undefined as [string, string] | undefined,
-  status: undefined as AdminTaskLogStatus | undefined,
-  taskId: undefined as number | undefined,
-});
-const gridKey = ref(0);
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+
+const formOptions: VbenFormProps = {
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => {
+    if (item.fieldName === 'status') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: statusOptions,
+        },
+      };
+    }
+    if (item.fieldName === 'taskId') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          controls: false,
+        },
+      };
+    }
+    return item;
+  }),
+};
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
 const gridOptions: VxeTableGridOptions<AdminTaskLogRow> = {
   border: false,
@@ -61,50 +85,56 @@ const gridOptions: VxeTableGridOptions<AdminTaskLogRow> = {
     resizable: true,
   },
   columns: [
-    {
-      field: 'executeTime',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.taskLog.executeTime'),
-      width: 160,
-    },
-    {
-      field: 'status',
-      slots: { default: 'status' },
-      title: $t('page.taskLog.status'),
-      width: 120,
-    },
-    {
-      field: 'taskId',
-      slots: { default: 'taskId' },
-      sortable: true,
-      title: $t('page.taskLog.taskLabel'),
-      width: 180,
-    },
-    {
-      field: 'processTime',
-      slots: { default: 'processTime' },
-      title: $t('page.taskLog.processTime'),
-      width: 110,
-    },
-    {
-      field: 'input',
-      slots: { default: 'input' },
-      title: $t('page.taskLog.input'),
-      width: 240,
-    },
-    {
-      field: 'output',
-      slots: { default: 'output' },
-      title: $t('page.taskLog.output'),
-      width: 280,
-    },
-    {
-      field: 'error',
-      slots: { default: 'error' },
-      title: $t('page.taskLog.error'),
-      width: 220,
-    },
+    ...generatedColumns.map((column) => {
+      switch (column.field) {
+        case 'error': {
+          return {
+            ...column,
+            slots: { default: 'error' },
+          };
+        }
+        case 'executeTime': {
+          return {
+            ...column,
+            formatter: 'formatDateTime',
+          };
+        }
+        case 'input': {
+          return {
+            ...column,
+            slots: { default: 'input' },
+          };
+        }
+        case 'output': {
+          return {
+            ...column,
+            slots: { default: 'output' },
+          };
+        }
+        case 'processTime': {
+          return {
+            ...column,
+            slots: { default: 'processTime' },
+          };
+        }
+        case 'status': {
+          return {
+            ...column,
+            slots: { default: 'status' },
+          };
+        }
+        case 'taskId': {
+          return {
+            ...column,
+            slots: { default: 'taskId' },
+            title: $t('page.taskLog.taskLabel'),
+          };
+        }
+        default: {
+          return column;
+        }
+      }
+    }),
     {
       field: 'action',
       fixed: 'right',
@@ -124,18 +154,18 @@ const gridOptions: VxeTableGridOptions<AdminTaskLogRow> = {
     ajax: {
       query: async (
         { page, sort }: { page: any; sort: any },
-        _formValues: Record<string, any>,
+        formValues: Record<string, any>,
       ) => {
         const sortField = String(sort.field || 'executeTime');
         const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
 
         const response = await listAdminTaskLogsApi({
           executeTimeEnd: toFilterTimeValue(
-            searchForm.executeTimeRange?.[1],
+            formValues.executeTimeRange?.[1],
             true,
           ),
           executeTimeStart: toFilterTimeValue(
-            searchForm.executeTimeRange?.[0],
+            formValues.executeTimeRange?.[0],
             false,
           ),
           page: page.currentPage,
@@ -146,8 +176,8 @@ const gridOptions: VxeTableGridOptions<AdminTaskLogRow> = {
               field: sortField === 'executeTime' ? 'execute_time' : sortField,
             },
           ],
-          status: searchForm.status,
-          taskId: searchForm.taskId,
+          status: formValues.status,
+          taskId: formValues.taskId,
         });
         await loadTaskNames(response.items);
         return response;
@@ -309,22 +339,8 @@ function openDetail(log: AdminTaskLogRow) {
   detailOpen.value = true;
 }
 
-function reloadGrid() {
-  gridKey.value += 1;
-}
-
-function handleSearch() {
-  reloadGrid();
-}
-
-function handleReset() {
-  searchForm.executeTimeRange = undefined;
-  searchForm.status = undefined;
-  searchForm.taskId = undefined;
-  reloadGrid();
-}
-
 const [Grid] = useVbenVxeGrid<AdminTaskLogRow>({
+  formOptions,
   gridClass: 'log-audit-grid',
   gridOptions,
 });
@@ -332,72 +348,7 @@ const [Grid] = useVbenVxeGrid<AdminTaskLogRow>({
 
 <template>
   <Page auto-content-height>
-    <div class="admin-task-log-toolbar">
-      <Form
-        class="admin-task-log-search"
-        :model="searchForm"
-        layout="inline"
-        @finish="handleSearch"
-      >
-        <Form.Item
-          class="admin-task-log-search__item admin-task-log-search__item--id"
-          :label="$t('page.taskLog.taskId')"
-          name="taskId"
-        >
-          <InputNumber
-            v-model:value="searchForm.taskId"
-            :controls="false"
-            :placeholder="$t('page.taskLog.searchTaskId')"
-          />
-        </Form.Item>
-        <Form.Item
-          class="admin-task-log-search__item admin-task-log-search__item--status"
-          :label="$t('page.taskLog.status')"
-          name="status"
-        >
-          <Select
-            v-model:value="searchForm.status"
-            allow-clear
-            :options="statusOptions"
-            :placeholder="$t('page.taskLog.selectStatus')"
-          />
-        </Form.Item>
-        <Form.Item
-          class="admin-task-log-search__item admin-task-log-search__item--time"
-          :label="$t('page.taskLog.executeTimeRange')"
-          name="executeTimeRange"
-        >
-          <DatePicker.RangePicker
-            v-model:value="searchForm.executeTimeRange"
-            allow-clear
-            show-time
-            value-format="YYYY-MM-DD HH:mm:ss"
-          />
-        </Form.Item>
-        <Form.Item class="admin-task-log-search__actions">
-          <Space>
-            <Button html-type="submit" type="primary">
-              <template #icon>
-                <IconifyIcon icon="lucide:search" />
-              </template>
-              {{ $t('common.query') }}
-            </Button>
-            <Button @click="handleReset">
-              <template #icon>
-                <IconifyIcon icon="lucide:rotate-ccw" />
-              </template>
-              {{ $t('common.reset') }}
-            </Button>
-          </Space>
-        </Form.Item>
-      </Form>
-    </div>
-
-    <Grid
-      :key="gridKey"
-      class="admin-task-log-grid-shell"
-      :table-title="$t('menu.task.log')"
-    >
+    <Grid class="admin-task-log-grid-shell" :table-title="$t('menu.task.log')">
       <template #status="{ row }">
         <Tag :color="statusColor(row.status)">
           {{ formatStatus(row.status) }}
@@ -661,10 +612,6 @@ const [Grid] = useVbenVxeGrid<AdminTaskLogRow>({
   vertical-align: top;
 }
 
-.admin-task-log-toolbar {
-  margin-bottom: 12px;
-}
-
 .admin-task-log-grid-shell {
   display: flex;
   flex: 1;
@@ -678,83 +625,5 @@ const [Grid] = useVbenVxeGrid<AdminTaskLogRow>({
 .admin-task-log-grid-shell :deep(.vben-use-vxe-grid),
 .admin-task-log-grid-shell :deep(.vben-vxe-grid) {
   min-height: 0;
-}
-
-.admin-task-log-search {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  align-items: center;
-}
-
-:deep(.admin-task-log-search .ant-form-item) {
-  margin-bottom: 0;
-}
-
-:deep(.admin-task-log-search .ant-form-item-row) {
-  display: flex;
-  align-items: center;
-}
-
-:deep(.admin-task-log-search .ant-form-item-label) {
-  flex: none;
-  padding-bottom: 0;
-  margin-right: 8px;
-}
-
-:deep(.admin-task-log-search .ant-form-item-label > label) {
-  height: 32px;
-  line-height: 32px;
-}
-
-:deep(.admin-task-log-search .ant-form-item-control) {
-  flex: 1;
-  min-width: 0;
-}
-
-:deep(.admin-task-log-search .ant-input-number),
-:deep(.admin-task-log-search .ant-picker),
-:deep(.admin-task-log-search .ant-select) {
-  width: 100%;
-}
-
-:deep(.admin-task-log-search .ant-input-number),
-:deep(.admin-task-log-search .ant-picker),
-:deep(.admin-task-log-search .ant-select-selector),
-:deep(.admin-task-log-search .ant-btn) {
-  min-height: 32px;
-}
-
-.admin-task-log-search__item {
-  min-width: 0;
-}
-
-.admin-task-log-search__item--id {
-  width: 160px;
-}
-
-.admin-task-log-search__item--status {
-  width: 156px;
-}
-
-.admin-task-log-search__item--time {
-  width: 380px;
-}
-
-.admin-task-log-search__actions {
-  display: flex;
-  align-items: center;
-}
-
-@media (max-width: 768px) {
-  .admin-task-log-search {
-    gap: 8px;
-  }
-
-  .admin-task-log-search__item--id,
-  .admin-task-log-search__item--status,
-  .admin-task-log-search__item--time {
-    width: 100%;
-  }
 }
 </style>

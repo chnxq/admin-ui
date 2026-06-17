@@ -16,6 +16,10 @@ import dayjs from 'dayjs';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminPermissionAuditLogsApi } from '#/api/admin/permission-audit-logs';
 import { $t } from '#/locales';
+import {
+  buildListGridColumns as buildGeneratedListGridColumns,
+  buildSearchFormOptions as buildGeneratedSearchFormOptions,
+} from '#/views/generated/admin/app/log/permission-audit-log.meta';
 
 const PERMISSION_AUDIT_ACCESS = {
   export: ['permission:audit:logs:export'],
@@ -35,128 +39,68 @@ const actionOptions: Array<{
   { label: $t('page.permissionAuditLog.actionRevoke'), value: 'REVOKE' },
 ];
 
+const generatedFormOptions = buildGeneratedSearchFormOptions($t);
+
 const formOptions: VbenFormProps = {
-  collapsed: false,
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.permissionAuditLog.searchTargetType'),
-      },
-      fieldName: 'targetType',
-      label: $t('page.permissionAuditLog.targetType'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.permissionAuditLog.searchOperatorName'),
-      },
-      fieldName: 'operatorName',
-      label: $t('page.permissionAuditLog.operatorName'),
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: actionOptions,
-        placeholder: $t('page.permissionAuditLog.selectAction'),
-      },
-      fieldName: 'action',
-      label: $t('page.permissionAuditLog.action'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.permissionAuditLog.searchIpAddress'),
-      },
-      fieldName: 'ipAddress',
-      label: $t('page.permissionAuditLog.ipAddress'),
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        allowClear: true,
-        placeholder: $t('page.permissionAuditLog.searchReason'),
-      },
-      fieldName: 'reason',
-      label: $t('page.permissionAuditLog.reason'),
-    },
-    {
-      component: 'RangePicker',
-      componentProps: {
-        allowClear: true,
-        showTime: true,
-        valueFormat: 'YYYY-MM-DD HH:mm:ss',
-      },
-      fieldName: 'createdAtRange',
-      label: $t('page.permissionAuditLog.createdAtRange'),
-    },
-  ],
-  showCollapseButton: false,
-  submitOnEnter: true,
+  ...generatedFormOptions,
+  schema: (generatedFormOptions.schema || []).map((item) => {
+    if (item.fieldName === 'action') {
+      return {
+        ...item,
+        componentProps: {
+          ...item.componentProps,
+          options: actionOptions,
+        },
+      };
+    }
+    return item;
+  }),
 };
+
+const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
 
 const gridOptions: VxeTableGridOptions<AdminPermissionAuditLog> = {
   border: false,
   columnConfig: {
     resizable: true,
   },
-  columns: [
-    {
-      field: 'createdAt',
-      formatter: 'formatDateTime',
-      sortable: true,
-      title: $t('page.permissionAuditLog.createdAt'),
-      width: 150,
-    },
-    {
-      field: 'action',
-      slots: { default: 'action' },
-      title: $t('page.permissionAuditLog.action'),
-      width: 120,
-    },
-    {
-      field: 'targetType',
-      title: $t('page.permissionAuditLog.targetType'),
-      width: 140,
-    },
-    {
-      field: 'targetName',
-      title: $t('page.permissionAuditLog.targetName'),
-      width: 180,
-    },
-    {
-      field: 'operatorName',
-      title: $t('page.permissionAuditLog.operatorName'),
-      width: 140,
-    },
-    {
-      field: 'ipAddress',
-      title: $t('page.permissionAuditLog.ipAddress'),
-      width: 140,
-    },
-    {
-      field: 'reason',
-      slots: { default: 'reason' },
-      title: $t('page.permissionAuditLog.reason'),
-      width: 220,
-    },
-    {
-      field: 'oldValue',
-      slots: { default: 'oldValue' },
-      title: $t('page.permissionAuditLog.oldValue'),
-      width: 280,
-    },
-    {
-      field: 'newValue',
-      slots: { default: 'newValue' },
-      title: $t('page.permissionAuditLog.newValue'),
-      width: 280,
-    },
-  ],
+  columns: generatedColumns.map((column) => {
+    switch (column.field) {
+      case 'action': {
+        return {
+          ...column,
+          slots: { default: 'action' },
+        };
+      }
+      case 'createdAt': {
+        return {
+          ...column,
+          formatter: 'formatDateTime',
+        };
+      }
+      case 'newValue': {
+        return {
+          ...column,
+          slots: { default: 'newValue' },
+        };
+      }
+      case 'oldValue': {
+        return {
+          ...column,
+          slots: { default: 'oldValue' },
+        };
+      }
+      case 'reason': {
+        return {
+          ...column,
+          slots: { default: 'reason' },
+        };
+      }
+      default: {
+        return column;
+      }
+    }
+  }),
   exportConfig: {
     filename: 'permission-audit-logs',
     type: 'csv',
