@@ -26,6 +26,7 @@ const generatedPageI18nModules = import.meta.glob(
 const generatedLocaleModules = import.meta.glob(
   '../views/generated/**/langs/**/*.json',
 );
+const moduleLocaleModules = import.meta.glob('../modules/**/langs/**/*.json');
 
 const localesMap = loadLocalesMapFromDir(
   /\.\/langs\/([^/]+)\/(.*)\.json$/,
@@ -34,6 +35,10 @@ const localesMap = loadLocalesMapFromDir(
 const generatedLocalesMap = loadLocalesMapFromDir(
   /\.\.\/views\/generated\/.*\/langs\/([^/]+)\/(.*)\.json$/,
   generatedLocaleModules,
+);
+const moduleLocalesMap = loadLocalesMapFromDir(
+  /\.\.\/modules\/.*\/langs\/([^/]+)\/(.*)\.json$/,
+  moduleLocaleModules,
 );
 
 function setNestedValue(
@@ -117,7 +122,94 @@ async function loadGeneratedPageMessages(lang: SupportedLanguagesType) {
 
 async function loadGeneratedLocaleMessages(lang: SupportedLanguagesType) {
   const generatedLocaleMessages = await generatedLocalesMap[lang]?.();
-  return generatedLocaleMessages?.default ?? {};
+  const rawMessages = generatedLocaleMessages?.default ?? {};
+  if (
+    !rawMessages ||
+    typeof rawMessages !== 'object' ||
+    Array.isArray(rawMessages)
+  ) {
+    return {};
+  }
+
+  const mergedMessages: Record<string, any> = {};
+  for (const [fileName, fileMessages] of Object.entries(
+    rawMessages as Record<string, unknown>,
+  )) {
+    if (
+      !fileMessages ||
+      typeof fileMessages !== 'object' ||
+      Array.isArray(fileMessages)
+    ) {
+      continue;
+    }
+
+    const entries = Object.entries(fileMessages as Record<string, unknown>);
+    const hasFlatKeys = entries.some(([key]) => key.includes('.'));
+    let normalized: Record<string, any>;
+    if (hasFlatKeys) {
+      normalized = expandFlatMessages(fileMessages as Record<string, unknown>);
+    } else if (fileName === 'enum') {
+      normalized = { enum: fileMessages };
+    } else {
+      normalized = fileMessages as Record<string, unknown> as Record<
+        string,
+        any
+      >;
+    }
+
+    const nextMessages = mergeLocaleMessages(mergedMessages, normalized);
+    for (const [key, value] of Object.entries(nextMessages)) {
+      mergedMessages[key] = value;
+    }
+  }
+
+  return mergedMessages;
+}
+
+async function loadModuleLocaleMessages(lang: SupportedLanguagesType) {
+  const moduleLocaleMessages = await moduleLocalesMap[lang]?.();
+  const rawMessages = moduleLocaleMessages?.default ?? {};
+  if (
+    !rawMessages ||
+    typeof rawMessages !== 'object' ||
+    Array.isArray(rawMessages)
+  ) {
+    return {};
+  }
+
+  const mergedMessages: Record<string, any> = {};
+  for (const [fileName, fileMessages] of Object.entries(
+    rawMessages as Record<string, unknown>,
+  )) {
+    if (
+      !fileMessages ||
+      typeof fileMessages !== 'object' ||
+      Array.isArray(fileMessages)
+    ) {
+      continue;
+    }
+
+    const entries = Object.entries(fileMessages as Record<string, unknown>);
+    const hasFlatKeys = entries.some(([key]) => key.includes('.'));
+    let normalized: Record<string, any>;
+    if (hasFlatKeys) {
+      normalized = expandFlatMessages(fileMessages as Record<string, unknown>);
+    } else if (fileName === 'enum') {
+      normalized = { enum: fileMessages };
+    } else {
+      normalized = fileMessages as Record<string, unknown> as Record<
+        string,
+        any
+      >;
+    }
+
+    const nextMessages = mergeLocaleMessages(mergedMessages, normalized);
+    for (const [key, value] of Object.entries(nextMessages)) {
+      mergedMessages[key] = value;
+    }
+  }
+
+  return mergedMessages;
 }
 /**
  * 加载应用特有的语言包
@@ -125,16 +217,24 @@ async function loadGeneratedLocaleMessages(lang: SupportedLanguagesType) {
  * @param lang
  */
 async function loadMessages(lang: SupportedLanguagesType) {
-  const [appLocaleMessages, generatedLocaleMessages, generatedPageMessages] =
-    await Promise.all([
-      localesMap[lang]?.(),
-      loadGeneratedLocaleMessages(lang),
-      loadGeneratedPageMessages(lang),
-      loadThirdPartyMessage(lang),
-    ]);
+  const [
+    appLocaleMessages,
+    generatedLocaleMessages,
+    moduleLocaleMessages,
+    generatedPageMessages,
+  ] = await Promise.all([
+    localesMap[lang]?.(),
+    loadGeneratedLocaleMessages(lang),
+    loadModuleLocaleMessages(lang),
+    loadGeneratedPageMessages(lang),
+    loadThirdPartyMessage(lang),
+  ]);
   const baseMessages = appLocaleMessages?.default ?? {};
   return mergeLocaleMessages(
-    mergeLocaleMessages(baseMessages, generatedLocaleMessages),
+    mergeLocaleMessages(
+      mergeLocaleMessages(baseMessages, generatedLocaleMessages),
+      moduleLocaleMessages,
+    ),
     generatedPageMessages,
   );
 }

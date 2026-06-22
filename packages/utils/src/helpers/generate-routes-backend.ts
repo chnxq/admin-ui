@@ -35,13 +35,19 @@ async function generateRoutesByBackend(
       return [];
     }
 
+    const moduleNames = collectModuleNames(pageMap);
     const normalizePageMap: ComponentRecordType = {};
 
     for (const [key, value] of Object.entries(pageMap)) {
-      normalizePageMap[normalizeViewPath(key)] = value;
+      normalizePageMap[normalizeViewPath(key, moduleNames)] = value;
     }
 
-    let routes = convertRoutes(menuRoutes, layoutMap, normalizePageMap);
+    let routes = convertRoutes(
+      menuRoutes,
+      layoutMap,
+      normalizePageMap,
+      moduleNames,
+    );
 
     if (forbiddenComponent) {
       routes = mapTree(routes, (route) => {
@@ -63,6 +69,7 @@ function convertRoutes(
   routes: RouteRecordStringComponent[],
   layoutMap: ComponentRecordType,
   pageMap: ComponentRecordType,
+  moduleNames: Set<string>,
 ): RouteRecordRaw[] {
   return mapTree(routes, (node) => {
     const route = node as unknown as RouteRecordRaw;
@@ -77,7 +84,7 @@ function convertRoutes(
       route.component = layoutMap[component];
       // 页面组件转换
     } else if (component) {
-      const normalizePath = normalizeViewPath(component);
+      const normalizePath = normalizeViewPath(component, moduleNames);
       const pageKey = normalizePath.endsWith('.vue')
         ? normalizePath
         : `${normalizePath}.vue`;
@@ -93,16 +100,45 @@ function convertRoutes(
   });
 }
 
-function normalizeViewPath(path: string): string {
-  // 去除相对路径前缀
-  const normalizedPath = path.replace(/^(\.\/|\.\.\/)+/, '');
+function collectModuleNames(pageMap: ComponentRecordType): Set<string> {
+  const moduleNames = new Set<string>();
+  for (const key of Object.keys(pageMap)) {
+    const normalizedKey = key.replaceAll('\\', '/');
+    const match = normalizedKey.match(/\/modules\/([^/]+)\/views\//);
+    if (match?.[1]) {
+      moduleNames.add(match[1]);
+    }
+  }
+  return moduleNames;
+}
 
-  // 确保路径以 '/' 开头
+function normalizeViewPath(path: string, moduleNames: Set<string>): string {
+  const normalizedPath = path
+    .replace(/^(\.\/|\.\.\/)+/, '')
+    .replaceAll('\\', '/');
   const viewPath = normalizedPath.startsWith('/')
     ? normalizedPath
     : `/${normalizedPath}`;
 
-  // 这里耦合了vben-admin的目录结构
-  return viewPath.replace(/^\/views/, '');
+  if (viewPath.startsWith('/views/')) {
+    return viewPath.replace(/^\/views/, '');
+  }
+
+  if (viewPath.startsWith('/modules/')) {
+    return viewPath;
+  }
+
+  if (viewPath.startsWith('/_core/')) {
+    return viewPath;
+  }
+
+  const segments = viewPath.split('/').filter(Boolean);
+  const moduleName = segments[0];
+  if (segments.length >= 2 && moduleName && moduleNames.has(moduleName)) {
+    return `/modules/${moduleName}/views/${segments.slice(1).join('/')}`;
+  }
+
+  return viewPath;
 }
+
 export { generateRoutesByBackend };

@@ -118,7 +118,10 @@ const typeTextMap: Record<AdminMenuType, string> = {
   MENU: $t('enum.menu.type.MENU'),
 };
 
-const pageComponentMap = import.meta.glob('../../**/*.vue');
+const pageComponentMap = {
+  ...import.meta.glob('../../**/*.vue'),
+  ...import.meta.glob('../../../modules/**/views/**/*.vue'),
+};
 
 const loading = ref(false);
 const modalOpen = ref(false);
@@ -541,12 +544,19 @@ function getTypeHint(type: AdminMenuType) {
 }
 
 function normalizeComponentPathFromFile(filePath: string) {
-  const normalized = filePath
-    .replaceAll('\\', '/')
-    .replace(/^\.\.\/\.\.\//, '/')
-    .replace(/\.vue$/, '');
-
-  return normalized.startsWith('/') ? normalized : `/${normalized}`;
+  const normalized = filePath.replaceAll('\\', '/').replace(/\.vue$/, '');
+  if (normalized.startsWith('../../../modules/')) {
+    const moduleRelative = normalized.replace('../../../modules/', '');
+    const segments = moduleRelative.split('/');
+    const moduleName = segments.shift();
+    const viewsIndex = segments.indexOf('views');
+    if (moduleName && viewsIndex !== -1) {
+      const viewSegments = segments.slice(viewsIndex + 1);
+      return `/${moduleName}/${viewSegments.join('/')}`;
+    }
+  }
+  const viewRelative = normalized.replace(/^\.\.\/\.\.\//, '/');
+  return viewRelative.startsWith('/') ? viewRelative : `/${viewRelative}`;
 }
 
 function buildComponentOptionMeta(componentPath: string) {
