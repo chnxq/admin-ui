@@ -106,7 +106,7 @@ function collectModuleNames(pageMap: ComponentRecordType): Set<string> {
     const normalizedKey = key.replaceAll('\\', '/');
     const match = normalizedKey.match(/\/modules\/([^/]+)\/views\//);
     if (match?.[1]) {
-      moduleNames.add(match[1]);
+      moduleNames.add(normalizeModuleRouteName(match[1]));
     }
   }
   return moduleNames;
@@ -139,6 +139,12 @@ function normalizeViewPath(path: string, moduleNames: Set<string>): string {
   }
 
   return viewPath;
+}
+
+function normalizeModuleRouteName(moduleDirName: string): string {
+  return moduleDirName.endsWith('-ui')
+    ? moduleDirName.slice(0, -3)
+    : moduleDirName;
 }
 
 export { generateRoutesByBackend };

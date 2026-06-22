@@ -548,7 +548,7 @@ function normalizeComponentPathFromFile(filePath: string) {
   if (normalized.startsWith('../../../modules/')) {
     const moduleRelative = normalized.replace('../../../modules/', '');
     const segments = moduleRelative.split('/');
-    const moduleName = segments.shift();
+    const moduleName = normalizeModuleRouteName(segments.shift());
     const viewsIndex = segments.indexOf('views');
     if (moduleName && viewsIndex !== -1) {
       const viewSegments = segments.slice(viewsIndex + 1);
@@ -557,6 +557,15 @@ function normalizeComponentPathFromFile(filePath: string) {
   }
   const viewRelative = normalized.replace(/^\.\.\/\.\.\//, '/');
   return viewRelative.startsWith('/') ? viewRelative : `/${viewRelative}`;
+}
+
+function normalizeModuleRouteName(moduleDirName?: string) {
+  if (!moduleDirName) {
+    return '';
+  }
+  return moduleDirName.endsWith('-ui')
+    ? moduleDirName.slice(0, -3)
+    : moduleDirName;
 }
 
 function buildComponentOptionMeta(componentPath: string) {
