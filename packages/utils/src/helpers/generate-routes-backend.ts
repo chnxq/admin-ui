@@ -125,7 +125,7 @@ function normalizeViewPath(path: string, moduleNames: Set<string>): string {
   }
 
   if (viewPath.startsWith('/modules/')) {
-    return viewPath;
+    return normalizeModuleViewPath(viewPath);
   }
 
   if (viewPath.startsWith('/_core/')) {
@@ -145,6 +145,16 @@ function normalizeModuleRouteName(moduleDirName: string): string {
   return moduleDirName.endsWith('-ui')
     ? moduleDirName.slice(0, -3)
     : moduleDirName;
+}
+
+function normalizeModuleViewPath(viewPath: string): string {
+  const match = viewPath.match(/^\/modules\/([^/]+)\/(.*)$/);
+  const moduleDirName = match?.[1];
+  if (!moduleDirName) {
+    return viewPath;
+  }
+  const rest = match[2] ?? '';
+  return `/modules/${normalizeModuleRouteName(moduleDirName)}/${rest}`;
 }
 
 export { generateRoutesByBackend };
