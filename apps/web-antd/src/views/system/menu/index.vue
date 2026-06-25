@@ -468,6 +468,14 @@ function getDisplayTitle(title?: string) {
   return $te(normalizedTitle) ? $t(normalizedTitle) : normalizedTitle;
 }
 
+function getMenuIcon(menu: AdminMenu) {
+  return menu.meta?.icon?.trim() || '';
+}
+
+function getMenuDisplayIcon(menu: AdminMenu) {
+  return getMenuIcon(menu) || 'lucide:circle';
+}
+
 function getMenuTooltipLines(menu: AdminMenu) {
   return [
     `${$t('page.menu.name')}: ${menu.name || '-'}`,
@@ -745,9 +753,15 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminMenu>({
               </div>
             </div>
           </template>
-          <span class="menu-main">
-            {{ getDisplayTitle(row.meta?.title) }}
-          </span>
+          <div class="flex items-center gap-2">
+            <IconifyIcon
+              :icon="getMenuDisplayIcon(row)"
+              class="text-[16px] text-muted-foreground"
+            />
+            <span class="menu-main">
+              {{ getDisplayTitle(row.meta?.title) }}
+            </span>
+          </div>
         </Tooltip>
       </template>
 
