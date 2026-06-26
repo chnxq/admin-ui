@@ -24,11 +24,22 @@ const router = useRouter();
 const captchaImage = ref('');
 const captchaId = ref('');
 const submitPending = ref(false);
+const loginFormRef = ref<InstanceType<typeof AuthenticationLogin>>();
+
+async function clearCaptchaCode() {
+  const formApi = loginFormRef.value?.getFormApi?.();
+  if (!formApi) {
+    return;
+  }
+  await formApi.setFieldValue('captchaCode', '', false);
+  await formApi.resetValidate();
+}
 
 async function refreshCaptcha() {
   const captcha = await getCaptchaApi();
   captchaImage.value = captcha.imageBase64;
   captchaId.value = captcha.captchaId;
+  await clearCaptchaCode();
 }
 
 async function handleSubmit(values: Recordable<any>) {
@@ -164,6 +175,7 @@ async function openSocialBindPage(provider: SocialProvider = 'github') {
 
 <template>
   <AuthenticationLogin
+    ref="loginFormRef"
     :form-schema="formSchema"
     :loading="authStore.loginLoading"
     :show-code-login="true"

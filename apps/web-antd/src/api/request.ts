@@ -77,19 +77,6 @@ function resolveErrorMessage(error: any, fallbackMessage: string) {
   return fallbackMessage;
 }
 
-function isUnauthorizedError(error: any) {
-  const responseData = error?.response?.data ?? {};
-  const status = error?.response?.status;
-  const reason =
-    typeof responseData?.reason === 'string'
-      ? responseData.reason.trim().toUpperCase()
-      : '';
-
-  return (
-    status === 401 || reason === 'UNAUTHORIZED' || reason === 'TOKEN_EXPIRED'
-  );
-}
-
 export async function handleUnauthorizedError(redirect: boolean = true) {
   if (unauthorizedLogoutPromise) {
     return unauthorizedLogoutPromise;
@@ -111,7 +98,6 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   async function doReAuthenticate() {
     console.warn('Access token or refresh token is invalid or expired. ');
     const accessStore = useAccessStore();
-    const authStore = useAuthStore();
     accessStore.setAccessToken(null);
     if (
       preferences.app.loginExpiredMode === 'modal' &&
@@ -119,7 +105,7 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     ) {
       accessStore.setLoginExpired(true);
     } else {
-      await authStore.logout();
+      await handleUnauthorizedError(false);
     }
   }
 
@@ -177,9 +163,6 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
 
   client.addResponseInterceptor(
     errorMessageResponseInterceptor((msg: string, error) => {
-      if (isUnauthorizedError(error)) {
-        void handleUnauthorizedError(false);
-      }
       message.error(resolveErrorMessage(error, msg));
     }),
   );
