@@ -418,7 +418,21 @@ const dialogFormSchema = computed(() =>
   }),
 );
 
-const generatedColumns = buildGeneratedListGridColumns($t) ?? [];
+const generatedColumns = (buildGeneratedListGridColumns($t) ?? []).map(
+  (column: any) => {
+    if (
+      column?.field === 'orgUnits' ||
+      column?.field === 'positions' ||
+      column?.field === 'roles'
+    ) {
+      return {
+        ...column,
+        sortable: false,
+      };
+    }
+    return column;
+  },
+);
 
 const gridOptions: VxeTableGridOptions<AdminUser> = {
   border: false,
