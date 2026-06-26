@@ -53,6 +53,7 @@ import {
   updateAdminPermissionApi,
   updateAdminPermissionGroupApi,
 } from '#/api/admin/permissions';
+import { normalizeAdminTableSortDirection } from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 
 interface AdminPermissionFormModel extends AdminPermissionSaveInput {
@@ -314,7 +315,8 @@ const permissionGridOptions: VxeTableGridOptions<AdminPermission> = {
         formValues: Record<string, any>,
       ) => {
         const sortField = String(sort.field || 'id');
-        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+        const direction =
+          normalizeAdminTableSortDirection(sort.order) ?? 'DESC';
 
         loading.value = true;
         try {

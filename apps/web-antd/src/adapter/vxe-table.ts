@@ -22,6 +22,9 @@ setupVbenVxeTable({
         columnConfig: {
           resizable: true,
         },
+        filterConfig: {
+          remote: true,
+        },
         minHeight: 180,
         formConfig: {
           // 全局禁用vxe-table的表单配置，使用formOptions
@@ -40,6 +43,9 @@ setupVbenVxeTable({
         round: true,
         showOverflow: true,
         size: 'small',
+        sortConfig: {
+          remote: true,
+        },
       } as VxeTableGridOptions,
     });
 

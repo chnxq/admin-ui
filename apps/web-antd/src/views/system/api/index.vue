@@ -26,6 +26,7 @@ import {
   updateAdminApiApi,
 } from '#/api/admin/apis';
 import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
+import { normalizeAdminTableSortDirection } from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 import {
   buildFormOptions as buildGeneratedDialogFormOptions,
@@ -229,7 +230,8 @@ const gridOptions: VxeTableGridOptions<AdminApi> = {
         formValues: Record<string, any>,
       ) => {
         const sortField = String(sort.field || 'id');
-        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+        const direction =
+          normalizeAdminTableSortDirection(sort.order) ?? 'DESC';
 
         return await listAdminApisApi({
           method: formValues.method,
@@ -240,7 +242,7 @@ const gridOptions: VxeTableGridOptions<AdminApi> = {
           sorting: [
             {
               direction,
-              field: sortField === 'createdAt' ? 'created_at' : sortField,
+              field: toApiSortField(sortField),
             },
           ],
         });
@@ -262,6 +264,20 @@ const gridOptions: VxeTableGridOptions<AdminApi> = {
     zoom: true,
   },
 };
+
+function toApiSortField(sortField: string) {
+  switch (sortField) {
+    case 'createdAt': {
+      return 'created_at';
+    }
+    case 'moduleDescription': {
+      return 'module_description';
+    }
+    default: {
+      return sortField;
+    }
+  }
+}
 
 function resetFormModel() {
   Object.assign(formModel, {

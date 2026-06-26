@@ -50,6 +50,7 @@ import {
   updateAdminDictCategoryApi,
   updateAdminDictLabelApi,
 } from '#/api/admin/dicts';
+import { normalizeAdminTableSortDirection } from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 
 interface AdminDictCategoryFormModel extends AdminDictCategorySaveInput {
@@ -308,7 +309,8 @@ const labelGridOptions: VxeTableGridOptions<AdminDictLabel> = {
           };
         }
         const sortField = String(sort.field || 'sortOrder');
-        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+        const direction =
+          normalizeAdminTableSortDirection(sort.order) ?? 'DESC';
 
         labelLoading.value = true;
         try {

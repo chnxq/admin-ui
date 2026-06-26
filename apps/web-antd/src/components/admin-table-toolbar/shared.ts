@@ -53,6 +53,25 @@ function toSnakeCase(value: string) {
     .toLowerCase();
 }
 
+export function normalizeAdminTableSortDirection(order?: null | string) {
+  if (order === 'asc' || order === 'ascend') {
+    return 'ASC' as const;
+  }
+  if (order === 'desc' || order === 'descend') {
+    return 'DESC' as const;
+  }
+  return undefined;
+}
+
+export function normalizeAdminTableSortField(field?: ColumnPath) {
+  const path = normalizePath(field);
+  if (path.length === 0) {
+    return undefined;
+  }
+
+  return path.map((segment) => toSnakeCase(String(segment))).join('.');
+}
+
 export function getAdminTableColumnKey<T>(
   column: Pick<AdminTableColumnBase<T>, 'dataIndex' | 'key'>,
 ) {
@@ -152,12 +171,7 @@ export function toAdminTableSorting<T>(
   }
 
   return items.flatMap((item) => {
-    let direction: 'ASC' | 'DESC' | undefined;
-    if (item.order === 'ascend') {
-      direction = 'ASC';
-    } else if (item.order === 'descend') {
-      direction = 'DESC';
-    }
+    const direction = normalizeAdminTableSortDirection(item.order);
     if (!direction) {
       return [];
     }
@@ -327,12 +341,7 @@ function resolveHeuristicExportValue<T extends Record<string, any>>(
 }
 
 function normalizeSortField(field?: ColumnPath) {
-  const path = normalizePath(field);
-  if (path.length === 0) {
-    return undefined;
-  }
-
-  return path.map((segment) => toSnakeCase(String(segment))).join('.');
+  return normalizeAdminTableSortField(field);
 }
 
 function resolveValueByPath(

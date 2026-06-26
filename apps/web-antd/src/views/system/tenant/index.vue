@@ -36,6 +36,7 @@ import {
   updateAdminTenantApi,
 } from '#/api/admin/tenants';
 import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
+import { normalizeAdminTableSortDirection } from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 import {
   buildFormOptions as buildGeneratedDialogFormOptions,
@@ -252,7 +253,8 @@ const gridOptions: VxeTableGridOptions<AdminTenant> = {
         formValues: Record<string, any>,
       ) => {
         const sortField = String(sort.field || 'id');
-        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+        const direction =
+          normalizeAdminTableSortDirection(sort.order) ?? 'DESC';
 
         return await listAdminTenantsApi({
           code: formValues.code,

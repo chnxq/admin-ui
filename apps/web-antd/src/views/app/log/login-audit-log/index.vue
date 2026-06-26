@@ -18,6 +18,7 @@ import dayjs from 'dayjs';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { listAdminLoginAuditLogsApi } from '#/api/admin/login-audit-logs';
+import { normalizeAdminTableSortDirection } from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 import {
   buildListGridColumns as buildGeneratedListGridColumns,
@@ -126,7 +127,8 @@ const gridOptions: VxeTableGridOptions<AdminLoginAuditLog> = {
         formValues: Record<string, any>,
       ) => {
         const sortField = String(sort.field || 'createdAt');
-        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+        const direction =
+          normalizeAdminTableSortDirection(sort.order) ?? 'DESC';
 
         return await listAdminLoginAuditLogsApi({
           actionType: formValues.actionType,

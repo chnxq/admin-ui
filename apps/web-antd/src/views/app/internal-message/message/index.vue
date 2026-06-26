@@ -20,6 +20,7 @@ import {
 } from '#/api/admin/internal-messages';
 import { listAdminUsersApi } from '#/api/admin/users';
 import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
+import { normalizeAdminTableSortDirection } from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 import {
   buildListGridColumns as buildGeneratedListGridColumns,
@@ -208,7 +209,8 @@ const gridOptions: VxeTableGridOptions<AdminInternalMessage> = {
         formValues: Record<string, any>,
       ) => {
         const sortField = String(sort.field || 'createdAt');
-        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+        const direction =
+          normalizeAdminTableSortDirection(sort.order) ?? 'DESC';
 
         const response = await listAdminInternalMessagesApi({
           page: page.currentPage,

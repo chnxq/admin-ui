@@ -41,6 +41,7 @@ import {
   listAdminFilesApi,
   uploadAdminFileApi,
 } from '#/api/admin/files';
+import { normalizeAdminTableSortDirection } from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 import {
   buildListGridColumns as buildGeneratedListGridColumns,
@@ -169,7 +170,8 @@ const gridOptions: VxeTableGridOptions<AdminFile> = {
         formValues: Record<string, any>,
       ) => {
         const sortField = String(sort.field || 'createdAt');
-        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+        const direction =
+          normalizeAdminTableSortDirection(sort.order) ?? 'DESC';
 
         return await listAdminFilesApi({
           bucketName: formValues.bucketName,

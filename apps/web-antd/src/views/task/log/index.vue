@@ -23,6 +23,7 @@ import dayjs from 'dayjs';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { taskClient } from '#/api/admin/clients';
 import { listAdminTaskLogsApi } from '#/api/admin/tasks';
+import { normalizeAdminTableSortDirection } from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 import {
   buildListGridColumns as buildGeneratedListGridColumns,
@@ -157,7 +158,8 @@ const gridOptions: VxeTableGridOptions<AdminTaskLogRow> = {
         formValues: Record<string, any>,
       ) => {
         const sortField = String(sort.field || 'executeTime');
-        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+        const direction =
+          normalizeAdminTableSortDirection(sort.order) ?? 'DESC';
 
         const response = await listAdminTaskLogsApi({
           executeTimeEnd: toFilterTimeValue(

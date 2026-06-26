@@ -56,6 +56,7 @@ import {
   updateAdminRoleApi,
 } from '#/api/admin/roles';
 import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
+import { normalizeAdminTableSortDirection } from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 import {
   buildFormOptions as buildGeneratedDialogFormOptions,
@@ -349,7 +350,8 @@ const gridOptions: VxeTableGridOptions<AdminRole> = {
         formValues: Record<string, any>,
       ) => {
         const sortField = String(sort.field || 'sortOrder');
-        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+        const direction =
+          normalizeAdminTableSortDirection(sort.order) ?? 'DESC';
 
         return await listAdminRolesApi({
           code: formValues.code,

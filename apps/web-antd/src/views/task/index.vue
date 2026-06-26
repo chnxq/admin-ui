@@ -54,6 +54,7 @@ import {
   updateAdminTaskGroupApi,
 } from '#/api/admin/tasks';
 import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
+import { normalizeAdminTableSortDirection } from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 import {
   buildListGridColumns as buildGeneratedListGridColumns,
@@ -374,7 +375,8 @@ const gridOptions: VxeTableGridOptions<AdminTask> = {
         formValues: Record<string, any>,
       ) => {
         const sortField = String(sort.field || 'updatedAt');
-        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+        const direction =
+          normalizeAdminTableSortDirection(sort.order) ?? 'DESC';
 
         return await listAdminTasksApi({
           groupId: selectedGroupId.value,

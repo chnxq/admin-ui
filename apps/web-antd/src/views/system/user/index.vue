@@ -43,6 +43,7 @@ import {
   updateAdminUserApi,
 } from '#/api/admin/users';
 import AdminGeneratedForm from '#/components/admin-generated-form/index.vue';
+import { normalizeAdminTableSortDirection } from '#/components/admin-table-toolbar/shared';
 import { $t } from '#/locales';
 import {
   buildFormOptions as buildGeneratedDialogFormOptions,
@@ -448,7 +449,8 @@ const gridOptions: VxeTableGridOptions<AdminUser> = {
         formValues: Record<string, any>,
       ) => {
         const sortField = String(sort.field || 'id');
-        const direction = sort.order === 'asc' ? 'ASC' : 'DESC';
+        const direction =
+          normalizeAdminTableSortDirection(sort.order) ?? 'DESC';
 
         return await listAdminUsersApi({
           mobile: formValues.mobile,
@@ -494,6 +496,12 @@ function toUserSortField(sortField: string) {
     }
     case 'lastLoginAt': {
       return 'last_login_at';
+    }
+    case 'nickname': {
+      return 'nickname';
+    }
+    case 'realname': {
+      return 'realname';
     }
     case 'tenantName': {
       return 'tenant_id';
