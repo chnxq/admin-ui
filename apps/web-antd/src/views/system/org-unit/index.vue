@@ -69,6 +69,7 @@ const userStore = useUserStore();
 const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
+const currentTenantId = computed(() => userStore.userInfo?.tenantId ?? 0);
 const sessionTenantLabel = computed(
   () => userStore.userInfo?.tenantName || '-',
 );
@@ -112,6 +113,7 @@ const typeTextMap: Record<AdminOrgUnitType, string> = {
 const modalOpen = ref(false);
 const submitting = ref(false);
 const editingId = ref<number>();
+const editingReadonly = ref(false);
 const formRef = ref();
 const orgUnitTree = ref<AdminOrgUnit[]>([]);
 
@@ -131,7 +133,9 @@ const formModel = reactive<AdminOrgUnitFormModel>({
 
 const modalTitle = computed(() =>
   editingId.value
-    ? $t('page.orgUnit.editTitle')
+    ? editingReadonly.value
+      ? $t('common.detail')
+      : $t('page.orgUnit.editTitle')
     : $t('page.orgUnit.createTitle'),
 );
 
@@ -370,8 +374,25 @@ function getOrgUnitTooltipLines(record: AdminOrgUnit) {
   ];
 }
 
+function canMutateOrgUnit(record: AdminOrgUnit) {
+  return (record.tenantId ?? 0) === currentTenantId.value;
+}
+
+function canCreateOrgUnit() {
+  return true;
+}
+
 async function openCreateModal() {
+  if (!canCreateOrgUnit()) {
+    message.warning(
+      $t('page.commonSession.orgUnitReadonlyBanner', [
+        sessionTenantLabel.value,
+      ]),
+    );
+    return;
+  }
   editingId.value = undefined;
+  editingReadonly.value = false;
   resetFormModel();
   modalOpen.value = true;
   await nextTick();
@@ -380,6 +401,7 @@ async function openCreateModal() {
 
 async function openEditModal(record: AdminOrgUnit) {
   editingId.value = record.id;
+  editingReadonly.value = !canMutateOrgUnit(record);
   Object.assign(formModel, {
     address: record.address ?? '',
     code: record.code ?? '',
@@ -399,6 +421,10 @@ async function openEditModal(record: AdminOrgUnit) {
 }
 
 async function handleSubmit() {
+  if (editingReadonly.value) {
+    modalOpen.value = false;
+    return;
+  }
   await formRef.value?.validate();
   submitting.value = true;
   try {
@@ -406,6 +432,14 @@ async function handleSubmit() {
       await updateAdminOrgUnitApi(editingId.value, formModel);
       message.success($t('page.orgUnit.updateSuccess'));
     } else {
+      if (!canCreateOrgUnit()) {
+        message.warning(
+          $t('page.commonSession.orgUnitReadonlyBanner', [
+            sessionTenantLabel.value,
+          ]),
+        );
+        return;
+      }
       await createAdminOrgUnitApi(formModel);
       message.success($t('page.orgUnit.createSuccess'));
     }
@@ -417,6 +451,14 @@ async function handleSubmit() {
 }
 
 async function handleDelete(record: AdminOrgUnit) {
+  if (!canMutateOrgUnit(record)) {
+    message.warning(
+      $t('page.commonSession.orgUnitReadonlyBanner', [
+        sessionTenantLabel.value,
+      ]),
+    );
+    return;
+  }
   if (!record.id) {
     return;
   }
@@ -449,6 +491,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminOrgUnit>({
           <div class="admin-org-unit-tool-prefix__item">
             <Button
               v-access:code="ORG_UNIT_ACCESS.create"
+              :disabled="!canCreateOrgUnit()"
               type="primary"
               @click="openCreateModal"
             >
@@ -502,7 +545,9 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminOrgUnit>({
             type="link"
             @click="openEditModal(row)"
           >
-            {{ $t('common.edit') }}
+            {{
+              canMutateOrgUnit(row) ? $t('common.edit') : $t('common.detail')
+            }}
           </Button>
           <Popconfirm
             v-access:code="ORG_UNIT_ACCESS.delete"
@@ -513,7 +558,12 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminOrgUnit>({
             "
             @confirm="handleDelete(row)"
           >
-            <Button danger size="small" type="link">
+            <Button
+              danger
+              :disabled="!canMutateOrgUnit(row)"
+              size="small"
+              type="link"
+            >
               {{ $t('common.delete') }}
             </Button>
           </Popconfirm>
@@ -524,6 +574,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminOrgUnit>({
     <Modal
       v-model:open="modalOpen"
       :confirm-loading="submitting"
+      :ok-button-props="{ disabled: editingReadonly }"
       :title="modalTitle"
       destroy-on-close
       width="720px"

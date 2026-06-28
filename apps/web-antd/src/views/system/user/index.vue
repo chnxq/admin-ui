@@ -82,6 +82,7 @@ const userStore = useUserStore();
 const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
+const currentTenantId = computed(() => userStore.userInfo?.tenantId ?? 0);
 const sessionTenantLabel = computed(
   () => userStore.userInfo?.tenantName || '-',
 );
@@ -114,6 +115,7 @@ const modalOpen = ref(false);
 const submitting = ref(false);
 const optionLoading = ref(false);
 const editingId = ref<number>();
+const editingReadonly = ref(false);
 const formRef = ref();
 const orgOptions = ref<AdminOrgUnit[]>([]);
 const positionOptions = ref<AdminPosition[]>([]);
@@ -140,7 +142,11 @@ const formModel = reactive<AdminUserFormModel>({
 });
 
 const modalTitle = computed(() =>
-  editingId.value ? $t('page.user.editTitle') : $t('page.user.createTitle'),
+  editingId.value
+    ? editingReadonly.value
+      ? $t('common.detail')
+      : $t('page.user.editTitle')
+    : $t('page.user.createTitle'),
 );
 
 const orgSelectOptions = computed(
@@ -599,6 +605,10 @@ function getStatusColor(status?: AdminUserStatus) {
   return 'default';
 }
 
+function canMutateUser(record: AdminUser) {
+  return (record.tenantId ?? 0) === currentTenantId.value;
+}
+
 async function loadReferenceOptions() {
   optionLoading.value = true;
   try {
@@ -629,6 +639,7 @@ async function loadReferenceOptions() {
 
 async function openCreate() {
   editingId.value = undefined;
+  editingReadonly.value = false;
   resetFormModel();
   modalOpen.value = true;
   await nextTick();
@@ -645,6 +656,7 @@ async function openEdit(record: AdminUser) {
   try {
     const detail = await getAdminUserApi(record.id);
     editingId.value = record.id;
+    editingReadonly.value = !canMutateUser(record);
     Object.assign(formModel, {
       address: detail.address ?? '',
       avatar: detail.avatar ?? '',
@@ -675,6 +687,10 @@ async function openEdit(record: AdminUser) {
 }
 
 async function submitUser() {
+  if (editingReadonly.value) {
+    modalOpen.value = false;
+    return;
+  }
   try {
     await formRef.value?.validate();
   } catch (error) {
@@ -844,7 +860,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:pencil" />
             </template>
-            {{ $t('common.edit') }}
+            {{ canMutateUser(row) ? $t('common.edit') : $t('common.detail') }}
           </Button>
           <Popconfirm
             :title="
@@ -872,6 +888,7 @@ onMounted(() => {
       v-model:open="modalOpen"
       destroy-on-close
       :confirm-loading="submitting"
+      :ok-button-props="{ disabled: editingReadonly }"
       :title="modalTitle"
       width="720px"
       @ok="submitUser"

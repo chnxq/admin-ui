@@ -93,6 +93,7 @@ const userStore = useUserStore();
 const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
+const currentTenantId = computed(() => userStore.userInfo?.tenantId ?? 0);
 const sessionTenantLabel = computed(
   () => userStore.userInfo?.tenantName || '-',
 );
@@ -122,6 +123,7 @@ const typeTextMap: Record<AdminRoleType, string> = {
 const modalOpen = ref(false);
 const authorizeModalOpen = ref(false);
 const submitting = ref(false);
+const editingReadonly = ref(false);
 const authorizeLoading = ref(false);
 const authorizeSubmitting = ref(false);
 const editingId = ref<number>();
@@ -158,7 +160,11 @@ const formModel = reactive<AdminRoleFormModel>({
 });
 
 const modalTitle = computed(() =>
-  editingId.value ? $t('page.role.editTitle') : $t('page.role.createTitle'),
+  editingId.value
+    ? editingReadonly.value
+      ? $t('common.detail')
+      : $t('page.role.editTitle')
+    : $t('page.role.createTitle'),
 );
 
 const authorizeModalTitle = computed(() =>
@@ -454,7 +460,11 @@ function getTypeText(type?: AdminRoleType) {
 }
 
 function canMutateRole(role: AdminRole) {
-  return !isTenantSession.value || Boolean(role.tenantId);
+  return (role.tenantId ?? 0) === currentTenantId.value;
+}
+
+function canCreateRole() {
+  return true;
 }
 
 function getRoleScopeText(role: AdminRole) {
@@ -625,7 +635,14 @@ async function loadAuthorizeResources() {
 }
 
 async function openCreate() {
+  if (!canCreateRole()) {
+    message.warning(
+      $t('page.commonSession.roleReadonlyBanner', [sessionTenantLabel.value]),
+    );
+    return;
+  }
   editingId.value = undefined;
+  editingReadonly.value = false;
   resetFormModel();
   if (isTenantSession.value) {
     formModel.type = 'TENANT';
@@ -639,16 +656,13 @@ async function openCreate() {
 }
 
 async function openEdit(record: AdminRole) {
-  if (!canMutateRole(record)) {
-    message.warning($t('page.commonSession.globalRoleEditBlocked'));
-    return;
-  }
   if (!record.id) {
     message.warning($t('page.role.missingId'));
     return;
   }
 
   editingId.value = record.id;
+  editingReadonly.value = !canMutateRole(record);
   Object.assign(formModel, toRoleSaveInput(record));
   editTreeCheckedKeys.value = [...(formModel.permissions ?? [])];
   editTreeSearchValue.value = '';
@@ -858,6 +872,10 @@ function editClearAll() {
 }
 
 async function submitRole() {
+  if (editingReadonly.value) {
+    modalOpen.value = false;
+    return;
+  }
   await formRef.value?.validate();
 
   submitting.value = true;
@@ -866,6 +884,14 @@ async function submitRole() {
       await updateAdminRoleApi(editingId.value, formModel);
       message.success($t('page.role.updateSuccess'));
     } else {
+      if (!canCreateRole()) {
+        message.warning(
+          $t('page.commonSession.roleReadonlyBanner', [
+            sessionTenantLabel.value,
+          ]),
+        );
+        return;
+      }
       await createAdminRoleApi(formModel);
       message.success($t('page.role.createSuccess'));
     }
@@ -879,6 +905,10 @@ async function submitRole() {
 async function submitAuthorize() {
   if (!authorizeRole.value?.id) {
     message.warning($t('page.role.missingId'));
+    return;
+  }
+  if (!canMutateRole(authorizeRole.value)) {
+    message.warning($t('page.commonSession.globalRoleAuthorizeBlocked'));
     return;
   }
 
@@ -905,6 +935,10 @@ async function submitAuthorize() {
 async function handleDelete(record: AdminRole) {
   if (record.isProtected) {
     message.warning($t('page.role.protectedDeleteBlocked'));
+    return;
+  }
+  if (!canMutateRole(record)) {
+    message.warning($t('page.commonSession.globalRoleEditBlocked'));
     return;
   }
   if (!record.id) {
@@ -943,6 +977,7 @@ onMounted(() => {
           <div class="admin-role-tool-prefix__item">
             <Button
               v-access:code="ROLE_ACCESS.create"
+              :disabled="!canCreateRole()"
               type="primary"
               @click="openCreate"
             >
@@ -1004,7 +1039,6 @@ onMounted(() => {
           </Button>
           <Button
             v-access:code="ROLE_ACCESS.edit"
-            :disabled="!canMutateRole(row)"
             size="small"
             type="link"
             @click="openEdit(row)"
@@ -1012,7 +1046,7 @@ onMounted(() => {
             <template #icon>
               <IconifyIcon icon="lucide:pencil" />
             </template>
-            {{ $t('common.edit') }}
+            {{ canMutateRole(row) ? $t('common.edit') : $t('common.detail') }}
           </Button>
           <Popconfirm
             :disabled="row.isProtected"
@@ -1042,6 +1076,7 @@ onMounted(() => {
       v-model:open="modalOpen"
       destroy-on-close
       :confirm-loading="submitting"
+      :ok-button-props="{ disabled: editingReadonly }"
       :title="modalTitle"
       :width="960"
       @ok="submitRole"

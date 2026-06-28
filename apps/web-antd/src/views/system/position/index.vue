@@ -65,6 +65,7 @@ const userStore = useUserStore();
 const isTenantSession = computed(
   () => userStore.userInfo?.sessionScope === 'tenant',
 );
+const currentTenantId = computed(() => userStore.userInfo?.tenantId ?? 0);
 const sessionTenantLabel = computed(
   () => userStore.userInfo?.tenantName || '-',
 );
@@ -100,6 +101,7 @@ const typeTextMap: Record<AdminPositionType, string> = {
 const modalOpen = ref(false);
 const submitting = ref(false);
 const editingId = ref<number>();
+const editingReadonly = ref(false);
 const formRef = ref();
 
 const formModel = reactive<AdminPositionFormModel>({
@@ -121,7 +123,9 @@ const formModel = reactive<AdminPositionFormModel>({
 
 const modalTitle = computed(() =>
   editingId.value
-    ? $t('page.position.editTitle')
+    ? editingReadonly.value
+      ? $t('common.detail')
+      : $t('page.position.editTitle')
     : $t('page.position.createTitle'),
 );
 
@@ -325,6 +329,14 @@ function getPositionTooltipLines(record: AdminPosition) {
   ];
 }
 
+function canMutatePosition(record: AdminPosition) {
+  return (record.tenantId ?? 0) === currentTenantId.value;
+}
+
+function canCreatePosition() {
+  return true;
+}
+
 function toPositionSortField(sortField: string) {
   switch (sortField) {
     case 'createdAt': {
@@ -346,7 +358,16 @@ function toPositionSortField(sortField: string) {
 }
 
 async function openCreateModal() {
+  if (!canCreatePosition()) {
+    message.warning(
+      $t('page.commonSession.positionReadonlyBanner', [
+        sessionTenantLabel.value,
+      ]),
+    );
+    return;
+  }
   editingId.value = undefined;
+  editingReadonly.value = false;
   resetFormModel();
   modalOpen.value = true;
   await nextTick();
@@ -355,6 +376,7 @@ async function openCreateModal() {
 
 async function openEditModal(record: AdminPosition) {
   editingId.value = record.id;
+  editingReadonly.value = !canMutatePosition(record);
   Object.assign(formModel, {
     code: record.code ?? '',
     description: record.description ?? '',
@@ -377,6 +399,10 @@ async function openEditModal(record: AdminPosition) {
 }
 
 async function handleSubmit() {
+  if (editingReadonly.value) {
+    modalOpen.value = false;
+    return;
+  }
   await formRef.value?.validate();
   submitting.value = true;
   try {
@@ -384,6 +410,14 @@ async function handleSubmit() {
       await updateAdminPositionApi(editingId.value, formModel);
       message.success($t('page.position.updateSuccess'));
     } else {
+      if (!canCreatePosition()) {
+        message.warning(
+          $t('page.commonSession.positionReadonlyBanner', [
+            sessionTenantLabel.value,
+          ]),
+        );
+        return;
+      }
       await createAdminPositionApi(formModel);
       message.success($t('page.position.createSuccess'));
     }
@@ -395,6 +429,14 @@ async function handleSubmit() {
 }
 
 async function handleDelete(record: AdminPosition) {
+  if (!canMutatePosition(record)) {
+    message.warning(
+      $t('page.commonSession.positionReadonlyBanner', [
+        sessionTenantLabel.value,
+      ]),
+    );
+    return;
+  }
   if (!record.id) {
     return;
   }
@@ -427,6 +469,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminPosition>({
           <div class="admin-position-tool-prefix__item">
             <Button
               v-access:code="POSITION_ACCESS.create"
+              :disabled="!canCreatePosition()"
               type="primary"
               @click="openCreateModal"
             >
@@ -480,7 +523,9 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminPosition>({
             type="link"
             @click="openEditModal(row)"
           >
-            {{ $t('common.edit') }}
+            {{
+              canMutatePosition(row) ? $t('common.edit') : $t('common.detail')
+            }}
           </Button>
           <Popconfirm
             v-access:code="POSITION_ACCESS.delete"
@@ -491,7 +536,12 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminPosition>({
             "
             @confirm="handleDelete(row)"
           >
-            <Button danger size="small" type="link">
+            <Button
+              danger
+              :disabled="!canMutatePosition(row)"
+              size="small"
+              type="link"
+            >
               {{ $t('common.delete') }}
             </Button>
           </Popconfirm>
@@ -502,6 +552,7 @@ const [Grid, gridApi] = useVbenVxeGrid<AdminPosition>({
     <Modal
       v-model:open="modalOpen"
       :confirm-loading="submitting"
+      :ok-button-props="{ disabled: editingReadonly }"
       :title="modalTitle"
       destroy-on-close
       width="720px"
