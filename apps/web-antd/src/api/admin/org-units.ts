@@ -15,6 +15,7 @@ export type AdminOrgUnitType = NonNullable<AdminOrgUnit['type']>;
 export interface AdminOrgUnitListParams {
   code?: string;
   name?: string;
+  tenantId?: number;
   page?: number;
   pageSize?: number;
   sorting?: AdminSorting[];
@@ -108,6 +109,7 @@ export async function listAdminOrgUnitsApi(
       conditions: [
         { field: 'name', op: 'CONTAINS', value: cleanText(params.name) },
         { field: 'code', op: 'CONTAINS', value: cleanText(params.code) },
+        { field: 'tenant_id', op: 'EQ', value: params.tenantId },
       ],
       page: params.page,
       pageSize: params.pageSize ?? 100,

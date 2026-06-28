@@ -22,6 +22,7 @@ export interface AdminUserListParams {
   sorting?: AdminSorting[];
   status?: AdminUserStatus;
   telephone?: string;
+  tenantId?: number;
   username?: string;
 }
 
@@ -122,6 +123,11 @@ export async function listAdminUsersApi(
           field: 'status',
           op: 'EQ',
           value: params.status,
+        },
+        {
+          field: 'tenant_id',
+          op: 'EQ',
+          value: params.tenantId,
         },
       ],
       page: params.page,

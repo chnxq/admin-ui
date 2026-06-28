@@ -15,6 +15,7 @@ export type AdminRoleType = NonNullable<permissionservicev1_Role['type']>;
 export interface AdminRoleListParams {
   code?: string;
   name?: string;
+  tenantId?: number;
   page?: number;
   pageSize?: number;
   sorting?: AdminSorting[];
@@ -68,6 +69,11 @@ export async function listAdminRolesApi(
           field: 'code',
           op: 'CONTAINS',
           value: cleanText(params.code),
+        },
+        {
+          field: 'tenant_id',
+          op: 'EQ',
+          value: params.tenantId,
         },
       ],
       page: params.page,

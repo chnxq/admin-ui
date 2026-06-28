@@ -610,6 +610,10 @@ function canMutateUser(record: AdminUser) {
 }
 
 async function loadReferenceOptions() {
+  return await loadReferenceOptionsForTenant();
+}
+
+async function loadReferenceOptionsForTenant(tenantId?: number) {
   optionLoading.value = true;
   try {
     const [orgResult, positionResult, roleResult] = await Promise.all([
@@ -617,16 +621,19 @@ async function loadReferenceOptions() {
         page: 1,
         pageSize: 200,
         sorting: [{ direction: 'ASC', field: 'sort_order' }],
+        tenantId,
       }),
       listAdminPositionsApi({
         page: 1,
         pageSize: 200,
         sorting: [{ direction: 'ASC', field: 'sort_order' }],
+        tenantId,
       }),
       listAdminRolesApi({
         page: 1,
         pageSize: 200,
         sorting: [{ direction: 'ASC', field: 'sort_order' }],
+        tenantId,
       }),
     ]);
     orgOptions.value = orgResult.items;
@@ -641,6 +648,7 @@ async function openCreate() {
   editingId.value = undefined;
   editingReadonly.value = false;
   resetFormModel();
+  await loadReferenceOptionsForTenant(currentTenantId.value || undefined);
   modalOpen.value = true;
   await nextTick();
   formRef.value?.clearValidate();
@@ -655,6 +663,7 @@ async function openEdit(record: AdminUser) {
   optionLoading.value = true;
   try {
     const detail = await getAdminUserApi(record.id);
+    await loadReferenceOptionsForTenant(detail.tenantId ?? undefined);
     editingId.value = record.id;
     editingReadonly.value = !canMutateUser(record);
     Object.assign(formModel, {
